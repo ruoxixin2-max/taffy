@@ -48,28 +48,10 @@
           0 0 0 5px #222,
           0 0 80px rgba(100, 100, 255, 0.15),
           0 30px 80px rgba(0, 0, 0, 0.6);
+        border: 8px solid #222;
       }
       .notch {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 126px;
-        height: 34px;
-        background: #000;
-        border-radius: 0 0 18px 18px;
-        z-index: 1000;
-      }
-      .notch::before {
-        content: '';
-        position: absolute;
-        top: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 60px;
-        height: 6px;
-        background: #1a1a1a;
-        border-radius: 3px;
+        display: none;
       }
       .status-bar {
         position: absolute;
@@ -3148,7 +3130,6 @@
   </head>
   <body>
     <div class="phone" id="phone">
-      <div class="notch"></div>
       <div class="status-bar" id="statusBar">
         <span class="time" id="statusTime">9:41</span><span class="icons"><span>📶</span><span>🔋</span></span>
       </div>
