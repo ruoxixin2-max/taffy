@@ -19,20 +19,22 @@
       }
       body {
         font-family:
-          'CustomFont',
+          'Inter',
           -apple-system,
           BlinkMacSystemFont,
-          'Segoe UI',
+          'SF Pro Text',
           'PingFang SC',
           'Hiragino Sans GB',
           'Microsoft YaHei',
           sans-serif;
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        background: #1a1a1a;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
         overflow: hidden;
+        letter-spacing: -0.015em;
+        color: #1d1d1f;
       }
       .phone {
         width: 375px;
@@ -242,19 +244,29 @@
         position: relative;
         z-index: 1;
         width: calc(100% - 48px);
-        margin: 6px 0 16px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(16px);
-        border-radius: 12px;
-        padding: 8px 14px;
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.7);
+        margin: 10px 0 20px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 24px;
+        padding: 10px 16px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
         text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: none;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
       }
-      .home-search::before {
-        content: '🔍 ';
+      .home-search svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        fill: none;
       }
       .widget-area {
         position: relative;
@@ -272,18 +284,33 @@
         display: none;
       }
       .widget-card {
-        border-radius: 18px;
-        padding: 14px 16px;
+        border-radius: 32px;
+        padding: 20px;
         position: relative;
         overflow: hidden;
-        background: rgba(255, 255, 255, 0.72);
-        backdrop-filter: blur(20px);
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         transition:
-          transform 0.15s,
-          box-shadow 0.2s;
+          transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+          box-shadow 0.3s;
         cursor: grab;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: none;
+        color: #fff;
+      }
+      .widget-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 32px;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
       }
       .widget-card:active {
         cursor: grabbing;
@@ -312,8 +339,8 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: rgba(255, 255, 255, 0.45);
-        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        border-radius: 28px;
       }
       .widget-card .widget-content {
         position: relative;
@@ -406,18 +433,23 @@
         transform: scale(0.88);
       }
       .icon-box {
-        width: 56px;
-        height: 56px;
-        border-radius: 13px;
+        width: 62px;
+        height: 62px;
+        border-radius: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 26px;
-        transition: transform 0.12s;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        font-size: 30px;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
         overflow: hidden;
-        background: #eee;
+        background: rgba(255, 255, 255, 0.9);
         position: relative;
+        border: none;
+      }
+      .icon-box:hover {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
       }
       .icon-box::after {
         content: '';
@@ -449,16 +481,32 @@
       }
       .home-dock {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        bottom: 24px;
+        left: 20px;
+        right: 20px;
         z-index: 2;
-        padding: 10px 36px 30px;
+        padding: 18px 24px;
         display: flex;
         justify-content: space-around;
         background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(50px);
+        -webkit-backdrop-filter: blur(50px);
+        border-radius: 36px;
+        border: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      }
+      .home-dock::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 36px;
+        padding: 1px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
       }
       .dock-icon {
         display: flex;
@@ -495,18 +543,30 @@
         flex-shrink: 0;
       }
       .app-header .back-btn {
-        font-size: 26px;
+        font-size: 20px;
         cursor: pointer;
-        padding: 0 6px;
+        padding: 8px;
         display: flex;
         align-items: center;
-        gap: 3px;
-        font-weight: 300;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05);
         -webkit-tap-highlight-color: transparent;
         z-index: 1;
+        transition: background 0.2s;
+      }
+      .app-header .back-btn:active {
+        background: rgba(0,0,0,0.1);
       }
       .app-header .back-btn span {
-        font-size: 15px;
+        display: none;
+      }
+      .app-header .back-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        fill: none;
       }
       .app-header .header-title {
         position: absolute;
@@ -590,13 +650,21 @@
       .contact-item {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(8px);
-        border-bottom: 0.5px solid rgba(229, 229, 234, 0.5);
+        padding: 14px 16px;
+        margin: 0 16px 10px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
         cursor: pointer;
-        gap: 12px;
-        transition: background 0.12s;
+        gap: 14px;
+        transition: transform 0.15s, background 0.15s;
+        border: 1px solid rgba(255,255,255,0.4);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      }
+      .contact-item:active {
+        transform: scale(0.98);
+        background: rgba(255, 255, 255, 0.9);
       }
       .contact-item:active {
         background: rgba(220, 220, 220, 0.88);
@@ -940,40 +1008,28 @@
         margin-left: 8px;
       }
       .bubble {
-        max-width: 68%;
-        padding: 9px 12px;
-        border-radius: 4px;
-        font-size: 14px;
+        max-width: 72%;
+        padding: 10px 14px;
+        border-radius: 18px;
+        font-size: 15px;
         line-height: 1.5;
         word-break: break-word;
         position: relative;
         white-space: pre-wrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       }
       .message-row.ai .bubble {
-        background: rgba(255, 255, 255, 0.95);
-        color: #000;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        background: #fff;
+        color: #1d1d1f;
+        border-top-left-radius: 4px;
       }
-      .message-row.ai .bubble::before {
-        content: '';
-        position: absolute;
-        left: -7px;
-        top: 10px;
-        border: 4px solid transparent;
-        border-right-color: rgba(255, 255, 255, 0.95);
-      }
+      .message-row.ai .bubble::before { display: none; }
       .message-row.user .bubble {
-        background: #ffb6c1;
-        color: #000;
+        background: #007aff;
+        color: #fff;
+        border-top-right-radius: 4px;
       }
-      .message-row.user .bubble::after {
-        content: '';
-        position: absolute;
-        right: -7px;
-        top: 10px;
-        border: 4px solid transparent;
-        border-left-color: #ffb6c1;
-      }
+      .message-row.user .bubble::after { display: none; }
       .typing-indicator {
         display: flex;
         align-items: center;
@@ -1009,46 +1065,52 @@
         }
       }
       .input-bar {
-        background: rgba(247, 247, 247, 0.95);
-        backdrop-filter: blur(8px);
-        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 10px 16px 20px;
         display: flex;
         align-items: flex-end;
-        gap: 8px;
-        border-top: 0.5px solid #d6d6d6;
+        gap: 10px;
+        border-top: none;
         flex-shrink: 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.02);
       }
       .input-bar textarea {
         flex: 1;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 7px 10px;
-        font-size: 14px;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 16px;
+        font-size: 15px;
         line-height: 1.4;
         resize: none;
         outline: none;
         max-height: 100px;
-        min-height: 34px;
+        min-height: 40px;
         font-family: inherit;
+        background: #f2f2f7;
+        transition: background 0.2s;
+      }
+      .input-bar textarea:focus {
         background: #fff;
+        box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
       }
       .input-bar textarea:focus {
         border-color: #07c160;
       }
       .send-btn {
-        background: linear-gradient(135deg, #ff8fa3, #e891a8);
+        background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 18px;
-        padding: 7px 16px;
-        font-size: 14px;
+        border-radius: 20px;
+        padding: 0 20px;
+        font-size: 15px;
+        font-weight: 600;
         cursor: pointer;
         flex-shrink: 0;
-        height: 34px;
-        box-shadow: 0 2px 6px rgba(255, 143, 163, 0.3);
-        transition:
-          transform 0.15s,
-          box-shadow 0.15s;
+        height: 40px;
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        transition: transform 0.15s, box-shadow 0.15s;
       }
       .send-btn:hover {
         transform: scale(1.03);
@@ -1279,18 +1341,27 @@
         margin: 10px 0;
       }
       .weibo-screen {
-        background: #f5f5f5;
+        background: url('https://i.postimg.cc/sDbbLQXw/IMG-1715.jpg') center/cover no-repeat fixed;
         display: flex;
         flex-direction: column;
         z-index: 60;
         transform: translateX(100%);
       }
+      .weibo-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        z-index: -1;
+      }
       .weibo-screen.active {
         transform: translateX(0);
       }
       .weibo-screen .app-header {
-        background: #fff;
-        border-bottom: 0.5px solid #e0e0e0;
+        background: transparent;
+        border-bottom: none;
       }
       .weibo-screen .app-header .header-title {
         color: #e6162d;
@@ -1304,43 +1375,42 @@
       }
       .weibo-tabs {
         display: flex;
-        background: #fff;
-        border-bottom: 1px solid #eee;
+        background: transparent;
+        border-bottom: none;
         flex-shrink: 0;
+        padding: 0 16px;
+        gap: 16px;
       }
       .weibo-tab {
-        flex: 1;
         text-align: center;
-        padding: 10px 0;
-        font-size: 14px;
+        padding: 8px 16px;
+        font-size: 15px;
         color: #666;
         cursor: pointer;
         position: relative;
-        transition: color 0.2s;
+        transition: all 0.2s;
+        border-radius: 20px;
       }
       .weibo-tab.active {
-        color: #e6162d;
+        color: #fff;
         font-weight: 600;
-      }
-      .weibo-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 24px;
-        height: 3px;
         background: #e6162d;
-        border-radius: 2px;
+        box-shadow: 0 4px 12px rgba(230, 22, 45, 0.3);
       }
       .weibo-body {
         flex: 1;
         overflow-y: auto;
+        padding-top: 16px;
       }
       .weibo-post {
-        background: #fff;
-        margin-bottom: 8px;
-        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        margin: 0 16px 16px;
+        border-radius: 24px;
+        padding: 16px 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        border: 1px solid rgba(255,255,255,0.5);
       }
       .weibo-post-header {
         display: flex;
@@ -1391,8 +1461,8 @@
       .weibo-post-actions {
         display: flex;
         justify-content: space-around;
-        padding-top: 10px;
-        border-top: 1px solid #f0f0f0;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0,0,0,0.05);
       }
       .weibo-action {
         display: flex;
@@ -1471,8 +1541,7 @@
         display: flex;
         justify-content: center;
         padding: 10px;
-        background: #fff;
-        border-bottom: 1px solid #eee;
+        background: transparent;
         flex-shrink: 0;
       }
       .weibo-refresh-btn {
@@ -1492,18 +1561,27 @@
         background: #c9122a;
       }
       .settings-screen {
-        background: #f2f2f7;
+        background: url('https://i.postimg.cc/sDbbLQXw/IMG-1715.jpg') center/cover no-repeat fixed;
         display: flex;
         flex-direction: column;
         z-index: 60;
         transform: translateX(100%);
       }
+      .settings-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(242, 242, 247, 0.6);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        z-index: -1;
+      }
       .settings-screen.active {
         transform: translateX(0);
       }
       .settings-screen .app-header {
-        background: #f2f2f7;
-        border-bottom: 0.5px solid #c6c6c8;
+        background: transparent;
+        border-bottom: none;
       }
       .settings-screen .app-header .header-title {
         color: #000;
@@ -1525,19 +1603,22 @@
         letter-spacing: 0.5px;
       }
       .settings-card {
-        background: #fff;
-        border-radius: 10px;
-        overflow: hidden;
+        background: transparent;
+        border-radius: 0;
+        overflow: visible;
       }
       .settings-item {
-        padding: 12px 16px;
-        border-bottom: 0.5px solid #e5e5ea;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 24px;
         display: flex;
         flex-direction: column;
-        gap: 6px;
-      }
-      .settings-item:last-child {
-        border-bottom: none;
+        gap: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        border: 1px solid rgba(255,255,255,0.6);
       }
       .settings-item label {
         font-size: 15px;
@@ -1567,15 +1648,21 @@
       .save-btn {
         display: block;
         width: 100%;
-        padding: 14px;
+        padding: 16px;
         background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 10px;
+        border-radius: 20px;
         font-size: 16px;
-        font-weight: 500;
+        font-weight: 600;
         cursor: pointer;
         margin-top: 16px;
+        box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .save-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
       }
       .save-btn:active {
         background: #005ec4;
@@ -2729,18 +2816,27 @@
 
       /* Calendar App */
       .calendar-app-screen {
-        background: #f2f2f7;
+        background: url('https://i.postimg.cc/sDbbLQXw/IMG-1715.jpg') center/cover no-repeat fixed;
         display: flex;
         flex-direction: column;
         z-index: 60;
         transform: translateX(100%);
       }
+      .calendar-app-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(242, 242, 247, 0.7);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        z-index: -1;
+      }
       .calendar-app-screen.active {
         transform: translateX(0);
       }
       .calendar-app-screen .app-header {
-        background: #fff;
-        border-bottom: 0.5px solid #e0e0e0;
+        background: transparent;
+        border-bottom: none;
       }
       .calendar-app-screen .app-header .header-title {
         color: #ff3b30;
@@ -2768,11 +2864,14 @@
       .cal-app-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 2px;
-        background: #fff;
-        border-radius: 12px;
-        padding: 10px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255,255,255,0.5);
       }
       .cal-app-grid .cal-hd {
         text-align: center;
@@ -2826,14 +2925,17 @@
         margin-bottom: 8px;
       }
       .cal-ev-item {
-        background: #fff;
-        border-radius: 10px;
-        padding: 10px 14px;
-        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        gap: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(255,255,255,0.5);
       }
       .cal-ev-icon {
         font-size: 24px;
@@ -2860,19 +2962,27 @@
 
       /* Anniversary App */
       .anniversary-screen {
-        background: linear-gradient(180deg, #fff5f7, #f2f2f7);
+        background: url('https://i.postimg.cc/sDbbLQXw/IMG-1715.jpg') center/cover no-repeat fixed;
         display: flex;
         flex-direction: column;
         z-index: 60;
         transform: translateX(100%);
       }
+      .anniversary-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 245, 247, 0.6);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        z-index: -1;
+      }
       .anniversary-screen.active {
         transform: translateX(0);
       }
       .anniversary-screen .app-header {
-        background: rgba(255, 245, 247, 0.92);
-        backdrop-filter: blur(14px);
-        border-bottom: 0.5px solid #f0d0d8;
+        background: transparent;
+        border-bottom: none;
       }
       .anniversary-screen .app-header .header-title {
         color: #e91e63;
@@ -2889,13 +2999,16 @@
         padding: 16px;
       }
       .anniv-card {
-        background: #fff;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 10px rgba(233, 30, 99, 0.08);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 8px 24px rgba(233, 30, 99, 0.08);
         position: relative;
         overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.6);
       }
       .anniv-card::before {
         content: '';
@@ -2954,6 +3067,83 @@
         font-size: 48px;
         margin-bottom: 12px;
       }
+
+      /* ======= MUSIC APP ======= */
+      .music-app-screen {
+        background: linear-gradient(180deg, #1a1a2e, #16213e, #0f3460);
+        display: flex;
+        flex-direction: column;
+        z-index: 60;
+        transform: translateX(100%);
+        color: #fff;
+      }
+      .music-app-screen.active { transform: translateX(0); }
+      .music-app-screen .app-header { background: transparent; border: none; }
+      .music-app-screen .app-header .header-title { color: #fff; }
+      .music-app-screen .app-header .back-btn { color: #e94560; }
+      .music-app-screen .app-header .header-actions span { color: #e94560; }
+      .music-app-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 0 20px 30px; }
+      .music-album-art { width: 220px; height: 220px; border-radius: 50%; background: linear-gradient(135deg, #e94560, #533483); display: flex; align-items: center; justify-content: center; font-size: 64px; margin: 20px 0; box-shadow: 0 8px 40px rgba(233,69,96,0.3); overflow: hidden; animation: musicAppSpin 8s linear infinite; }
+      .music-album-art.paused { animation-play-state: paused; }
+      .music-album-art img { width: 100%; height: 100%; object-fit: cover; }
+      @keyframes musicAppSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .music-app-title { font-size: 20px; font-weight: 700; margin-top: 16px; text-align: center; }
+      .music-app-artist { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+      .music-app-progress { width: 100%; margin: 20px 0 8px; }
+      .music-app-progress-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; cursor: pointer; }
+      .music-app-progress-fill { height: 100%; background: linear-gradient(90deg, #e94560, #f5a623); border-radius: 2px; transition: width 0.3s; }
+      .music-app-times { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+      .music-app-controls { display: flex; align-items: center; gap: 28px; margin: 16px 0; }
+      .music-app-controls .ctrl-btn { font-size: 24px; cursor: pointer; opacity: 0.7; transition: opacity 0.15s; }
+      .music-app-controls .ctrl-btn:hover { opacity: 1; }
+      .music-app-controls .ctrl-play { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #e94560, #f5a623); display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; box-shadow: 0 4px 20px rgba(233,69,96,0.4); }
+      .music-app-playlist { width: 100%; margin-top: 20px; }
+      .music-app-playlist-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+      .music-pl-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s; }
+      .music-pl-item:hover { background: rgba(255,255,255,0.12); }
+      .music-pl-item.active { background: rgba(233,69,96,0.2); border: 1px solid rgba(233,69,96,0.3); }
+      .music-pl-item .pl-cover { width: 36px; height: 36px; border-radius: 6px; background: linear-gradient(135deg, #533483, #e94560); display: flex; align-items: center; justify-content: center; font-size: 16px; overflow: hidden; flex-shrink: 0; }
+      .music-pl-item .pl-cover img { width: 100%; height: 100%; object-fit: cover; }
+      .music-pl-item .pl-info { flex: 1; min-width: 0; }
+      .music-pl-item .pl-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .music-pl-item .pl-artist { font-size: 11px; color: rgba(255,255,255,0.4); }
+      .music-pl-item .pl-delete { font-size: 14px; color: rgba(255,255,255,0.3); cursor: pointer; padding: 4px; }
+      .music-pl-item .pl-delete:hover { color: #e94560; }
+      .music-add-form { width: 100%; background: rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+      .music-add-form input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #fff; outline: none; font-family: inherit; }
+      .music-add-form input::placeholder { color: rgba(255,255,255,0.3); }
+      .music-add-form input:focus { border-color: #e94560; }
+      .music-add-form .music-add-row { display: flex; gap: 6px; }
+      .music-add-form .music-add-btn { background: linear-gradient(135deg, #e94560, #f5a623); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+
+      /* ======= SHOPPING MALL ======= */
+      .shop-screen { background: url('https://i.postimg.cc/sDbbLQXw/IMG-1715.jpg') center/cover no-repeat fixed; display: flex; flex-direction: column; z-index: 60; transform: translateX(100%); }
+      .shop-screen::before { content: ''; position: absolute; inset: 0; background: rgba(255, 245, 247, 0.6); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); z-index: -1; }
+      .shop-screen.active { transform: translateX(0); }
+      .shop-screen .app-header { background: transparent; border-bottom: none; }
+      .shop-screen .app-header .header-title { color: #e91e63; }
+      .shop-screen .app-header .back-btn { color: #e91e63; }
+      .shop-balance { text-align: center; padding: 16px; background: linear-gradient(135deg, #ff6b9d, #e91e63); margin: 12px 16px; border-radius: 16px; color: #fff; box-shadow: 0 4px 16px rgba(233,30,99,0.3); }
+      .shop-balance .bal-label { font-size: 12px; opacity: 0.8; }
+      .shop-balance .bal-amount { font-size: 32px; font-weight: 800; margin: 4px 0; }
+      .shop-balance .bal-recharge { background: rgba(255,255,255,0.25); border: none; border-radius: 20px; padding: 6px 20px; font-size: 12px; color: #fff; cursor: pointer; }
+      .shop-body { flex: 1; overflow-y: auto; padding: 0 16px 30px; }
+      .shop-section-title { font-size: 15px; font-weight: 600; color: #e91e63; margin: 16px 0 10px; }
+      .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .shop-item { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 8px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: 1px solid rgba(255,255,255,0.6); }
+      .shop-item:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+      .shop-item:active { transform: scale(0.96); }
+      .shop-item .shop-icon { font-size: 32px; margin-bottom: 6px; }
+      .shop-item .shop-name { font-size: 12px; color: #333; font-weight: 500; }
+      .shop-item .shop-price { font-size: 11px; color: #e91e63; font-weight: 600; margin-top: 4px; }
+      /* Gift message in chat */
+      .msg-gift { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 16px; width: 200px; text-align: center; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 8px 24px rgba(233,30,99,0.1); }
+      .msg-gift .gift-icon { font-size: 48px; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
+      .msg-gift .gift-text { font-size: 14px; color: #e91e63; font-weight: 600; }
+      .msg-gift .gift-note { font-size: 11px; color: #999; margin-top: 6px; }
+      /* Image message */
+      .msg-image { max-width: 200px; border-radius: 16px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      .msg-image img { width: 100%; display: block; border-radius: 16px; }
     </style>
   </head>
   <body>
@@ -2999,6 +3189,10 @@
       </div>
 
       <div class="screen home-screen hidden" id="homeScreen">
+        <div class="home-search" onclick="showToast('搜索功能开发中')">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          搜索
+        </div>
         <div class="home-pages" id="homePages">
           <div class="home-page" id="homePage0"></div>
           <div class="home-page" id="homePage1"></div>
@@ -3026,11 +3220,13 @@
 
       <div class="screen contacts-screen" id="contactsScreen">
         <div class="app-header">
-          <div class="back-btn" onclick="closeContacts()">‹<span>返回</span></div>
+          <div class="back-btn" onclick="closeContacts()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
           <div class="header-title">信息</div>
           <div class="header-actions">
-            <span onclick="openImportCard()" title="导入角色卡">📥</span
-            ><span onclick="openNewContact()" title="新建联系人">＋</span>
+            <span onclick="openImportCard()" title="导入角色卡" style="font-size: 20px;">📥</span
+            ><span onclick="openNewContact()" title="新建联系人" style="font-size: 24px;">＋</span>
           </div>
         </div>
         <div class="contacts-body" id="contactsBody"></div>
@@ -3073,7 +3269,9 @@
 
       <div class="screen chat-screen" id="chatScreen">
         <div class="app-header">
-          <div class="back-btn" onclick="closeChat()">‹<span>返回</span></div>
+          <div class="back-btn" onclick="closeChat()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
           <div class="header-title" id="chatTitle" onclick="editCurrentContact()">AI助手</div>
           <div class="header-actions"><span onclick="toggleChatMenu()" id="chatMenuBtn" style="font-size:24px;cursor:pointer;">⋯</span></div>
         </div>
@@ -3087,6 +3285,8 @@
         <div class="input-extras">
           <div class="extra-btn" onclick="openTransferModal()">💰 转账</div>
           <div class="extra-btn" onclick="openRedPacketModal()">🧧 红包</div>
+          <div class="extra-btn" onclick="openShopForGift()">🎁 礼物</div>
+          <div class="extra-btn" onclick="pickChatImage()">🖼️ 图片</div>
         </div>
         <div class="input-bar">
           <textarea id="userInput" rows="1" placeholder="输入消息…"></textarea>
@@ -3157,6 +3357,31 @@
                   </div>
                   <div class="hint">点击头像更换</div>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">人设面具</div>
+            <div class="settings-card">
+              <div class="settings-item">
+                <label>角色人设 (Persona)</label>
+                <textarea
+                  id="settingPersona"
+                  style="
+                    border: 1px solid #e5e5ea;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    font-size: 13px;
+                    outline: none;
+                    background: #f9f9f9;
+                    width: 100%;
+                    font-family: inherit;
+                    resize: vertical;
+                    min-height: 80px;
+                  "
+                  placeholder="描述你扮演的角色，例如：我是一个18岁的大学生，性格开朗，喜欢音乐和旅行…"
+                ></textarea>
+                <div class="hint">人设信息会作为系统提示词注入，让 AI 了解"你是谁"，从而更好地与你互动</div>
               </div>
             </div>
           </div>
@@ -3398,6 +3623,48 @@
         <div class="anniv-body" id="annivBody"></div>
       </div>
 
+      <!-- Music App Screen -->
+      <div class="screen music-app-screen" id="musicAppScreen">
+        <div class="app-header">
+          <div class="back-btn" onclick="closeMusicApp()">‹<span>返回</span></div>
+          <div class="header-title">音乐</div>
+          <div class="header-actions"><span onclick="toggleMusicAddForm()" title="添加歌曲">＋</span></div>
+        </div>
+        <div class="music-app-body" id="musicAppBody">
+          <div class="music-album-art paused" id="musicAlbumArt">🎵</div>
+          <div class="music-app-title" id="musicAppSongTitle">未播放</div>
+          <div class="music-app-artist" id="musicAppArtist">-</div>
+          <div class="music-app-progress"><div class="music-app-progress-bar" id="musicAppProgressBar" onclick="seekMusic(event)"><div class="music-app-progress-fill" id="musicAppProgressFill"></div></div><div class="music-app-times"><span id="musicAppCurTime">0:00</span><span id="musicAppDurTime">0:00</span></div></div>
+          <div class="music-app-controls">
+            <div class="ctrl-btn" onclick="musicPrev()">⏮️</div>
+            <div class="ctrl-play" id="musicAppPlayBtn" onclick="musicTogglePlay()">▶️</div>
+            <div class="ctrl-btn" onclick="musicNext()">⏭️</div>
+          </div>
+          <div class="music-app-playlist" id="musicAppPlaylist"></div>
+          <div class="music-add-form" id="musicAddForm" style="display:none">
+            <input type="text" id="musicAddUrl" placeholder="音频链接 (mp3/ogg/wav URL)">
+            <input type="text" id="musicAddName" placeholder="歌曲名称">
+            <input type="text" id="musicAddArtist" placeholder="歌手 (选填)">
+            <input type="text" id="musicAddCover" placeholder="封面图片链接 (选填)">
+            <div class="music-add-row"><button class="music-add-btn" onclick="musicAddSong()">添加到播放列表</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shopping Mall Screen -->
+      <div class="screen shop-screen" id="shopScreen">
+        <div class="app-header">
+          <div class="back-btn" onclick="closeShop()">‹<span>返回</span></div>
+          <div class="header-title">🎁 礼物商城</div>
+        </div>
+        <div class="shop-balance">
+          <div class="bal-label">我的余额</div>
+          <div class="bal-amount" id="shopBalanceAmount">1000</div>
+          <button class="bal-recharge" onclick="shopRecharge()">充值</button>
+        </div>
+        <div class="shop-body" id="shopBody"></div>
+      </div>
+
       <!-- Add/Edit Anniversary Modal -->
       <div class="modal-overlay" id="annivModal">
         <div class="modal-box">
@@ -3533,6 +3800,7 @@
         </div>
       </div>
 
+      <input type="file" id="chatImageInput" accept="image/*" style="display: none" />
       <input type="file" id="avatarFileInput" accept="image/*" style="display: none" />
       <input type="file" id="pngCardInput" accept=".png" style="display: none" />
       <input type="file" id="chatBgFileInput" accept="image/*" style="display: none" />
@@ -3568,6 +3836,7 @@
         temperature: 0.7,
         userName: '我',
         userAvatar: '',
+        persona: '',
         worldbook: '',
         jailbreak: '',
       };
@@ -3698,6 +3967,9 @@
       const calendarAppScreen = document.getElementById('calendarAppScreen');
       const anniversaryScreen = document.getElementById('anniversaryScreen');
 
+      const musicAppScreen = document.getElementById('musicAppScreen');
+      const shopScreen = document.getElementById('shopScreen');
+
       const allScreens = {
         lock: lockScreen,
         home: homeScreen,
@@ -3708,6 +3980,8 @@
         weibo: weiboScreen,
         calendarApp: calendarAppScreen,
         anniversary: anniversaryScreen,
+        musicApp: musicAppScreen,
+        shop: shopScreen,
       };
 
       function updateTime() {
@@ -3862,6 +4136,7 @@
         document.getElementById('settingModel').value = settings.model;
         document.getElementById('settingTemperature').value = settings.temperature;
         document.getElementById('settingUserName').value = settings.userName || '我';
+        document.getElementById('settingPersona').value = settings.persona || '';
         document.getElementById('settingWorldbook').value = settings.worldbook || '';
         document.getElementById('settingJailbreak').value = settings.jailbreak || '';
         const uap = document.getElementById('userAvatarPreview');
@@ -4019,6 +4294,7 @@
         settings.temperature =
           parseFloat(document.getElementById('settingTemperature').value) || defaultSettings.temperature;
         settings.userName = document.getElementById('settingUserName').value.trim() || '我';
+        settings.persona = document.getElementById('settingPersona').value;
         settings.worldbook = document.getElementById('settingWorldbook').value;
         settings.jailbreak = document.getElementById('settingJailbreak').value;
         storeSettings(settings);
@@ -4113,7 +4389,7 @@
         swipeTarget = null;
       function getSwipeScreen() {
         const s = getActiveScreen();
-        return ['contacts', 'newContact', 'chat', 'settings', 'weibo', 'calendarApp', 'anniversary'].includes(s)
+        return ['contacts', 'newContact', 'chat', 'settings', 'weibo', 'calendarApp', 'anniversary', 'musicApp', 'shop'].includes(s)
           ? allScreens[s]
           : null;
       }
@@ -4151,6 +4427,8 @@
           else if (s === 'weibo') closeWeibo();
           else if (s === 'calendarApp') closeCalendarApp();
           else if (s === 'anniversary') closeAnniversaryApp();
+          else if (s === 'musicApp') closeMusicApp();
+          else if (s === 'shop') closeShop();
         } else {
           swipeTarget.style.transform = 'translateX(0)';
         }
@@ -4197,8 +4475,10 @@
             else if (s === 'contacts') closeContacts();
             else if (s === 'settings') closeSettings();
             else if (s === 'weibo') closeWeibo();
-            else if (s === 'calendarApp') closeCalendarApp();
-            else if (s === 'anniversary') closeAnniversaryApp();
+          else if (s === 'calendarApp') closeCalendarApp();
+          else if (s === 'anniversary') closeAnniversaryApp();
+          else if (s === 'musicApp') closeMusicApp();
+          else if (s === 'shop') closeShop();
           } else {
             swipeTarget.style.transform = 'translateX(0)';
           }
@@ -4663,6 +4943,14 @@
           if (!opened && typeof msgIndex === 'number') {
             bubble.onclick = () => openRedPacketMsg(msgIndex);
           }
+        } else if (content.startsWith('__image__')) {
+          const imgUrl = content.replace('__image__', '');
+          bubble.className = 'msg-image';
+          bubble.innerHTML = `<img src="${imgUrl}">`;
+        } else if (content.startsWith('__gift__')) {
+          const data = JSON.parse(content.replace('__gift__', ''));
+          bubble.className = 'msg-gift';
+          bubble.innerHTML = `<div class="gift-icon">${data.icon}</div><div class="gift-text">送你一个${esc(data.name)}</div><div class="gift-note">礼物</div>`;
         } else {
           bubble.textContent = content;
         }
@@ -4897,9 +5185,21 @@
         try {
           const messages = [];
           if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt });
+          if (settings.persona && settings.persona.trim())
+            messages.push({ role: 'system', content: `[用户人设信息]\n${settings.persona.trim()}` });
           if (settings.worldbook && settings.worldbook.trim())
             messages.push({ role: 'system', content: settings.worldbook.trim() });
-          contact.messages.forEach(m => messages.push({ role: m.role, content: m.content }));
+          contact.messages.forEach(m => {
+            if (m.content.startsWith('__image__')) {
+              const imgUrl = m.content.replace('__image__', '');
+              messages.push({ role: m.role, content: [{ type: 'image_url', image_url: { url: imgUrl } }, { type: 'text', text: '(用户发送了一张图片，请描述并回应)' }] });
+            } else if (m.content.startsWith('__gift__')) {
+              const gd = JSON.parse(m.content.replace('__gift__', ''));
+              messages.push({ role: m.role, content: `(用户送了你一个礼物：${gd.name} ${gd.icon})` });
+            } else if (!m.content.startsWith('__transfer__') && !m.content.startsWith('__redpacket__')) {
+              messages.push({ role: m.role, content: m.content });
+            }
+          });
           if (settings.jailbreak && settings.jailbreak.trim())
             messages.push({ role: 'system', content: settings.jailbreak.trim() });
           const headers = { 'Content-Type': 'application/json' };
@@ -5152,7 +5452,14 @@
           const allPosters = [...charNames, ...npcNames.slice(0, 3)];
           const posterList = allPosters.join('、');
 
+          // Build persona context for character-aware weibo generation
+          const charContext = contacts.map(c => `${c.name}: ${(c.systemPrompt || '').slice(0, 100)}`).join('\n');
+
           const prompt = `你是一个微博内容生成器。请为以下角色各生成1条微博动态，角色列表：${posterList}。
+
+以下是每个角色的人设简介，请确保微博内容符合角色性格：
+${charContext}
+
 要求：
 1. 每条微博50-120字，风格各异，贴合角色身份
 2. 适当使用emoji和#话题标签#
@@ -6159,6 +6466,20 @@
           action: 'openAnniversaryApp',
         },
         {
+          id: 'musicApp',
+          name: '音乐',
+          icon: '',
+          action: 'openMusicApp',
+          svgIcon: '<svg viewBox="0 0 24 24" width="32" height="32" stroke="white" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>',
+        },
+        {
+          id: 'shop',
+          name: '商城',
+          icon: '',
+          action: 'openShop',
+          svgIcon: '<svg viewBox="0 0 24 24" width="32" height="32" stroke="white" stroke-width="2" fill="none"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>',
+        },
+        {
           id: 'settings',
           name: '设置',
           icon: 'https://i.postimg.cc/8sWDgGWq/wei-xin-tu-pian-20260225055224-1194-11.jpg',
@@ -6207,7 +6528,15 @@
               const app = APP_DEFS.find(a => a.id === appId);
               if (!app) return;
               html += `<div class="app-icon" onclick="${app.action}()">`;
-              html += `<div class="icon-box"><img src="${app.icon}" alt="${esc(app.name)}" /></div>`;
+              if (app.icon) {
+                html += `<div class="icon-box"><img src="${app.icon}" alt="${esc(app.name)}" /></div>`;
+              } else if (app.svgIcon) {
+                const bgColors = { musicApp: 'linear-gradient(135deg,#e94560,#533483)', shop: 'linear-gradient(135deg,#ff6b9d,#e91e63)' };
+                html += `<div class="icon-box" style="background:${bgColors[app.id] || '#eee'};display:flex;align-items:center;justify-content:center;">${app.svgIcon}</div>`;
+              } else {
+                const bgColors = { musicApp: 'linear-gradient(135deg,#e94560,#533483)', shop: 'linear-gradient(135deg,#ff6b9d,#e91e63)' };
+                html += `<div class="icon-box" style="background:${bgColors[app.id] || '#eee'};font-size:28px;">${app.emoji || '📱'}</div>`;
+              }
               html += `<div class="app-name">${esc(app.name)}</div>`;
               html += '</div>';
             });
@@ -6571,6 +6900,256 @@
             break;
         }
       }
+
+      // ======= MUSIC APP =======
+      let musicPlaylist = JSON.parse(localStorage.getItem('ai_phone_music_playlist') || '[]');
+      let musicCurrentIdx = -1;
+      let musicPlaying = false;
+      let musicAppAudio = null;
+
+      function openMusicApp() {
+        renderMusicApp();
+        pushScreen('musicApp');
+      }
+      function closeMusicApp() {
+        popScreen();
+      }
+
+      function renderMusicApp() {
+        const pl = document.getElementById('musicAppPlaylist');
+        if (!pl) return;
+        let html = '<div class="music-app-playlist-title"><span>播放列表 (' + musicPlaylist.length + ')</span></div>';
+        musicPlaylist.forEach((s, i) => {
+          const active = i === musicCurrentIdx ? ' active' : '';
+          const coverHtml = s.cover ? `<img src="${esc(s.cover)}">` : '🎵';
+          html += `<div class="music-pl-item${active}" onclick="musicPlayAt(${i})"><div class="pl-cover">${coverHtml}</div><div class="pl-info"><div class="pl-name">${esc(s.name)}</div><div class="pl-artist">${esc(s.artist || '未知歌手')}</div></div><div class="pl-delete" onclick="event.stopPropagation();musicRemove(${i})">✕</div></div>`;
+        });
+        pl.innerHTML = html;
+        // Update now playing display
+        if (musicCurrentIdx >= 0 && musicPlaylist[musicCurrentIdx]) {
+          const s = musicPlaylist[musicCurrentIdx];
+          document.getElementById('musicAppSongTitle').textContent = s.name;
+          document.getElementById('musicAppArtist').textContent = s.artist || '未知歌手';
+          const art = document.getElementById('musicAlbumArt');
+          if (s.cover) art.innerHTML = `<img src="${esc(s.cover)}">`;
+          else art.innerHTML = '🎵';
+        }
+      }
+
+      function toggleMusicAddForm() {
+        const form = document.getElementById('musicAddForm');
+        form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+      }
+
+      function musicAddSong() {
+        const url = document.getElementById('musicAddUrl').value.trim();
+        const name = document.getElementById('musicAddName').value.trim() || '未命名歌曲';
+        const artist = document.getElementById('musicAddArtist').value.trim();
+        const cover = document.getElementById('musicAddCover').value.trim();
+        if (!url) { showToast('请输入音频链接'); return; }
+        musicPlaylist.push({ url, name, artist, cover });
+        safeStore('ai_phone_music_playlist', JSON.stringify(musicPlaylist));
+        document.getElementById('musicAddUrl').value = '';
+        document.getElementById('musicAddName').value = '';
+        document.getElementById('musicAddArtist').value = '';
+        document.getElementById('musicAddCover').value = '';
+        document.getElementById('musicAddForm').style.display = 'none';
+        renderMusicApp();
+        showToast('✅ 已添加到播放列表');
+      }
+
+      function musicRemove(idx) {
+        musicPlaylist.splice(idx, 1);
+        safeStore('ai_phone_music_playlist', JSON.stringify(musicPlaylist));
+        if (idx === musicCurrentIdx) { musicStop(); musicCurrentIdx = -1; }
+        else if (idx < musicCurrentIdx) musicCurrentIdx--;
+        renderMusicApp();
+      }
+
+      function musicPlayAt(idx) {
+        if (idx < 0 || idx >= musicPlaylist.length) return;
+        musicCurrentIdx = idx;
+        const s = musicPlaylist[idx];
+        if (musicAppAudio) musicAppAudio.pause();
+        musicAppAudio = new Audio(s.url);
+        musicAppAudio.addEventListener('timeupdate', musicUpdateProgress);
+        musicAppAudio.addEventListener('ended', musicNext);
+        musicAppAudio.addEventListener('error', () => showToast('⚠️ 音频加载失败'));
+        musicAppAudio.play().catch(() => showToast('⚠️ 播放失败'));
+        musicPlaying = true;
+        document.getElementById('musicAlbumArt').classList.remove('paused');
+        document.getElementById('musicAppPlayBtn').innerHTML = '⏸️';
+        renderMusicApp();
+      }
+
+      function musicTogglePlay() {
+        if (!musicAppAudio || musicCurrentIdx < 0) {
+          if (musicPlaylist.length > 0) musicPlayAt(0);
+          return;
+        }
+        if (musicPlaying) {
+          musicAppAudio.pause();
+          musicPlaying = false;
+          document.getElementById('musicAlbumArt').classList.add('paused');
+          document.getElementById('musicAppPlayBtn').innerHTML = '▶️';
+        } else {
+          musicAppAudio.play().catch(() => {});
+          musicPlaying = true;
+          document.getElementById('musicAlbumArt').classList.remove('paused');
+          document.getElementById('musicAppPlayBtn').innerHTML = '⏸️';
+        }
+      }
+
+      function musicStop() {
+        if (musicAppAudio) { musicAppAudio.pause(); musicAppAudio = null; }
+        musicPlaying = false;
+        document.getElementById('musicAlbumArt').classList.add('paused');
+        document.getElementById('musicAppPlayBtn').innerHTML = '▶️';
+        document.getElementById('musicAppProgressFill').style.width = '0%';
+        document.getElementById('musicAppCurTime').textContent = '0:00';
+        document.getElementById('musicAppDurTime').textContent = '0:00';
+      }
+
+      function musicPrev() {
+        if (musicPlaylist.length === 0) return;
+        let idx = musicCurrentIdx - 1;
+        if (idx < 0) idx = musicPlaylist.length - 1;
+        musicPlayAt(idx);
+      }
+
+      function musicNext() {
+        if (musicPlaylist.length === 0) return;
+        let idx = musicCurrentIdx + 1;
+        if (idx >= musicPlaylist.length) idx = 0;
+        musicPlayAt(idx);
+      }
+
+      function musicUpdateProgress() {
+        if (!musicAppAudio) return;
+        const cur = musicAppAudio.currentTime;
+        const dur = musicAppAudio.duration || 0;
+        const pct = dur > 0 ? (cur / dur) * 100 : 0;
+        document.getElementById('musicAppProgressFill').style.width = pct + '%';
+        document.getElementById('musicAppCurTime').textContent = fmtTime(cur);
+        document.getElementById('musicAppDurTime').textContent = fmtTime(dur);
+      }
+
+      function fmtTime(s) {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return m + ':' + String(sec).padStart(2, '0');
+      }
+
+      function seekMusic(e) {
+        if (!musicAppAudio || !musicAppAudio.duration) return;
+        const bar = document.getElementById('musicAppProgressBar');
+        const rect = bar.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        musicAppAudio.currentTime = pct * musicAppAudio.duration;
+      }
+
+      // ======= SHOPPING MALL =======
+      let shopBalance = parseFloat(localStorage.getItem('ai_phone_shop_balance') || '1000');
+      let shopGiftMode = false; // true when opened from chat gift button
+
+      const SHOP_ITEMS = [
+        { icon: '🌹', name: '玫瑰花', price: 10, category: '鲜花' },
+        { icon: '💐', name: '花束', price: 50, category: '鲜花' },
+        { icon: '🧸', name: '泰迪熊', price: 80, category: '玩偶' },
+        { icon: '🎀', name: '蝴蝶结', price: 15, category: '饰品' },
+        { icon: '💍', name: '戒指', price: 520, category: '首饰' },
+        { icon: '👑', name: '皇冠', price: 999, category: '首饰' },
+        { icon: '🎂', name: '蛋糕', price: 66, category: '美食' },
+        { icon: '🍫', name: '巧克力', price: 30, category: '美食' },
+        { icon: '🧋', name: '奶茶', price: 20, category: '美食' },
+        { icon: '📱', name: '手机', price: 888, category: '数码' },
+        { icon: '🎮', name: '游戏机', price: 299, category: '数码' },
+        { icon: '✈️', name: '机票', price: 1500, category: '旅行' },
+      ];
+
+      function openShop() {
+        shopGiftMode = false;
+        renderShop();
+        pushScreen('shop');
+      }
+      function openShopForGift() {
+        if (!currentContactId) return;
+        shopGiftMode = true;
+        renderShop();
+        pushScreen('shop');
+      }
+      function closeShop() {
+        shopGiftMode = false;
+        popScreen();
+      }
+
+      function renderShop() {
+        document.getElementById('shopBalanceAmount').textContent = '¥' + shopBalance.toFixed(0);
+        const body = document.getElementById('shopBody');
+        const categories = [...new Set(SHOP_ITEMS.map(i => i.category))];
+        let html = '';
+        categories.forEach(cat => {
+          html += `<div class="shop-section-title">${cat}</div><div class="shop-grid">`;
+          SHOP_ITEMS.filter(i => i.category === cat).forEach(item => {
+            html += `<div class="shop-item" onclick="buyShopItem('${esc(item.icon)}','${esc(item.name)}',${item.price})"><div class="shop-icon">${item.icon}</div><div class="shop-name">${esc(item.name)}</div><div class="shop-price">¥${item.price}</div></div>`;
+          });
+          html += '</div>';
+        });
+        body.innerHTML = html;
+      }
+
+      function buyShopItem(icon, name, price) {
+        if (shopBalance < price) { showToast('⚠️ 余额不足'); return; }
+        if (!confirm(`确定购买 ${icon} ${name}（¥${price}）？`)) return;
+        shopBalance -= price;
+        safeStore('ai_phone_shop_balance', shopBalance);
+        renderShop();
+        showToast(`✅ 已购买 ${icon} ${name}`);
+        if (shopGiftMode && currentContactId) {
+          const contact = contacts.find(c => c.id === currentContactId);
+          if (contact) {
+            contact.messages.push({ role: 'user', content: `__gift__${JSON.stringify({ icon, name })}` });
+            contact.lastTime = getNowTimeStr();
+            storeContacts(contacts);
+            closeShop();
+            renderChatMessages(contact);
+            scrollToBottom();
+          }
+        }
+      }
+
+      function shopRecharge() {
+        const amount = prompt('输入充值金额：', '500');
+        if (!amount) return;
+        const val = parseFloat(amount);
+        if (isNaN(val) || val <= 0) { showToast('⚠️ 请输入有效金额'); return; }
+        shopBalance += val;
+        safeStore('ai_phone_shop_balance', shopBalance);
+        renderShop();
+        showToast(`✅ 已充值 ¥${val.toFixed(0)}`);
+      }
+
+      // ======= CHAT IMAGE SEND =======
+      function pickChatImage() {
+        document.getElementById('chatImageInput').click();
+      }
+      document.getElementById('chatImageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file || !currentContactId) return;
+        const reader = new FileReader();
+        reader.onload = async function(ev) {
+          const dataUrl = await compressImage(ev.target.result, 300);
+          const contact = contacts.find(c => c.id === currentContactId);
+          if (!contact) return;
+          contact.messages.push({ role: 'user', content: '__image__' + dataUrl });
+          contact.lastTime = getNowTimeStr();
+          storeContacts(contacts);
+          renderChatMessages(contact);
+          scrollToBottom();
+        };
+        reader.readAsDataURL(file);
+        this.value = '';
+      });
 
       // Init
       renderColorOptions();
