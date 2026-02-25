@@ -3075,6 +3075,10 @@
         <div class="app-header">
           <div class="back-btn" onclick="closeChat()">‹<span>返回</span></div>
           <div class="header-title" id="chatTitle" onclick="editCurrentContact()">AI助手</div>
+          <div class="header-actions"><span onclick="toggleChatMenu()" id="chatMenuBtn" style="font-size:24px;cursor:pointer;">⋯</span></div>
+        </div>
+        <!-- Chat dropdown menu -->
+        <div id="chatDropdownMenu" style="display:none;position:absolute;top:82px;right:12px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:100;min-width:160px;overflow:hidden;animation:menuFadeIn 0.15s ease;">
         </div>
         <div class="chat-container" id="chatContainer"></div>
         <div id="generateRow" class="generate-row" style="display: none">
@@ -6492,6 +6496,80 @@
         serverMode = true;
         // Sync data from server on page load
         syncFromServer();
+      }
+
+      // ======= CHAT DROPDOWN MENU =======
+      let chatMenuOpen = false;
+      function toggleChatMenu() {
+        if (chatMenuOpen) {
+          closeChatMenu();
+          return;
+        }
+        const c = contacts.find(x => x.id === currentContactId);
+        if (!c) return;
+        chatMenuOpen = true;
+        const menu = document.getElementById('chatDropdownMenu');
+        const pinText = c.pinned ? '📌 取消置顶' : '📌 置顶聊天';
+        const muteText = c.muted ? '🔔 开启通知' : '🔕 消息免打扰';
+        menu.innerHTML = `
+          <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('edit')">✏️ 修改备注</div>
+          <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('pin')">${pinText}</div>
+          <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('mute')">${muteText}</div>
+          <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('clear')">🧹 清空聊天</div>
+          <div style="padding:12px 16px;cursor:pointer;font-size:14px;color:#ff3b30;" onclick="chatMenuAction('delete')">🗑️ 删除联系人</div>
+        `;
+        menu.style.display = 'block';
+        // Close when clicking outside
+        setTimeout(() => {
+          document.addEventListener('click', closeChatMenuOutside, { once: true });
+        }, 10);
+      }
+      function closeChatMenu() {
+        chatMenuOpen = false;
+        document.getElementById('chatDropdownMenu').style.display = 'none';
+        document.removeEventListener('click', closeChatMenuOutside);
+      }
+      function closeChatMenuOutside(e) {
+        if (!document.getElementById('chatDropdownMenu').contains(e.target) && e.target.id !== 'chatMenuBtn') {
+          closeChatMenu();
+        }
+      }
+      function chatMenuAction(action) {
+        closeChatMenu();
+        if (!currentContactId) return;
+        const c = contacts.find(x => x.id === currentContactId);
+        if (!c) return;
+        switch (action) {
+          case 'edit':
+            editCurrentContact();
+            break;
+          case 'pin':
+            c.pinned = !c.pinned;
+            storeContacts(contacts);
+            showToast(c.pinned ? '已置顶' : '已取消置顶');
+            break;
+          case 'mute':
+            c.muted = !c.muted;
+            storeContacts(contacts);
+            showToast(c.muted ? '已开启免打扰' : '已关闭免打扰');
+            break;
+          case 'clear':
+            if (!confirm('确定清空所有聊天记录？')) return;
+            c.messages = [];
+            c.lastTime = '';
+            storeContacts(contacts);
+            renderChatMessages(c);
+            updateGenerateButton();
+            showToast('聊天记录已清空');
+            break;
+          case 'delete':
+            if (!confirm('确定删除该联系人及所有聊天记录？')) return;
+            contacts = contacts.filter(x => x.id !== currentContactId);
+            storeContacts(contacts);
+            closeChat();
+            showToast('已删除');
+            break;
+        }
       }
 
       // Init
