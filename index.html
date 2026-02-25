@@ -4934,12 +4934,11 @@
           let fullContent = data.choices?.[0]?.message?.content || '';
 
           chatContainer.removeChild(typingRow);
-          const aiRow = createMessageRow('ai', fullContent || '⚠️ AI 返回了空回复', contact);
-          chatContainer.appendChild(aiRow);
-          const aiBubble = aiRow.querySelector('.bubble');
 
           // Guard: don't save empty replies
           if (!fullContent) {
+            const aiRow = createMessageRow('ai', '⚠️ AI 返回了空回复', contact);
+            chatContainer.appendChild(aiRow);
             alert(
               'AI 返回了空回复\n\n可能原因：\n• API 端点不支持流式输出（stream）\n• 模型名称不正确\n• API Key 余额不足\n\n当前配置：\n• 端点：' +
                 settings.endpoint +
@@ -4947,11 +4946,40 @@
                 settings.model,
             );
           } else {
-            contact.messages.push({ role: 'assistant', content: fullContent });
+            // Split AI reply into multiple messages by double newline
+            const parts = fullContent.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+            if (parts.length <= 1) {
+              // Single message, show directly
+              const aiRow = createMessageRow('ai', fullContent, contact, contact.messages.length);
+              chatContainer.appendChild(aiRow);
+              contact.messages.push({ role: 'assistant', content: fullContent });
+            } else {
+              // Multiple messages: show first immediately, then rest with typing delays
+              const firstRow = createMessageRow('ai', parts[0], contact, contact.messages.length);
+              chatContainer.appendChild(firstRow);
+              contact.messages.push({ role: 'assistant', content: parts[0] });
+              scrollToBottom();
+              for (let i = 1; i < parts.length; i++) {
+                // Show typing indicator
+                const typingRow2 = createMessageRow('ai', '__typing__', contact);
+                chatContainer.appendChild(typingRow2);
+                scrollToBottom();
+                // Wait 600-1200ms per message (longer for longer text)
+                const delay = Math.min(600 + parts[i].length * 15, 2500);
+                await new Promise(r => setTimeout(r, delay));
+                // Replace typing with actual message
+                if (typingRow2.parentNode) chatContainer.removeChild(typingRow2);
+                const msgIdx = contact.messages.length;
+                const row = createMessageRow('ai', parts[i], contact, msgIdx);
+                chatContainer.appendChild(row);
+                contact.messages.push({ role: 'assistant', content: parts[i] });
+                scrollToBottom();
+              }
+            }
           }
           contact.lastTime = getNowTimeStr();
           storeContacts(contacts);
-          renderChatMessages(contact);
+          renderContacts();
           if (!contact.muted) {
             showNotification(contact, fullContent);
           }
