@@ -2965,6 +2965,28 @@
       <div class="home-indicator"></div>
       <div class="toast" id="toast"></div>
 
+      <!-- Auth Screen -->
+      <div class="screen" id="authScreen" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;">
+        <div style="text-align:center;margin-bottom:30px;">
+          <div style="font-size:48px;margin-bottom:8px;">📱</div>
+          <div style="font-size:22px;font-weight:700;color:#fff;">AI 手机模拟器</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">登录以同步你的数据</div>
+        </div>
+        <div style="width:280px;background:rgba(255,255,255,0.95);border-radius:16px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+          <div id="authTitle" style="font-size:18px;font-weight:600;text-align:center;margin-bottom:16px;color:#333;">登录</div>
+          <div id="authError" style="display:none;background:#fff0f0;color:#ff3b30;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;text-align:center;"></div>
+          <input type="text" id="authUsername" placeholder="用户名" style="width:100%;border:1px solid #e5e5ea;border-radius:10px;padding:12px 14px;font-size:15px;outline:none;margin-bottom:10px;font-family:inherit;box-sizing:border-box;" />
+          <input type="password" id="authPassword" placeholder="密码" style="width:100%;border:1px solid #e5e5ea;border-radius:10px;padding:12px 14px;font-size:15px;outline:none;margin-bottom:16px;font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')doAuth()" />
+          <button id="authBtn" onclick="doAuth()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;">登录</button>
+          <div style="text-align:center;margin-top:14px;">
+            <span id="authToggle" style="font-size:13px;color:#667eea;cursor:pointer;" onclick="toggleAuthMode()">没有账号？注册</span>
+          </div>
+          <div style="text-align:center;margin-top:10px;">
+            <span style="font-size:12px;color:#999;cursor:pointer;" onclick="skipAuth()">跳过登录（仅本地存储）</span>
+          </div>
+        </div>
+      </div>
+
       <div class="screen lock-screen" id="lockScreen">
         <div class="lock-time-card">
           <div class="lock-time" id="lockTime">9:41</div>
@@ -3139,15 +3161,48 @@
             <div class="settings-card">
               <div class="settings-item">
                 <label>API 端点</label
-                ><input type="url" id="settingEndpoint" placeholder="https://api.openai.com/v1/chat/completions" />
+                ><input
+                  type="url"
+                  id="settingEndpoint"
+                  placeholder="https://morning-rain-6898.ruoxixin2.workers.dev/v1/chat/completions"
+                />
                 <div class="hint">兼容 OpenAI 格式的 API 端点</div>
               </div>
               <div class="settings-item">
-                <label>API Key</label><input type="password" id="settingApiKey" placeholder="sk-..." />
+                <label>API Key（可选）</label
+                ><input type="password" id="settingApiKey" placeholder="留空则使用中转服务器内置Key" />
+                <div class="hint">如果中转服务器已内置 API Key，此处可留空</div>
               </div>
               <div class="settings-item">
-                <label>模型</label><input type="text" id="settingModel" placeholder="gpt-4o-mini" />
-                <div class="hint">如 gpt-4o-mini、gpt-4o、claude-3-sonnet 等</div>
+                <label>模型</label>
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <input type="text" id="settingModel" placeholder="gpt-4o-mini" style="flex: 1" />
+                  <button
+                    class="save-btn"
+                    style="width: auto; padding: 8px 14px; font-size: 13px; margin: 0; white-space: nowrap"
+                    onclick="fetchModels()"
+                    id="fetchModelsBtn"
+                  >
+                    📡 拉取模型
+                  </button>
+                </div>
+                <select
+                  id="modelSelect"
+                  style="
+                    display: none;
+                    border: 1px solid #e5e5ea;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    font-size: 14px;
+                    outline: none;
+                    background: #f9f9f9;
+                    width: 100%;
+                    font-family: inherit;
+                    margin-top: 6px;
+                  "
+                  onchange="selectFetchedModel(this.value)"
+                ></select>
+                <div class="hint">如 gpt-4o-mini、gpt-4o、claude-3-sonnet 等；点击"拉取模型"可自动获取可用模型列表</div>
               </div>
             </div>
           </div>
@@ -3166,13 +3221,46 @@
             <div class="settings-card">
               <div class="settings-item">
                 <label>世界书 (Worldbook)</label>
-                <textarea id="settingWorldbook" style="border:1px solid #e5e5ea;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;background:#f9f9f9;width:100%;font-family:inherit;resize:vertical;min-height:80px;" placeholder="在此输入世界观设定、背景信息等，会作为全局系统提示词注入到所有对话中…"></textarea>
+                <textarea
+                  id="settingWorldbook"
+                  style="
+                    border: 1px solid #e5e5ea;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    font-size: 13px;
+                    outline: none;
+                    background: #f9f9f9;
+                    width: 100%;
+                    font-family: inherit;
+                    resize: vertical;
+                    min-height: 80px;
+                  "
+                  placeholder="在此输入世界观设定、背景信息等，会作为全局系统提示词注入到所有对话中…"
+                ></textarea>
                 <div class="hint">世界书内容会在联系人的系统提示词之后注入，用于补充世界观、规则设定等全局背景信息</div>
               </div>
               <div class="settings-item">
                 <label>破甲提示词 (Jailbreak)</label>
-                <textarea id="settingJailbreak" style="border:1px solid #e5e5ea;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;background:#f9f9f9;width:100%;font-family:inherit;resize:vertical;min-height:80px;" placeholder="在此输入破甲/越狱提示词，会作为最后一条系统消息注入…"></textarea>
-                <div class="hint">破甲提示词会在所有聊天消息之后、AI 回复之前作为最后一条 system 消息注入，用于解除 AI 的限制或强化角色扮演</div>
+                <textarea
+                  id="settingJailbreak"
+                  style="
+                    border: 1px solid #e5e5ea;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    font-size: 13px;
+                    outline: none;
+                    background: #f9f9f9;
+                    width: 100%;
+                    font-family: inherit;
+                    resize: vertical;
+                    min-height: 80px;
+                  "
+                  placeholder="在此输入破甲/越狱提示词，会作为最后一条系统消息注入…"
+                ></textarea>
+                <div class="hint">
+                  破甲提示词会在所有聊天消息之后、AI 回复之前作为最后一条 system 消息注入，用于解除 AI
+                  的限制或强化角色扮演
+                </div>
               </div>
             </div>
           </div>
@@ -3470,7 +3558,7 @@
       let editContactAvatarData = null;
 
       const defaultSettings = {
-        endpoint: 'https://api.openai.com/v1/chat/completions',
+        endpoint: 'https://morning-rain-6898.ruoxixin2.workers.dev/v1/chat/completions',
         apiKey: '',
         model: 'gpt-4o-mini',
         temperature: 0.7,
@@ -3791,6 +3879,133 @@
         document.getElementById('weiboCompose').classList.remove('open');
         weiboComposeOpen = false;
         popScreen();
+      }
+
+      // Fetch models from API
+      async function fetchModels() {
+        const endpoint = document.getElementById('settingEndpoint').value.trim() || defaultSettings.endpoint;
+        const apiKey = document.getElementById('settingApiKey').value.trim();
+        const btn = document.getElementById('fetchModelsBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ 拉取中…';
+        try {
+          // Build candidate URLs for models endpoint
+          const candidateUrls = [];
+
+          // 1. Try replacing /chat/completions with /models
+          if (endpoint.includes('/chat/completions')) {
+            candidateUrls.push(endpoint.replace('/chat/completions', '/models'));
+          }
+          // 2. Try replacing /completions with /models
+          if (endpoint.includes('/completions')) {
+            candidateUrls.push(endpoint.replace('/completions', '/models'));
+          }
+          // 3. Try extracting base URL and appending /v1/models
+          try {
+            const url = new URL(endpoint);
+            const pathParts = url.pathname.split('/').filter(Boolean);
+            // Try /v1/models
+            candidateUrls.push(`${url.origin}/v1/models`);
+            // Try just /models
+            candidateUrls.push(`${url.origin}/models`);
+            // If path has a prefix like /api, try /api/v1/models
+            if (pathParts.length > 0 && pathParts[0] !== 'v1') {
+              candidateUrls.push(`${url.origin}/${pathParts[0]}/v1/models`);
+              candidateUrls.push(`${url.origin}/${pathParts[0]}/models`);
+            }
+          } catch {}
+
+          // Deduplicate
+          const uniqueUrls = [...new Set(candidateUrls)];
+          console.log('Trying model endpoints:', uniqueUrls);
+
+          let models = [];
+          let lastError = '';
+
+          for (const modelsUrl of uniqueUrls) {
+            try {
+              const fetchHeaders = {};
+              if (apiKey) fetchHeaders['Authorization'] = `Bearer ${apiKey}`;
+              const response = await fetch(modelsUrl, {
+                method: 'GET',
+                headers: fetchHeaders,
+              });
+
+              if (!response.ok) {
+                const text = await response.text();
+                try {
+                  const errData = JSON.parse(text);
+                  lastError = errData.error?.message || `HTTP ${response.status}`;
+                } catch {
+                  lastError = `HTTP ${response.status}`;
+                }
+                continue;
+              }
+
+              const text = await response.text();
+              // Check if response is actually JSON
+              if (text.trim().startsWith('<')) {
+                lastError = `${modelsUrl} 返回了 HTML 页面而非 JSON`;
+                continue;
+              }
+
+              const data = JSON.parse(text);
+              if (Array.isArray(data.data)) {
+                models = data.data
+                  .map(m => (typeof m === 'string' ? m : m.id))
+                  .filter(Boolean)
+                  .sort();
+              } else if (Array.isArray(data)) {
+                models = data
+                  .map(m => (typeof m === 'string' ? m : m.id))
+                  .filter(Boolean)
+                  .sort();
+              } else if (data.object === 'list' && Array.isArray(data.data)) {
+                models = data.data
+                  .map(m => m.id)
+                  .filter(Boolean)
+                  .sort();
+              }
+
+              if (models.length > 0) {
+                console.log(`Found ${models.length} models from ${modelsUrl}`);
+                break;
+              }
+            } catch (e) {
+              lastError = e.message;
+              continue;
+            }
+          }
+
+          if (models.length === 0) {
+            const detail = uniqueUrls.map(u => `• ${u}`).join('\n');
+            throw new Error((lastError || '未找到可用模型') + '\n\n已尝试以下端点:\n' + detail);
+          }
+
+          // Populate select
+          const select = document.getElementById('modelSelect');
+          const currentModel = document.getElementById('settingModel').value.trim();
+          select.innerHTML =
+            '<option value="">-- 选择模型 (' +
+            models.length +
+            '个) --</option>' +
+            models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+          select.style.display = 'block';
+          showToast(`✅ 已拉取 ${models.length} 个模型`);
+        } catch (err) {
+          alert('拉取模型失败\n\n' + (err.message || String(err)));
+          showToast('⚠️ 拉取失败');
+          console.error('Fetch models error:', err);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '📡 拉取模型';
+        }
+      }
+
+      function selectFetchedModel(value) {
+        if (value) {
+          document.getElementById('settingModel').value = value;
+        }
       }
 
       function saveSettings() {
@@ -4277,10 +4492,21 @@
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            let w = img.width, h = img.height;
-            if (w > h) { if (w > maxSize) { h = h * maxSize / w; w = maxSize; } }
-            else { if (h > maxSize) { w = w * maxSize / h; h = maxSize; } }
-            canvas.width = w; canvas.height = h;
+            let w = img.width,
+              h = img.height;
+            if (w > h) {
+              if (w > maxSize) {
+                h = (h * maxSize) / w;
+                w = maxSize;
+              }
+            } else {
+              if (h > maxSize) {
+                w = (w * maxSize) / h;
+                h = maxSize;
+              }
+            }
+            canvas.width = w;
+            canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
             resolve(canvas.toDataURL('image/jpeg', 0.7));
@@ -4292,8 +4518,12 @@
 
       // Safe localStorage write with quota handling
       function safeStore(key, value) {
-        try { localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value)); }
-        catch(e) { showToast('⚠️ 存储空间不足，请删除一些联系人或清理数据'); console.error('Storage error:', e); }
+        try {
+          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+        } catch (e) {
+          showToast('⚠️ 存储空间不足，请删除一些联系人或清理数据');
+          console.error('Storage error:', e);
+        }
       }
 
       // Properly decode base64 to UTF-8 string (fixes garbled text for non-ASCII)
@@ -4646,10 +4876,6 @@
 
       async function generateReply() {
         if (isStreaming || !currentContactId) return;
-        if (!settings.apiKey) {
-          showToast('⚠️ 请先在设置中配置 API Key');
-          return;
-        }
         const contact = contacts.find(c => c.id === currentContactId);
         if (!contact) return;
         // If last message is from AI (regenerate mode), remove it first
@@ -4667,76 +4893,59 @@
         try {
           const messages = [];
           if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt });
-          if (settings.worldbook && settings.worldbook.trim()) messages.push({ role: 'system', content: settings.worldbook.trim() });
+          if (settings.worldbook && settings.worldbook.trim())
+            messages.push({ role: 'system', content: settings.worldbook.trim() });
           contact.messages.forEach(m => messages.push({ role: m.role, content: m.content }));
-          if (settings.jailbreak && settings.jailbreak.trim()) messages.push({ role: 'system', content: settings.jailbreak.trim() });
-          const response = await fetch(settings.endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
-            body: JSON.stringify({ model: settings.model, messages, stream: true, temperature: settings.temperature }),
-          });
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error?.message || `HTTP ${response.status}`);
+          if (settings.jailbreak && settings.jailbreak.trim())
+            messages.push({ role: 'system', content: settings.jailbreak.trim() });
+          const headers = { 'Content-Type': 'application/json' };
+          if (settings.apiKey) headers['Authorization'] = `Bearer ${settings.apiKey}`;
+          let response;
+          try {
+            response = await fetch(settings.endpoint, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ model: settings.model, messages, stream: false, temperature: settings.temperature, max_tokens: 4096 }),
+            });
+          } catch (fetchErr) {
+            throw new Error(`无法连接到 API 端点，请检查网络或端点地址是否正确。\n\n详情: ${fetchErr.message}`);
           }
+
+          const text = await response.text();
+
+          // Check if response is HTML (endpoint returned a web page, not API)
+          if (text.trim().startsWith('<!') || text.trim().startsWith('<html')) {
+            throw new Error(`API 端点返回了网页而非 JSON 数据。\n\n这通常意味着：\n• 中转服务器地址已失效或不正确\n• 端点 URL 指向了一个网页而不是 API\n\n请前往【设置】更换 API 端点地址。`);
+          }
+
+          if (!response.ok) {
+            let errData = {};
+            try { errData = JSON.parse(text); } catch (e) {}
+            throw new Error(errData.error?.message || `HTTP ${response.status}: ${text.slice(0, 150)}`);
+          }
+
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            throw new Error(`API 返回了无法解析的数据: ${text.slice(0, 150)}`);
+          }
+
+          let fullContent = data.choices?.[0]?.message?.content || '';
+
           chatContainer.removeChild(typingRow);
-          const aiRow = createMessageRow('ai', '', contact);
+          const aiRow = createMessageRow('ai', fullContent || '⚠️ AI 返回了空回复', contact);
           chatContainer.appendChild(aiRow);
           const aiBubble = aiRow.querySelector('.bubble');
-          let fullContent = '';
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder('utf-8');
-          let buffer = '';
-          let rawChunks = ''; // collect raw response for fallback
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            buffer += chunk;
-            rawChunks += chunk;
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith('data:')) continue;
-              const dataStr = trimmed.slice(5).trim();
-              if (dataStr === '[DONE]') break;
-              try {
-                const json = JSON.parse(dataStr);
-                const delta = json.choices?.[0]?.delta?.content;
-                if (delta) {
-                  fullContent += delta;
-                  aiBubble.textContent = fullContent;
-                  scrollToBottom();
-                }
-              } catch {}
-            }
-          }
-          // Flush remaining buffer
-          if (buffer.trim()) {
-            const trimmed = buffer.trim();
-            if (trimmed.startsWith('data:')) {
-              const dataStr = trimmed.slice(5).trim();
-              if (dataStr && dataStr !== '[DONE]') {
-                try {
-                  const json = JSON.parse(dataStr);
-                  const delta = json.choices?.[0]?.delta?.content;
-                  if (delta) { fullContent += delta; }
-                } catch {}
-              }
-            }
-          }
-          // Fallback: if streaming parsed nothing, try as non-streaming JSON
-          if (!fullContent && rawChunks.trim()) {
-            try {
-              const json = JSON.parse(rawChunks.trim());
-              const msg = json.choices?.[0]?.message?.content;
-              if (msg) fullContent = msg;
-            } catch {}
-          }
+
           // Guard: don't save empty replies
           if (!fullContent) {
-            aiBubble.textContent = '⚠️ AI 返回了空回复，请重试';
+            alert(
+              'AI 返回了空回复\n\n可能原因：\n• API 端点不支持流式输出（stream）\n• 模型名称不正确\n• API Key 余额不足\n\n当前配置：\n• 端点：' +
+                settings.endpoint +
+                '\n• 模型：' +
+                settings.model,
+            );
           } else {
             contact.messages.push({ role: 'assistant', content: fullContent });
           }
@@ -4750,6 +4959,14 @@
           if (typingRow.parentNode) chatContainer.removeChild(typingRow);
           chatContainer.appendChild(createMessageRow('ai', `⚠️ ${err.message}`, contact));
           scrollToBottom();
+          alert(
+            '生成回复失败\n\n' +
+              err.message +
+              '\n\n当前配置：\n• 端点：' +
+              settings.endpoint +
+              '\n• 模型：' +
+              settings.model,
+          );
         } finally {
           isStreaming = false;
           sendBtn.disabled = false;
@@ -4761,23 +4978,41 @@
 
       // AI call helper (non-streaming)
       async function aiCall(systemPrompt, userPrompt) {
-        const response = await fetch(settings.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
-          body: JSON.stringify({
-            model: settings.model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: settings.temperature,
-          }),
-        });
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `HTTP ${response.status}`);
+        const aiHeaders = { 'Content-Type': 'application/json' };
+        if (settings.apiKey) aiHeaders['Authorization'] = `Bearer ${settings.apiKey}`;
+        let response;
+        try {
+          response = await fetch(settings.endpoint, {
+            method: 'POST',
+            headers: aiHeaders,
+            body: JSON.stringify({
+              model: settings.model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: settings.temperature,
+              max_tokens: 4096,
+            }),
+          });
+        } catch (fetchErr) {
+          throw new Error(`无法连接到 API 端点，请检查网络或端点地址是否正确。\n详情: ${fetchErr.message}`);
         }
-        const data = await response.json();
+        const text = await response.text();
+        if (text.trim().startsWith('<!') || text.trim().startsWith('<html')) {
+          throw new Error('API 端点返回了网页而非 JSON，请前往【设置】更换 API 端点地址。');
+        }
+        if (!response.ok) {
+          let errData = {};
+          try { errData = JSON.parse(text); } catch (e) {}
+          throw new Error(errData.error?.message || `HTTP ${response.status}: ${text.slice(0, 150)}`);
+        }
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`API 返回了无法解析的数据: ${text.slice(0, 150)}`);
+        }
         return data.choices?.[0]?.message?.content || '';
       }
 
@@ -4876,10 +5111,6 @@
       // AI-generated weibo refresh
       async function refreshWeibo() {
         if (weiboRefreshing) return;
-        if (!settings.apiKey) {
-          showToast('⚠️ 请先在设置中配置 API Key');
-          return;
-        }
         weiboRefreshing = true;
         showToast('🔄 正在生成新微博…');
         try {
@@ -5971,6 +6202,269 @@
 
       // Initial render
       renderHomePages();
+
+      // ======= API LAYER =======
+      const API_BASE = 'http://localhost:4000';
+      async function apiFetch(path, options = {}) {
+        const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+        const resp = await fetch(API_BASE + path, { ...options, headers });
+        if (resp.status === 401) {
+          // Token expired, clear and go back to auth
+          authToken = null;
+          localStorage.removeItem('ai_phone_token');
+          serverMode = false;
+          document.getElementById('authScreen').classList.remove('hidden');
+          showToast('⚠️ 登录已过期，请重新登录');
+          throw new Error('Unauthorized');
+        }
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+        return data;
+      }
+
+      // Sync data from server after login
+      async function syncFromServer() {
+        if (!serverMode || !authToken) return;
+        try {
+          // Sync contacts
+          const serverContacts = await apiFetch('/api/contacts');
+          if (serverContacts.length > 0) {
+            // Merge: server data takes priority, but keep local-only contacts
+            const serverIds = new Set(serverContacts.map(c => c.id));
+            const localOnly = contacts.filter(c => !serverIds.has(c.id));
+            contacts = [...serverContacts.map(c => ({
+              ...c,
+              messages: c.messages || [],
+              pinned: c.pinned || false,
+              muted: c.muted || false,
+              chatBg: c.chatBg || '',
+            })), ...localOnly];
+          }
+          // Push local contacts to server if server had none
+          if (serverContacts.length === 0 && contacts.length > 0) {
+            for (const c of contacts) {
+              try { await apiFetch('/api/contacts', { method: 'POST', body: JSON.stringify(c) }); } catch {}
+            }
+          }
+          storeContacts(contacts);
+
+          // Sync settings
+          try {
+            const serverSettings = await apiFetch('/api/settings');
+            if (serverSettings && Object.keys(serverSettings).length > 0) {
+              settings = { ...defaultSettings, ...serverSettings };
+              storeSettings(settings);
+            }
+          } catch {}
+
+          // Sync widgets
+          try {
+            const serverWidgets = await apiFetch('/api/widgets');
+            if (serverWidgets.length > 0) {
+              widgets = serverWidgets;
+              storeWidgets(widgets);
+            }
+          } catch {}
+
+          // Sync weibo
+          try {
+            const serverWeibo = await apiFetch('/api/weibo');
+            if (serverWeibo.length > 0) {
+              weiboPosts = serverWeibo;
+              storeWeiboPosts(weiboPosts);
+            }
+          } catch {}
+
+          // Sync anniversaries
+          try {
+            const serverAnniv = await apiFetch('/api/anniversaries');
+            if (serverAnniv.length > 0) {
+              anniversaries = serverAnniv;
+              storeAnniversaries(anniversaries);
+            }
+          } catch {}
+
+          renderHomePages();
+          console.log('✅ Data synced from server');
+        } catch (e) {
+          console.warn('Sync failed:', e.message);
+        }
+      }
+
+      // Wrap store functions to also push to server
+      const _origStoreContacts = storeContacts;
+      storeContacts = function(c) {
+        _origStoreContacts(c);
+        if (serverMode && authToken) {
+          // Debounced server sync
+          clearTimeout(storeContacts._timer);
+          storeContacts._timer = setTimeout(async () => {
+            try {
+              // Simple approach: replace all contacts on server
+              const serverContacts = await apiFetch('/api/contacts');
+              const serverIds = new Set(serverContacts.map(x => x.id));
+              // Update existing, create new
+              for (const contact of c) {
+                if (serverIds.has(contact.id)) {
+                  await apiFetch(`/api/contacts/${contact.id}`, { method: 'PUT', body: JSON.stringify(contact) });
+                } else {
+                  await apiFetch('/api/contacts', { method: 'POST', body: JSON.stringify(contact) });
+                }
+              }
+              // Delete removed contacts
+              const localIds = new Set(c.map(x => x.id));
+              for (const sc of serverContacts) {
+                if (!localIds.has(sc.id)) {
+                  await apiFetch(`/api/contacts/${sc.id}`, { method: 'DELETE' });
+                }
+              }
+            } catch (e) { console.warn('Contact sync error:', e.message); }
+          }, 1000);
+        }
+      };
+
+      const _origStoreSettings = storeSettings;
+      storeSettings = function(s) {
+        _origStoreSettings(s);
+        if (serverMode && authToken) {
+          apiFetch('/api/settings', { method: 'PUT', body: JSON.stringify(s) }).catch(e => console.warn('Settings sync error:', e.message));
+        }
+      };
+
+      const _origStoreWidgets = storeWidgets;
+      storeWidgets = function(w) {
+        _origStoreWidgets(w);
+        if (serverMode && authToken) {
+          clearTimeout(storeWidgets._timer);
+          storeWidgets._timer = setTimeout(async () => {
+            try {
+              const serverWidgets = await apiFetch('/api/widgets');
+              const serverIds = new Set(serverWidgets.map(x => x.id));
+              for (const widget of w) {
+                if (serverIds.has(widget.id)) {
+                  await apiFetch(`/api/widgets/${widget.id}`, { method: 'PUT', body: JSON.stringify(widget) });
+                } else {
+                  await apiFetch('/api/widgets', { method: 'POST', body: JSON.stringify(widget) });
+                }
+              }
+              const localIds = new Set(w.map(x => x.id));
+              for (const sw of serverWidgets) {
+                if (!localIds.has(sw.id)) {
+                  await apiFetch(`/api/widgets/${sw.id}`, { method: 'DELETE' });
+                }
+              }
+            } catch (e) { console.warn('Widget sync error:', e.message); }
+          }, 1000);
+        }
+      };
+
+      const _origStoreWeiboPosts = storeWeiboPosts;
+      storeWeiboPosts = function(w) {
+        _origStoreWeiboPosts(w);
+        if (serverMode && authToken) {
+          clearTimeout(storeWeiboPosts._timer);
+          storeWeiboPosts._timer = setTimeout(async () => {
+            try {
+              const serverWeibo = await apiFetch('/api/weibo');
+              const serverIds = new Set(serverWeibo.map(x => x.id));
+              for (const post of w) {
+                if (serverIds.has(post.id)) {
+                  await apiFetch(`/api/weibo/${post.id}`, { method: 'PUT', body: JSON.stringify(post) });
+                } else {
+                  await apiFetch('/api/weibo', { method: 'POST', body: JSON.stringify(post) });
+                }
+              }
+              const localIds = new Set(w.map(x => x.id));
+              for (const sp of serverWeibo) {
+                if (!localIds.has(sp.id)) {
+                  await apiFetch(`/api/weibo/${sp.id}`, { method: 'DELETE' });
+                }
+              }
+            } catch (e) { console.warn('Weibo sync error:', e.message); }
+          }, 1000);
+        }
+      };
+
+      const _origStoreAnniversaries = storeAnniversaries;
+      storeAnniversaries = function(a) {
+        _origStoreAnniversaries(a);
+        if (serverMode && authToken) {
+          clearTimeout(storeAnniversaries._timer);
+          storeAnniversaries._timer = setTimeout(async () => {
+            try {
+              const serverAnniv = await apiFetch('/api/anniversaries');
+              const serverIds = new Set(serverAnniv.map(x => x.id));
+              for (const ann of a) {
+                if (serverIds.has(ann.id)) {
+                  await apiFetch(`/api/anniversaries/${ann.id}`, { method: 'PUT', body: JSON.stringify(ann) });
+                } else {
+                  await apiFetch('/api/anniversaries', { method: 'POST', body: JSON.stringify(ann) });
+                }
+              }
+              const localIds = new Set(a.map(x => x.id));
+              for (const sa of serverAnniv) {
+                if (!localIds.has(sa.id)) {
+                  await apiFetch(`/api/anniversaries/${sa.id}`, { method: 'DELETE' });
+                }
+              }
+            } catch (e) { console.warn('Anniversary sync error:', e.message); }
+          }, 1000);
+        }
+      };
+
+      // ======= AUTH =======
+      let authMode = 'login'; // 'login' | 'register'
+      let authToken = localStorage.getItem('ai_phone_token') || null;
+      let serverMode = !!authToken;
+
+      function toggleAuthMode() {
+        authMode = authMode === 'login' ? 'register' : 'login';
+        document.getElementById('authTitle').textContent = authMode === 'login' ? '登录' : '注册';
+        document.getElementById('authBtn').textContent = authMode === 'login' ? '登录' : '注册';
+        document.getElementById('authToggle').textContent = authMode === 'login' ? '没有账号？注册' : '已有账号？登录';
+        document.getElementById('authError').style.display = 'none';
+      }
+
+      async function doAuth() {
+        const username = document.getElementById('authUsername').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        const errEl = document.getElementById('authError');
+        if (!username || !password) { errEl.textContent = '请输入用户名和密码'; errEl.style.display = 'block'; return; }
+        const btn = document.getElementById('authBtn');
+        btn.disabled = true; btn.textContent = '请稍候…';
+        try {
+          const url = API_BASE + (authMode === 'login' ? '/api/auth/login' : '/api/auth/register');
+          const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.error || '操作失败');
+          authToken = data.token;
+          localStorage.setItem('ai_phone_token', authToken);
+          serverMode = true;
+          errEl.style.display = 'none';
+          document.getElementById('authScreen').classList.add('hidden');
+          showToast('✅ ' + (authMode === 'login' ? '登录成功' : '注册成功'));
+          // Sync data from server after login
+          syncFromServer();
+        } catch (e) {
+          errEl.textContent = e.message; errEl.style.display = 'block';
+        } finally {
+          btn.disabled = false; btn.textContent = authMode === 'login' ? '登录' : '注册';
+        }
+      }
+
+      function skipAuth() {
+        serverMode = false;
+        document.getElementById('authScreen').classList.add('hidden');
+      }
+
+      // Auto-skip auth if token exists
+      if (authToken) {
+        document.getElementById('authScreen').classList.add('hidden');
+        serverMode = true;
+        // Sync data from server on page load
+        syncFromServer();
+      }
 
       // Init
       renderColorOptions();
