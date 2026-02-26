@@ -3800,10 +3800,68 @@
           <div class="header-title">信息</div>
           <div class="header-actions">
             <span onclick="openImportCard()" title="导入角色卡" style="font-size: 20px">📥</span
+            ><span onclick="openNewGroup()" title="发起群聊" style="font-size: 22px">👥</span
             ><span onclick="openNewContact()" title="新建联系人" style="font-size: 24px">＋</span>
           </div>
         </div>
         <div class="contacts-body" id="contactsBody"></div>
+      </div>
+
+      <div class="screen new-contact-screen" id="newGroupScreen" style="z-index: 75; transform: translateX(100%); background: #f2f2f7; display: flex; flex-direction: column;">
+        <div class="app-header">
+          <div class="back-btn" onclick="closeNewGroup()">‹<span>返回</span></div>
+          <div class="header-title">发起群聊</div>
+        </div>
+        <div class="new-contact-body">
+          <div class="form-section">
+            <div class="form-section-title">群聊名称</div>
+            <div class="form-card">
+              <div class="form-item">
+                <input type="text" id="newGroupName" placeholder="输入群聊名称" />
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">选择成员</div>
+            <div class="form-card" id="groupMemberSelect" style="max-height: 300px; overflow-y: auto;">
+              <!-- Members will be rendered here -->
+            </div>
+          </div>
+          <button class="create-btn" onclick="createGroup()">创建群聊</button>
+        </div>
+      </div>
+
+      <!-- Group Management Screen -->
+      <div class="screen new-contact-screen" id="groupManageScreen" style="z-index: 76; transform: translateX(100%); background: #f2f2f7; display: flex; flex-direction: column;">
+        <div class="app-header">
+          <div class="back-btn" onclick="closeGroupManage()">‹<span>返回</span></div>
+          <div class="header-title">群聊管理</div>
+        </div>
+        <div class="new-contact-body">
+          <div class="avatar-picker">
+            <div class="avatar-preview" id="groupAvatarPreview" style="background: #5856d6" onclick="pickAvatar('group')">
+              👥
+              <div class="avatar-overlay">换头像</div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">群聊信息</div>
+            <div class="form-card">
+              <div class="form-item">
+                <label>群名称</label>
+                <input type="text" id="groupManageName" placeholder="输入群名称" />
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title" id="groupMemberTitle">群成员 (0)</div>
+            <div class="form-card" id="groupMemberList" style="max-height: 260px; overflow-y: auto;">
+            </div>
+          </div>
+          <button class="create-btn" onclick="saveGroupManage()" style="background: #007aff;">💾 保存修改</button>
+          <button class="create-btn" onclick="addMemberToGroup()" style="background: #07c160; margin-top: 10px;">➕ 添加成员</button>
+          <button class="create-btn" onclick="dissolveGroup()" style="background: #ff3b30; margin-top: 10px;">⚠️ 解散群聊</button>
+        </div>
       </div>
 
       <div class="screen new-contact-screen" id="newContactScreen">
@@ -4464,6 +4522,7 @@
       ];
       let screenStack = ['lock'];
       let currentContactId = null;
+      let isGroupChat = false;
       let isStreaming = false;
       let editingContactId = null;
       let avatarPickTarget = null; // 'new' | 'edit' | 'user'
@@ -4611,11 +4670,15 @@
       const musicAppScreen = document.getElementById('musicAppScreen');
       const shopScreen = document.getElementById('shopScreen');
 
+      const newGroupScreen = document.getElementById('newGroupScreen');
+      const groupManageScreen = document.getElementById('groupManageScreen');
       const allScreens = {
         lock: lockScreen,
         home: homeScreen,
         contacts: contactsScreen,
         newContact: newContactScreen,
+        newGroup: newGroupScreen,
+        groupManage: groupManageScreen,
         chat: chatScreen,
         settings: settingsScreen,
         weibo: weiboScreen,
@@ -4727,6 +4790,62 @@
       function closeContacts() {
         popScreen();
       }
+      function openNewGroup() {
+        const container = document.getElementById('groupMemberSelect');
+        const availableContacts = contacts.filter(c => !c.isGroup && c.systemPrompt);
+        if (availableContacts.length === 0) {
+          showToast('没有可用的联系人');
+          return;
+        }
+        container.innerHTML = availableContacts.map(c => `
+          <div class="form-item" style="flex-direction: row; align-items: center; gap: 10px; cursor: pointer;" onclick="toggleMemberSelect(this, ${c.id})">
+            <input type="checkbox" class="member-checkbox" value="${c.id}" style="width: 20px; height: 20px;" onclick="event.stopPropagation()">
+            <div class="contact-avatar" style="width: 32px; height: 32px; font-size: 12px; ${c.avatar ? '' : 'background:' + c.color}">${c.avatar ? '<img src="' + c.avatar + '">' : c.name.charAt(0)}</div>
+            <div style="font-size: 15px;">${esc(c.name)}</div>
+          </div>
+        `).join('');
+        document.getElementById('newGroupName').value = '';
+        document.getElementById('newGroupScreen').classList.add('active');
+        screenStack.push('newGroup');
+      }
+      function closeNewGroup() {
+        popScreen();
+      }
+      function toggleMemberSelect(el, id) {
+        const cb = el.querySelector('.member-checkbox');
+        cb.checked = !cb.checked;
+      }
+      function createGroup() {
+        const name = document.getElementById('newGroupName').value.trim();
+        if (!name) {
+          showToast('请输入群聊名称');
+          return;
+        }
+        const selectedIds = Array.from(document.querySelectorAll('#groupMemberSelect .member-checkbox:checked')).map(cb => parseInt(cb.value));
+        if (selectedIds.length < 1) {
+          showToast('请至少选择一个成员');
+          return;
+        }
+        const newGroup = {
+          id: Date.now(),
+          name,
+          color: '#5856d6',
+          isGroup: true,
+          members: selectedIds,
+          messages: [],
+          lastTime: '',
+          avatar: '',
+          pinned: false,
+          muted: false,
+          chatBg: '',
+        };
+        contacts.unshift(newGroup);
+        storeContacts(contacts);
+        closeNewGroup();
+        renderContacts();
+        showToast('✅ 群聊已创建');
+      }
+
       function openNewContact() {
         editingContactId = null;
         newContactAvatarData = null;
@@ -4747,7 +4866,8 @@
         currentContactId = contactId;
         const c = contacts.find(x => x.id === contactId);
         if (!c) return;
-        document.getElementById('chatTitle').textContent = c.name;
+        isGroupChat = !!c.isGroup;
+        document.getElementById('chatTitle').textContent = c.name + (isGroupChat ? ` (${c.members.length})` : '');
         applyChatBg(c);
         renderChatMessages(c);
         pushScreen('chat');
@@ -5040,6 +5160,8 @@
           'anniversary',
           'musicApp',
           'shop',
+          'newGroup',
+          'groupManage',
         ].includes(s)
           ? allScreens[s]
           : null;
@@ -5080,6 +5202,8 @@
           else if (s === 'anniversary') closeAnniversaryApp();
           else if (s === 'musicApp') closeMusicApp();
           else if (s === 'shop') closeShop();
+          else if (s === 'newGroup') closeNewGroup();
+          else if (s === 'groupManage') closeGroupManage();
         } else {
           swipeTarget.style.transform = 'translateX(0)';
         }
@@ -5129,12 +5253,13 @@
             else if (s === 'calendarApp') closeCalendarApp();
             else if (s === 'anniversary') closeAnniversaryApp();
             else if (s === 'musicApp') closeMusicApp();
-            else if (s === 'shop') closeShop();
-          } else {
-            swipeTarget.style.transform = 'translateX(0)';
-          }
-          swipeTarget = null;
-        },
+          else if (s === 'shop') closeShop();
+          else if (s === 'groupManage') closeGroupManage();
+        } else {
+          swipeTarget.style.transform = 'translateX(0)';
+        }
+        swipeTarget = null;
+      },
         { passive: true },
       );
 
@@ -5167,11 +5292,16 @@
               ? (lastMsg.role === 'user' ? '我: ' : '') + lastMsg.content.slice(0, 30)
               : '暂无消息';
             const avatarStyle = c.avatar ? '' : `style="background:${c.color}"`;
-            const avatarContent = c.avatar ? `<img src="${esc(c.avatar)}">` : c.name.charAt(0).toUpperCase();
+            const avatarContent = c.avatar
+              ? `<img src="${esc(c.avatar)}">`
+              : c.isGroup
+                ? '👥'
+                : c.name.charAt(0).toUpperCase();
             const pinIcon = c.pinned ? '<span class="pin-icon">📌</span>' : '';
             const muteIcon = c.muted ? '<span class="mute-icon">🔕</span>' : '';
+            const groupLabel = c.isGroup ? `<span style="font-size:11px;color:#999;margin-left:3px;">[群]</span>` : '';
             const pinnedClass = c.pinned ? ' pinned' : '';
-            return `<div class="contact-item${pinnedClass}" onclick="openChatWith(${c.id})" oncontextmenu="event.preventDefault();showContactCtxMenu(event,${c.id})"><div class="contact-avatar" ${avatarStyle}>${avatarContent}</div><div class="contact-info"><div class="contact-name">${esc(c.name)}${pinIcon}${muteIcon}</div><div class="contact-preview">${esc(preview)}</div></div><div class="contact-time">${c.lastTime || ''}</div></div>`;
+            return `<div class="contact-item${pinnedClass}" onclick="openChatWith(${c.id})" oncontextmenu="event.preventDefault();showContactCtxMenu(event,${c.id})"><div class="contact-avatar" ${avatarStyle}>${avatarContent}</div><div class="contact-info"><div class="contact-name">${esc(c.name)}${groupLabel}${pinIcon}${muteIcon}</div><div class="contact-preview">${esc(preview)}</div></div><div class="contact-time">${c.lastTime || ''}</div></div>`;
           })
           .join('');
       }
@@ -5561,14 +5691,29 @@
         const row = document.createElement('div');
         row.className = `message-row ${role}`;
         if (typeof msgIndex === 'number') row.dataset.msgIndex = msgIndex;
+
+        // For group chats, we need to know who sent the message
+        let sender = contact;
+        let actualRole = role;
+        let displayContent = content;
+
+        if (isGroupChat && role === 'ai' && typeof msgIndex === 'number') {
+          const msg = contact.messages[msgIndex];
+          if (msg && msg.senderId) {
+            const member = contacts.find(c => c.id === msg.senderId);
+            if (member) sender = member;
+          }
+        }
+
+
         const avatar = document.createElement('div');
         avatar.className = 'msg-avatar';
         if (role === 'ai') {
-          if (contact && contact.avatar) {
-            avatar.innerHTML = `<img src="${contact.avatar}">`;
+          if (sender && sender.avatar) {
+            avatar.innerHTML = `<img src="${sender.avatar}">`;
           } else {
-            avatar.style.background = contact ? contact.color : '#07c160';
-            avatar.textContent = contact ? contact.name.charAt(0).toUpperCase() : 'AI';
+            avatar.style.background = sender ? sender.color : '#07c160';
+            avatar.textContent = sender ? sender.name.charAt(0).toUpperCase() : 'AI';
           }
         } else {
           if (settings.userAvatar) {
@@ -5633,7 +5778,19 @@
         }
 
         row.appendChild(avatar);
-        row.appendChild(bubble);
+        if (isGroupChat && role === 'ai') {
+          const msgWrapper = document.createElement('div');
+          msgWrapper.style.cssText = 'display:flex;flex-direction:column;';
+          const senderName = sender ? sender.name : '未知';
+          const nameLabel = document.createElement('div');
+          nameLabel.style.cssText = 'font-size:11px;color:#999;margin-bottom:2px;';
+          nameLabel.textContent = senderName;
+          msgWrapper.appendChild(nameLabel);
+          msgWrapper.appendChild(bubble);
+          row.appendChild(msgWrapper);
+        } else {
+          row.appendChild(bubble);
+        }
         return row;
       }
 
@@ -5821,28 +5978,210 @@
         if (isStreaming || !currentContactId) return;
         const contact = contacts.find(c => c.id === currentContactId);
         if (!contact) return;
-        // If last message is from AI (regenerate mode), remove it first
+
+        // If last message is from AI (regenerate mode), remove it/them first
         if (contact.messages.length > 0 && contact.messages[contact.messages.length - 1].role === 'assistant') {
-          contact.messages.pop();
+          if (isGroupChat) {
+            // Remove all trailing assistant messages (the entire last round)
+            while (contact.messages.length > 0 && contact.messages[contact.messages.length - 1].role === 'assistant') {
+              contact.messages.pop();
+            }
+          } else {
+            contact.messages.pop();
+          }
           storeContacts(contacts);
         }
+
         hideGenerateBtn();
+
+        // Group chat: sequential generation per member
+        if (isGroupChat) {
+          isStreaming = true;
+          sendBtn.disabled = true;
+          document.getElementById('generateBtn').disabled = true;
+          try {
+            const memberIds = contact.members || [];
+            const memberNames = memberIds.map(id => contacts.find(c => c.id === id)?.name).filter(Boolean);
+            let anyReplied = false;
+
+            for (let mi = 0; mi < memberIds.length; mi++) {
+              const memberId = memberIds[mi];
+              const member = contacts.find(c => c.id === memberId);
+              if (!member) continue;
+
+              // Show typing indicator with this member's avatar and name
+              const typingRow = createMessageRow('ai', '__typing__', contact);
+              // Override avatar to show member's avatar
+              const typingAvatar = typingRow.querySelector('.msg-avatar');
+              if (typingAvatar) {
+                if (member.avatar) {
+                  typingAvatar.innerHTML = `<img src="${member.avatar}">`;
+                  typingAvatar.style.background = '';
+                } else {
+                  typingAvatar.style.background = member.color;
+                  typingAvatar.textContent = member.name.charAt(0).toUpperCase();
+                }
+              }
+              // Override name label to show member's name
+              const typingNameLabel = typingRow.querySelector('div[style*="font-size:11px"]');
+              if (typingNameLabel) {
+                typingNameLabel.textContent = member.name;
+              }
+              chatContainer.appendChild(typingRow);
+              scrollToBottom();
+
+              // Build messages for this specific member
+              const messages = [];
+
+              // System prompt: this member's own persona + group context
+              const otherMembers = memberIds
+                .filter(id => id !== memberId)
+                .map(id => contacts.find(c => c.id === id))
+                .filter(Boolean);
+              const otherContext = otherMembers
+                .map(c => `${c.name}: ${(c.systemPrompt || '').slice(0, 200)}`)
+                .join('\n');
+
+              // Build a single system message to avoid API rejection
+              let sysContent = member.systemPrompt || '你是' + member.name;
+              sysContent += `\n\n[群聊：${contact.name}，成员：${otherMembers.map(c => c.name).join('、')}]\n以${member.name}的身份回复，不加名字前缀。若无需回复则只说[SKIP]。`;
+              if (settings.persona && settings.persona.trim())
+                sysContent += `\n\n[用户人设]\n${settings.persona.trim()}`;
+              if (settings.worldbook && settings.worldbook.trim())
+                sysContent += `\n\n${settings.worldbook.trim()}`;
+              if (settings.jailbreak && settings.jailbreak.trim())
+                sysContent += `\n\n${settings.jailbreak.trim()}`;
+              messages.push({ role: 'system', content: sysContent });
+
+              // Add conversation history (limit to last 15 messages)
+              // For group chat: convert this-round assistant messages to user role
+              // to avoid ending with assistant before requesting another assistant reply
+              const recentMessages = contact.messages.slice(-15);
+              recentMessages.forEach(m => {
+                let content = m.content;
+                if (content.startsWith('__image__') || content.startsWith('__gift__') || content.startsWith('__transfer__') || content.startsWith('__redpacket__')) {
+                  return; // skip special messages
+                }
+                if (m.role === 'assistant' && m.senderId) {
+                  const s = contacts.find(c => c.id === m.senderId);
+                  if (s) content = `[${s.name}] ${content}`;
+                  // Convert other members' replies from this round to user role
+                  // so API doesn't reject consecutive assistant messages
+                  messages.push({ role: 'user', content });
+                } else {
+                  messages.push({ role: m.role, content });
+                }
+              });
+
+              try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (settings.apiKey) headers['Authorization'] = `Bearer ${settings.apiKey}`;
+                const response = await fetch(settings.endpoint, {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify({
+                    model: settings.model,
+                    messages,
+                    stream: false,
+                    temperature: settings.temperature,
+                    max_tokens: 4096,
+                  }),
+                });
+
+                const text = await response.text();
+                if (text.trim().startsWith('<!') || text.trim().startsWith('<html'))
+                  throw new Error('API 返回了网页而非 JSON');
+                if (!response.ok) {
+                  let errData = {};
+                  try { errData = JSON.parse(text); } catch (e) {}
+                  throw new Error(errData.error?.message || `HTTP ${response.status}`);
+                }
+
+                const data = JSON.parse(text);
+                let reply = (data.choices?.[0]?.message?.content || '').trim();
+
+                if (typingRow.parentNode) chatContainer.removeChild(typingRow);
+
+                // Check if member chose to skip
+                if (!reply || reply === '[SKIP]' || reply.includes('[SKIP]')) {
+                  continue;
+                }
+
+                // Remove any self-referencing prefix like [MemberName]
+                const selfPrefix = new RegExp(`^\\[${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]\\s*`);
+                reply = reply.replace(selfPrefix, '');
+
+                // Add as a message from this member
+                const msgIdx = contact.messages.length;
+                contact.messages.push({ role: 'assistant', content: reply, senderId: memberId });
+                // Save incrementally after each member responds
+                storeContacts(contacts);
+                const row = createMessageRow('ai', reply, contact, msgIdx);
+                chatContainer.appendChild(row);
+                scrollToBottom();
+                anyReplied = true;
+
+                // Small delay before next member
+                if (mi < memberIds.length - 1) {
+                  await new Promise(r => setTimeout(r, 800));
+                }
+              } catch (memberErr) {
+                if (typingRow.parentNode) chatContainer.removeChild(typingRow);
+                console.warn(`Member ${member.name} generation failed:`, memberErr.message);
+                // Show error in chat so user knows what happened
+                const errRow = document.createElement('div');
+                errRow.className = 'system-msg';
+                errRow.textContent = `⚠️ ${member.name} 生成失败: ${memberErr.message}`;
+                chatContainer.appendChild(errRow);
+                scrollToBottom();
+              }
+            }
+
+            if (!anyReplied) {
+              chatContainer.appendChild(createMessageRow('ai', '(群里暂时没有人回复)', contact));
+            }
+
+            contact.lastTime = getNowTimeStr();
+            storeContacts(contacts);
+            renderContacts();
+          } catch (err) {
+            chatContainer.appendChild(createMessageRow('ai', `⚠️ ${err.message}`, contact));
+            scrollToBottom();
+          } finally {
+            isStreaming = false;
+            sendBtn.disabled = false;
+            document.getElementById('generateBtn').disabled = false;
+            userInput.focus();
+            updateGenerateButton();
+          }
+          return;
+        }
+
+        // Single chat generation
         const typingRow = createMessageRow('ai', '__typing__', contact);
         chatContainer.appendChild(typingRow);
         scrollToBottom();
         isStreaming = true;
         sendBtn.disabled = true;
         document.getElementById('generateBtn').disabled = true;
+
         try {
           const messages = [];
-          if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt });
+
+          {
+            if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt });
+          }
+
           if (settings.persona && settings.persona.trim())
             messages.push({ role: 'system', content: `[用户人设信息]\n${settings.persona.trim()}` });
           if (settings.worldbook && settings.worldbook.trim())
             messages.push({ role: 'system', content: settings.worldbook.trim() });
+
           contact.messages.forEach(m => {
-            if (m.content.startsWith('__image__')) {
-              const imgUrl = m.content.replace('__image__', '');
+            let content = m.content;
+
+            if (content.startsWith('__image__')) {
+              const imgUrl = content.replace('__image__', '');
               messages.push({
                 role: m.role,
                 content: [
@@ -5850,13 +6189,14 @@
                   { type: 'text', text: '(用户发送了一张图片，请描述并回应)' },
                 ],
               });
-            } else if (m.content.startsWith('__gift__')) {
-              const gd = JSON.parse(m.content.replace('__gift__', ''));
+            } else if (content.startsWith('__gift__')) {
+              const gd = JSON.parse(content.replace('__gift__', ''));
               messages.push({ role: m.role, content: `(用户送了你一个礼物：${gd.name} ${gd.icon})` });
-            } else if (!m.content.startsWith('__transfer__') && !m.content.startsWith('__redpacket__')) {
-              messages.push({ role: m.role, content: m.content });
+            } else if (!content.startsWith('__transfer__') && !content.startsWith('__redpacket__')) {
+              messages.push({ role: m.role, content: content });
             }
           });
+
           if (settings.jailbreak && settings.jailbreak.trim())
             messages.push({ role: 'system', content: settings.jailbreak.trim() });
           const headers = { 'Content-Type': 'application/json' };
@@ -5903,53 +6243,17 @@
           }
 
           let fullContent = data.choices?.[0]?.message?.content || '';
-
           chatContainer.removeChild(typingRow);
 
-          // Guard: don't save empty replies
           if (!fullContent) {
             const aiRow = createMessageRow('ai', '⚠️ AI 返回了空回复', contact);
             chatContainer.appendChild(aiRow);
-            alert(
-              'AI 返回了空回复\n\n可能原因：\n• API 端点不支持流式输出（stream）\n• 模型名称不正确\n• API Key 余额不足\n\n当前配置：\n• 端点：' +
-                settings.endpoint +
-                '\n• 模型：' +
-                settings.model,
-            );
           } else {
-            // Split AI reply into multiple messages by double newline
-            const parts = fullContent
-              .split(/\n\n+/)
-              .map(s => s.trim())
-              .filter(Boolean);
-            if (parts.length <= 1) {
-              // Single message, show directly
-              const aiRow = createMessageRow('ai', fullContent, contact, contact.messages.length);
-              chatContainer.appendChild(aiRow);
-              contact.messages.push({ role: 'assistant', content: fullContent });
-            } else {
-              // Multiple messages: show first immediately, then rest with typing delays
-              const firstRow = createMessageRow('ai', parts[0], contact, contact.messages.length);
-              chatContainer.appendChild(firstRow);
-              contact.messages.push({ role: 'assistant', content: parts[0] });
-              scrollToBottom();
-              for (let i = 1; i < parts.length; i++) {
-                // Show typing indicator
-                const typingRow2 = createMessageRow('ai', '__typing__', contact);
-                chatContainer.appendChild(typingRow2);
-                scrollToBottom();
-                // Wait 600-1200ms per message (longer for longer text)
-                const delay = Math.min(600 + parts[i].length * 15, 2500);
-                await new Promise(r => setTimeout(r, delay));
-                // Replace typing with actual message
-                if (typingRow2.parentNode) chatContainer.removeChild(typingRow2);
-                const msgIdx = contact.messages.length;
-                const row = createMessageRow('ai', parts[i], contact, msgIdx);
-                chatContainer.appendChild(row);
-                contact.messages.push({ role: 'assistant', content: parts[i] });
-                scrollToBottom();
-              }
-            }
+            const msgIdx = contact.messages.length;
+            contact.messages.push({ role: 'assistant', content: fullContent });
+            const row = createMessageRow('ai', fullContent, contact, msgIdx);
+            chatContainer.appendChild(row);
+            scrollToBottom();
           }
           contact.lastTime = getNowTimeStr();
           storeContacts(contacts);
@@ -7595,7 +7899,9 @@ ${charContext}
         const menu = document.getElementById('chatDropdownMenu');
         const pinText = c.pinned ? '📌 取消置顶' : '📌 置顶聊天';
         const muteText = c.muted ? '🔔 开启通知' : '🔕 消息免打扰';
+        const groupItem = c.isGroup ? `<div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('groupManage')">👥 群管理</div>` : '';
         menu.innerHTML = `
+          ${groupItem}
           <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('edit')">✏️ 修改备注</div>
           <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('pin')">${pinText}</div>
           <div style="padding:12px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;font-size:14px;color:#333;" onclick="chatMenuAction('mute')">${muteText}</div>
@@ -7652,6 +7958,9 @@ ${charContext}
             storeContacts(contacts);
             closeChat();
             showToast('已删除');
+            break;
+          case 'groupManage':
+            openGroupManage();
             break;
         }
       }
@@ -7930,6 +8239,147 @@ ${charContext}
         };
         reader.readAsDataURL(file);
         this.value = '';
+      });
+
+      // ======= GROUP MANAGEMENT =======
+      let groupManageId = null;
+      let groupManageAvatarData = null;
+
+      function openGroupManage() {
+        if (!currentContactId) return;
+        const c = contacts.find(x => x.id === currentContactId);
+        if (!c || !c.isGroup) return;
+        groupManageId = currentContactId;
+        groupManageAvatarData = c.avatar || null;
+        document.getElementById('groupManageName').value = c.name;
+        // Render avatar
+        const preview = document.getElementById('groupAvatarPreview');
+        if (c.avatar) {
+          preview.innerHTML = `<img src="${c.avatar}"><div class="avatar-overlay">换头像</div>`;
+          preview.style.background = 'transparent';
+        } else {
+          preview.style.background = c.color || '#5856d6';
+          preview.innerHTML = '👥<div class="avatar-overlay">换头像</div>';
+        }
+        // Render members
+        renderGroupMembers(c);
+        groupManageScreen.classList.add('active');
+        screenStack.push('groupManage');
+      }
+
+      function closeGroupManage() {
+        groupManageId = null;
+        popScreen();
+      }
+
+      function renderGroupMembers(group) {
+        const list = document.getElementById('groupMemberList');
+        const memberIds = group.members || [];
+        document.getElementById('groupMemberTitle').textContent = `群成员 (${memberIds.length})`;
+        list.innerHTML = memberIds.map(id => {
+          const m = contacts.find(c => c.id === id);
+          if (!m) return '';
+          const avatarStyle = m.avatar ? '' : `style="background:${m.color}"`;
+          const avatarContent = m.avatar ? `<img src="${m.avatar}">` : m.name.charAt(0).toUpperCase();
+          return `<div class="form-item" style="flex-direction:row;align-items:center;gap:10px;">
+            <div class="contact-avatar" style="width:36px;height:36px;font-size:14px;${m.avatar ? '' : 'background:' + m.color}">${avatarContent}</div>
+            <div style="flex:1;font-size:15px;">${esc(m.name)}</div>
+            <span style="color:#ff3b30;cursor:pointer;font-size:20px;" onclick="removeMemberFromGroup(${id})" title="移除">✕</span>
+          </div>`;
+        }).join('');
+      }
+
+      function saveGroupManage() {
+        if (!groupManageId) return;
+        const c = contacts.find(x => x.id === groupManageId);
+        if (!c) return;
+        const newName = document.getElementById('groupManageName').value.trim();
+        if (newName) c.name = newName;
+        if (groupManageAvatarData) c.avatar = groupManageAvatarData;
+        storeContacts(contacts);
+        if (currentContactId === groupManageId) {
+          document.getElementById('chatTitle').textContent = c.name + ` (${(c.members||[]).length})`;
+        }
+        showToast('✅ 群聊信息已保存');
+      }
+
+      function addMemberToGroup() {
+        if (!groupManageId) return;
+        const group = contacts.find(x => x.id === groupManageId);
+        if (!group) return;
+        const existingIds = new Set(group.members || []);
+        const available = contacts.filter(c => !c.isGroup && c.systemPrompt && !existingIds.has(c.id));
+        if (available.length === 0) {
+          showToast('没有可添加的联系人');
+          return;
+        }
+        const names = available.map(c => c.name);
+        const choice = prompt('选择要添加的成员（输入序号）：\n' + names.map((n, i) => `${i + 1}. ${n}`).join('\n'));
+        if (!choice) return;
+        const idx = parseInt(choice) - 1;
+        if (idx < 0 || idx >= available.length) {
+          showToast('⚠️ 无效选择');
+          return;
+        }
+        group.members.push(available[idx].id);
+        storeContacts(contacts);
+        renderGroupMembers(group);
+        showToast(`✅ 已添加 ${available[idx].name}`);
+      }
+
+      function removeMemberFromGroup(memberId) {
+        if (!groupManageId) return;
+        const group = contacts.find(x => x.id === groupManageId);
+        if (!group) return;
+        const member = contacts.find(c => c.id === memberId);
+        if (!confirm(`确定移除 ${member ? member.name : '该成员'}？`)) return;
+        group.members = (group.members || []).filter(id => id !== memberId);
+        storeContacts(contacts);
+        renderGroupMembers(group);
+        showToast('已移除');
+      }
+
+      function dissolveGroup() {
+        if (!groupManageId) return;
+        if (!confirm('确定解散该群聊？所有聊天记录将被删除。')) return;
+        contacts = contacts.filter(c => c.id !== groupManageId);
+        storeContacts(contacts);
+        closeGroupManage();
+        if (currentContactId === groupManageId) {
+          currentContactId = null;
+          popScreen(); // close chat
+        }
+        renderContacts();
+        showToast('群聊已解散');
+      }
+
+      // Override pickAvatar to also handle group management avatar
+      const _origPickAvatar = pickAvatar;
+      pickAvatar = function(target) {
+        if (target === 'group') {
+          avatarPickTarget = 'group';
+          document.getElementById('avatarFileInput').click();
+          return;
+        }
+        _origPickAvatar(target);
+      };
+
+      // Extend avatar file input handler for group
+      const origAvatarHandler = document.getElementById('avatarFileInput').onchange;
+      document.getElementById('avatarFileInput').addEventListener('change', function(e) {
+        if (avatarPickTarget === 'group') {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = async function(ev) {
+            const dataUrl = await compressImage(ev.target.result, 128);
+            groupManageAvatarData = dataUrl;
+            const p = document.getElementById('groupAvatarPreview');
+            p.innerHTML = `<img src="${dataUrl}"><div class="avatar-overlay">换头像</div>`;
+            p.style.background = 'transparent';
+          };
+          reader.readAsDataURL(file);
+        }
       });
 
       // Init
