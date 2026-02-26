@@ -544,8 +544,11 @@
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.05);
         -webkit-tap-highlight-color: transparent;
-        z-index: 1;
+        z-index: 10;
         transition: background 0.2s;
+        min-width: 44px;
+        min-height: 44px;
+        position: relative;
       }
       .app-header .back-btn:active {
         background: rgba(0, 0, 0, 0.1);
@@ -566,6 +569,12 @@
         transform: translateX(-50%);
         font-size: 17px;
         font-weight: 600;
+        max-width: 55%;
+        text-align: center;
+        pointer-events: none;
+      }
+      .app-header .header-title[onclick] {
+        pointer-events: auto;
       }
       .app-header .header-right {
         position: absolute;
@@ -3807,7 +3816,7 @@
         <div class="contacts-body" id="contactsBody"></div>
       </div>
 
-      <div class="screen new-contact-screen" id="newGroupScreen" style="z-index: 75; transform: translateX(100%); background: #f2f2f7; display: flex; flex-direction: column;">
+      <div class="screen new-contact-screen" id="newGroupScreen" style="z-index: 75;">
         <div class="app-header">
           <div class="back-btn" onclick="closeNewGroup()">‹<span>返回</span></div>
           <div class="header-title">发起群聊</div>
@@ -3832,7 +3841,7 @@
       </div>
 
       <!-- Group Management Screen -->
-      <div class="screen new-contact-screen" id="groupManageScreen" style="z-index: 76; transform: translateX(100%); background: #f2f2f7; display: flex; flex-direction: column;">
+      <div class="screen new-contact-screen" id="groupManageScreen" style="z-index: 76;">
         <div class="app-header">
           <div class="back-btn" onclick="closeGroupManage()">‹<span>返回</span></div>
           <div class="header-title">群聊管理</div>
@@ -4805,8 +4814,7 @@
           </div>
         `).join('');
         document.getElementById('newGroupName').value = '';
-        document.getElementById('newGroupScreen').classList.add('active');
-        screenStack.push('newGroup');
+        pushScreen('newGroup');
       }
       function closeNewGroup() {
         popScreen();
@@ -6128,10 +6136,13 @@
               } catch (memberErr) {
                 if (typingRow.parentNode) chatContainer.removeChild(typingRow);
                 console.warn(`Member ${member.name} generation failed:`, memberErr.message);
-                // Show error in chat so user knows what happened
+                let errMsg = memberErr.message;
+                if (errMsg === 'Failed to fetch' || errMsg.includes('NetworkError') || errMsg.includes('fetch')) {
+                  errMsg = '网络连接失败（可能是API地址无效、SSL证书错误或网络不通）';
+                }
                 const errRow = document.createElement('div');
                 errRow.className = 'system-msg';
-                errRow.textContent = `⚠️ ${member.name} 生成失败: ${memberErr.message}`;
+                errRow.textContent = `⚠️ ${member.name} 生成失败: ${errMsg}`;
                 chatContainer.appendChild(errRow);
                 scrollToBottom();
               }
@@ -8263,8 +8274,7 @@ ${charContext}
         }
         // Render members
         renderGroupMembers(c);
-        groupManageScreen.classList.add('active');
-        screenStack.push('groupManage');
+        pushScreen('groupManage');
       }
 
       function closeGroupManage() {
