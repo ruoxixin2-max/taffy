@@ -7295,7 +7295,7 @@
           const messages = [];
 
           // Core chat format instruction
-          const chatFormatPrompt = '你正在通过手机线上聊天。你的所有回复都应该像真实的手机即时通讯消息一样：简短、口语化、自然。严禁使用动作描写（如*动作*、（动作）等）、旁白、场景描述或小说化叙述。只用纯对话文字回复，就像在微信/QQ上打字聊天一样。可以使用emoji和颜文字。';
+          const chatFormatPrompt = '你正在通过手机线上聊天。请像真人发微信/QQ一样回复，遵守以下规则：\n1. 把回复拆成多条短消息，每条用 \\n---\\n 分隔。像真人一样一条一条地发，每条1-2句话。\n2. 严禁使用动作描写（如*动作*、（动作）等）、旁白、场景描述或小说化叙述。\n3. 语气口语化、自然，可以用emoji和颜文字。\n4. 不要把所有内容挤在一条消息里。\n\n示例格式：\n你好呀~\n---\n今天怎么样\n---\n我刚吃完饭 好撑哈哈哈';
 
           {
             if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt + '\n\n' + chatFormatPrompt });
@@ -7381,11 +7381,24 @@
             const aiRow = createMessageRow('ai', '⚠️ AI 返回了空回复', contact);
             chatContainer.appendChild(aiRow);
           } else {
-            const msgIdx = contact.messages.length;
-            contact.messages.push({ role: 'assistant', content: fullContent });
-            const row = createMessageRow('ai', fullContent, contact, msgIdx);
-            chatContainer.appendChild(row);
-            scrollToBottom();
+            // Split by --- separator into multiple bubbles
+            const parts = fullContent.split(/\n---\n/).map(s => s.trim()).filter(Boolean);
+            if (parts.length > 1) {
+              // Store full content as single message for context, but display as multiple bubbles
+              const msgIdx = contact.messages.length;
+              contact.messages.push({ role: 'assistant', content: fullContent });
+              parts.forEach((part, i) => {
+                const row = createMessageRow('ai', part, contact, msgIdx);
+                chatContainer.appendChild(row);
+                scrollToBottom();
+              });
+            } else {
+              const msgIdx = contact.messages.length;
+              contact.messages.push({ role: 'assistant', content: fullContent });
+              const row = createMessageRow('ai', fullContent, contact, msgIdx);
+              chatContainer.appendChild(row);
+              scrollToBottom();
+            }
           }
           contact.lastTime = getNowTimeStr();
           storeContacts(contacts);
