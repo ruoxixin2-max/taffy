@@ -7294,8 +7294,12 @@
         try {
           const messages = [];
 
+          // Core chat format instruction
+          const chatFormatPrompt = '你正在通过手机线上聊天。你的所有回复都应该像真实的手机即时通讯消息一样：简短、口语化、自然。严禁使用动作描写（如*动作*、（动作）等）、旁白、场景描述或小说化叙述。只用纯对话文字回复，就像在微信/QQ上打字聊天一样。可以使用emoji和颜文字。';
+
           {
-            if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt });
+            if (contact.systemPrompt) messages.push({ role: 'system', content: contact.systemPrompt + '\n\n' + chatFormatPrompt });
+            else messages.push({ role: 'system', content: chatFormatPrompt });
           }
 
           if (settings.persona && settings.persona.trim())
