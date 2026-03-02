@@ -6889,9 +6889,16 @@
 
       function renderChatMessages(contact) {
         chatContainer.innerHTML = `<div class="system-msg">与 ${esc(contact.name)} 的对话</div>`;
-        contact.messages.forEach((m, idx) =>
-          chatContainer.appendChild(createMessageRow(m.role === 'user' ? 'user' : 'ai', m.content, contact, idx)),
-        );
+        contact.messages.forEach((m, idx) => {
+          if (m.role === 'assistant' && !m.content.startsWith('__') && m.content.includes('\n---\n')) {
+            const parts = m.content.split(/\n---\n/).map(s => s.trim()).filter(Boolean);
+            parts.forEach(part => {
+              chatContainer.appendChild(createMessageRow('ai', part, contact, idx));
+            });
+          } else {
+            chatContainer.appendChild(createMessageRow(m.role === 'user' ? 'user' : 'ai', m.content, contact, idx));
+          }
+        });
         scrollToBottom();
       }
 
