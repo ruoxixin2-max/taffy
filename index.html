@@ -1371,7 +1371,7 @@
         display: none;
       }
       .message-row.user .bubble {
-        background: #007aff;
+        background: #e8a0b4;
         color: #fff;
         border-top-right-radius: 4px;
       }
@@ -5228,6 +5228,63 @@
                   ></div>
                 </div>
               </div>
+              <div
+                class="settings-item"
+                style="flex-direction: row; align-items: center; justify-content: space-between"
+              >
+                <div>
+                  <label>同步现实时间</label>
+                  <div class="hint">开启后，聊天消息时间戳和锁屏时钟将使用你的真实本地时间，并同步到 AI 的系统提示词中，让角色感知到真实的日期和时间</div>
+                </div>
+                <div
+                  style="position: relative; width: 51px; height: 31px; cursor: pointer"
+                  onclick="toggleRealTimeSync()"
+                  id="realTimeSyncToggle"
+                >
+                  <div
+                    style="
+                      width: 51px;
+                      height: 31px;
+                      border-radius: 15.5px;
+                      background: #e9e9ea;
+                      transition: background 0.2s;
+                    "
+                    id="realTimeSyncTrack"
+                  ></div>
+                  <div
+                    style="
+                      position: absolute;
+                      top: 2px;
+                      left: 2px;
+                      width: 27px;
+                      height: 27px;
+                      border-radius: 50%;
+                      background: #fff;
+                      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                      transition: transform 0.2s;
+                    "
+                    id="realTimeSyncThumb"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">字体设置</div>
+            <div class="settings-card">
+              <div class="settings-item">
+                <label>自定义字体</label>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <input type="text" id="settingFontUrl" placeholder="粘贴字体文件URL（.ttf/.woff/.woff2/.otf）" />
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <button class="save-btn" style="width:auto;padding:8px 16px;font-size:13px;margin:0;" onclick="applyFontUrl()">应用URL字体</button>
+                    <button class="save-btn" style="width:auto;padding:8px 16px;font-size:13px;margin:0;background:#5856d6;" onclick="document.getElementById('fontFileInput').click()">上传字体文件</button>
+                  </div>
+                  <div id="currentFontInfo" style="font-size:12px;color:#86868b;"></div>
+                  <button class="save-btn" id="resetFontBtn" style="width:auto;padding:8px 16px;font-size:13px;margin:0;background:#ff3b30;display:none;" onclick="resetCustomFont()">恢复默认字体</button>
+                </div>
+                <div class="hint">支持 .ttf/.woff/.woff2/.otf 格式。上传或粘贴URL后字体将应用到整个界面</div>
+              </div>
             </div>
           </div>
           <div class="settings-section">
@@ -5649,6 +5706,7 @@
       <input type="file" id="chatBgFileInput" accept="image/*" style="display: none" />
       <input type="file" id="widgetBgInput" accept="image/*" style="display: none" />
       <input type="file" id="wallpaperInput" accept="image/*" style="display: none" />
+      <input type="file" id="fontFileInput" accept=".ttf,.woff,.woff2,.otf" style="display: none" />
     </div>
 
     <script>
@@ -7337,6 +7395,8 @@
 
           if (settings.persona && settings.persona.trim())
             messages.push({ role: 'system', content: `[用户人设信息]\n${settings.persona.trim()}` });
+          const realTimeCtx = getRealTimePrompt();
+          if (realTimeCtx) messages.push({ role: 'system', content: realTimeCtx });
           const memCtx = getMemoryContext();
           if (memCtx) messages.push({ role: 'system', content: memCtx });
           if (settings.worldbook && settings.worldbook.trim())
@@ -10512,6 +10572,37 @@ ${chatStr}
         return _origGetSwipeScreen();
       };
 
+      // ======= REAL TIME SYNC =======
+      let realTimeSync = localStorage.getItem('ai_phone_realtime_sync') === 'true';
+
+      function applyRealTimeSync() {
+        const track = document.getElementById('realTimeSyncTrack');
+        const thumb = document.getElementById('realTimeSyncThumb');
+        if (track && thumb) {
+          track.style.background = realTimeSync ? '#34c759' : '#e9e9ea';
+          thumb.style.transform = realTimeSync ? 'translateX(20px)' : 'translateX(0)';
+        }
+      }
+
+      function toggleRealTimeSync() {
+        realTimeSync = !realTimeSync;
+        localStorage.setItem('ai_phone_realtime_sync', realTimeSync);
+        applyRealTimeSync();
+        showToast(realTimeSync ? '已开启同步现实时间' : '已关闭同步现实时间');
+      }
+
+      function getRealTimePrompt() {
+        if (!realTimeSync) return '';
+        const now = new Date();
+        const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${days[now.getDay()]}`;
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const period = now.getHours() < 6 ? '凌晨' : now.getHours() < 9 ? '早上' : now.getHours() < 12 ? '上午' : now.getHours() < 14 ? '中午' : now.getHours() < 18 ? '下午' : now.getHours() < 21 ? '晚上' : '深夜';
+        return `[现实世界时间同步]\n当前日期：${dateStr}\n当前时间：${period} ${timeStr}\n请根据这个真实时间来自然地回应用户，比如早上说早安、深夜关心对方是否该休息等，但不要每次都刻意提及时间。`;
+      }
+
+      applyRealTimeSync();
+
       // ======= FULLSCREEN MODE =======
       let isFullscreen = localStorage.getItem('ai_phone_fullscreen') === 'true';
 
@@ -10534,6 +10625,86 @@ ${chatStr}
       }
 
       applyFullscreen();
+
+      // ======= CUSTOM FONT =======
+      let customFont = JSON.parse(localStorage.getItem('ai_phone_custom_font') || 'null');
+
+      function applyCustomFont() {
+        // Remove old custom font style
+        const old = document.getElementById('customFontStyle');
+        if (old) old.remove();
+
+        const info = document.getElementById('currentFontInfo');
+        const resetBtn = document.getElementById('resetFontBtn');
+        const urlInput = document.getElementById('settingFontUrl');
+
+        if (!customFont) {
+          document.body.style.fontFamily = "'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif";
+          if (info) info.textContent = '当前：默认字体';
+          if (resetBtn) resetBtn.style.display = 'none';
+          if (urlInput) urlInput.value = '';
+          return;
+        }
+
+        const style = document.createElement('style');
+        style.id = 'customFontStyle';
+        style.textContent = `
+          @font-face {
+            font-family: 'UserCustomFont';
+            src: url('${customFont.src}') format('${customFont.format || 'truetype'}');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+          }
+        `;
+        document.head.appendChild(style);
+        document.body.style.fontFamily = "'UserCustomFont','Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif";
+
+        if (info) info.textContent = '当前：' + (customFont.name || '自定义字体');
+        if (resetBtn) resetBtn.style.display = 'inline-block';
+        if (urlInput) urlInput.value = customFont.src.startsWith('data:') ? '' : customFont.src;
+      }
+
+      function getFontFormat(name) {
+        const ext = name.split('.').pop().toLowerCase();
+        if (ext === 'woff2') return 'woff2';
+        if (ext === 'woff') return 'woff';
+        if (ext === 'otf') return 'opentype';
+        return 'truetype';
+      }
+
+      function applyFontUrl() {
+        const url = document.getElementById('settingFontUrl').value.trim();
+        if (!url) { showToast('请输入字体URL'); return; }
+        customFont = { src: url, name: url.split('/').pop().split('?')[0] || '自定义字体', format: getFontFormat(url) };
+        safeStore('ai_phone_custom_font', JSON.stringify(customFont));
+        applyCustomFont();
+        showToast('✅ 字体已应用');
+      }
+
+      document.getElementById('fontFileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 8 * 1024 * 1024) { showToast('⚠️ 字体文件不能超过8MB'); this.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          customFont = { src: ev.target.result, name: file.name, format: getFontFormat(file.name) };
+          safeStore('ai_phone_custom_font', JSON.stringify(customFont));
+          applyCustomFont();
+          showToast('✅ 字体已应用：' + file.name);
+        };
+        reader.readAsDataURL(file);
+        this.value = '';
+      });
+
+      function resetCustomFont() {
+        customFont = null;
+        localStorage.removeItem('ai_phone_custom_font');
+        applyCustomFont();
+        showToast('✅ 已恢复默认字体');
+      }
+
+      applyCustomFont();
 
       // Init
       renderColorOptions();
