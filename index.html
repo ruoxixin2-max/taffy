@@ -1378,6 +1378,18 @@
       .message-row.user .bubble::after {
         display: none;
       }
+      .msg-time {
+        font-size: 10px;
+        color: #b0b0b0;
+        margin-top: 2px;
+        padding: 0 4px;
+      }
+      .message-row.user .msg-time {
+        text-align: right;
+      }
+      .message-row.ai .msg-time {
+        text-align: left;
+      }
       .typing-indicator {
         display: flex;
         align-items: center;
@@ -4676,6 +4688,458 @@
         letter-spacing: 1px;
         z-index: 10;
       }
+
+      /* ======= COUPLE SPACE ======= */
+      .couple-screen {
+        background: url('https://i.postimg.cc/sDbbLQXw/IMG-1715.jpg') center/cover no-repeat fixed;
+        display: flex;
+        flex-direction: column;
+        z-index: 60;
+        transform: translateX(100%);
+      }
+      .couple-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255,228,235,0.85) 0%, rgba(255,245,247,0.75) 100%);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        z-index: -1;
+      }
+      .couple-screen.active { transform: translateX(0); }
+      .couple-screen .app-header { background: transparent; border-bottom: none; }
+      .couple-screen .app-header .header-title { color: #e91e63; font-weight: 700; }
+      .couple-screen .app-header .back-btn { color: #e91e63; }
+      .couple-screen .app-header .header-actions span { color: #e91e63; }
+
+      .couple-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 16px 30px;
+      }
+      .couple-body::-webkit-scrollbar { width: 0; }
+
+      /* Couple Header Card */
+      .couple-header-card {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(24px);
+        border-radius: 28px;
+        padding: 24px 20px;
+        margin-bottom: 16px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(233,30,99,0.1);
+        border: 1px solid rgba(255,255,255,0.6);
+        position: relative;
+        overflow: hidden;
+      }
+      .couple-header-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #e91e63, #ff6090, #e91e63);
+      }
+      .couple-avatars {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+      .couple-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #fff;
+        font-weight: bold;
+        box-shadow: 0 4px 16px rgba(233,30,99,0.2);
+        border: 3px solid rgba(233,30,99,0.2);
+        background: #fce4ec;
+      }
+      .couple-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .couple-heart-icon {
+        font-size: 28px;
+        color: #e91e63;
+        animation: heartBeat 1.5s infinite;
+      }
+      @keyframes heartBeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+      }
+      .couple-names {
+        font-size: 16px;
+        font-weight: 600;
+        color: #e91e63;
+        margin-bottom: 4px;
+      }
+      .couple-days-big {
+        font-size: 42px;
+        font-weight: 800;
+        color: #e91e63;
+        line-height: 1.1;
+      }
+      .couple-days-label {
+        font-size: 13px;
+        color: #f48fb1;
+        margin-top: 2px;
+      }
+      .couple-date-info {
+        font-size: 11px;
+        color: #f8bbd0;
+        margin-top: 4px;
+      }
+
+      /* Bind Card */
+      .couple-bind-card {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 32px 20px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(233,30,99,0.08);
+        border: 1px solid rgba(255,255,255,0.6);
+      }
+      .couple-bind-icon { font-size: 56px; margin-bottom: 12px; }
+      .couple-bind-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #e91e63;
+        margin-bottom: 8px;
+      }
+      .couple-bind-desc {
+        font-size: 13px;
+        color: #999;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      .couple-bind-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .couple-bind-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(252,228,236,0.5);
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 2px solid transparent;
+      }
+      .couple-bind-item:hover {
+        background: rgba(233,30,99,0.1);
+        border-color: #f48fb1;
+      }
+      .couple-bind-item:active { transform: scale(0.98); }
+      .couple-bind-item .cb-avatar {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #fff;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+      .couple-bind-item .cb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .couple-bind-item .cb-name {
+        font-size: 15px;
+        font-weight: 500;
+        color: #333;
+        flex: 1;
+        text-align: left;
+      }
+      .couple-bind-item .cb-select {
+        font-size: 12px;
+        color: #e91e63;
+        padding: 4px 14px;
+        border: 1px solid #e91e63;
+        border-radius: 20px;
+        flex-shrink: 0;
+      }
+
+      /* Couple Stats Row */
+      .couple-stats-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .couple-stat-card {
+        flex: 1;
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 16px 12px;
+        text-align: center;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        border: 1px solid rgba(255,255,255,0.6);
+      }
+      .couple-stat-num {
+        font-size: 24px;
+        font-weight: 800;
+        color: #e91e63;
+      }
+      .couple-stat-label {
+        font-size: 11px;
+        color: #f48fb1;
+        margin-top: 2px;
+      }
+
+      /* Timeline */
+      .couple-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #e91e63;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .couple-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        padding-left: 20px;
+      }
+      .couple-timeline::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #f48fb1, #fce4ec);
+        border-radius: 1px;
+      }
+      .couple-entry {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 14px 16px;
+        position: relative;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        border: 1px solid rgba(255,255,255,0.6);
+        transition: transform 0.15s;
+      }
+      .couple-entry::before {
+        content: '';
+        position: absolute;
+        left: -17px;
+        top: 18px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e91e63;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 6px rgba(233,30,99,0.3);
+      }
+      .couple-entry.partner-entry::before { background: #ff6090; }
+      .couple-entry:active { transform: scale(0.98); }
+      .couple-entry-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .couple-entry-avatar {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: #fff;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+      .couple-entry-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .couple-entry-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #e91e63;
+      }
+      .couple-entry-time {
+        font-size: 10px;
+        color: #ccc;
+        margin-left: auto;
+      }
+      .couple-entry-content {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.6;
+        word-break: break-word;
+      }
+      .couple-entry-img {
+        margin-top: 8px;
+        border-radius: 12px;
+        overflow: hidden;
+        max-height: 200px;
+      }
+      .couple-entry-img img {
+        width: 100%;
+        display: block;
+        border-radius: 12px;
+        object-fit: cover;
+      }
+      .couple-entry-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(0,0,0,0.04);
+      }
+      .couple-entry-action {
+        font-size: 12px;
+        color: #ccc;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.15s;
+      }
+      .couple-entry-action:hover { color: #e91e63; }
+      .couple-entry-action.liked { color: #e91e63; }
+      .couple-entry-delete {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 14px;
+        cursor: pointer;
+        color: #ddd;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .couple-entry:hover .couple-entry-delete { opacity: 1; }
+      .couple-entry-delete:hover { color: #ff3b30; }
+
+      /* Compose Bar */
+      .couple-compose-bar {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(20px);
+        padding: 10px 16px 24px;
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        border-top: 1px solid rgba(233,30,99,0.08);
+        flex-shrink: 0;
+      }
+      .couple-compose-bar textarea {
+        flex: 1;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 16px;
+        font-size: 14px;
+        line-height: 1.4;
+        resize: none;
+        outline: none;
+        max-height: 80px;
+        min-height: 38px;
+        font-family: inherit;
+        background: #fce4ec;
+        color: #333;
+      }
+      .couple-compose-bar textarea:focus {
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(233,30,99,0.2);
+      }
+      .couple-compose-bar .couple-img-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(233,30,99,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .couple-compose-bar .couple-img-btn:hover { background: rgba(233,30,99,0.2); }
+      .couple-compose-bar .couple-send-btn {
+        background: #e91e63;
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        padding: 0 20px;
+        height: 38px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(233,30,99,0.3);
+        transition: all 0.15s;
+      }
+      .couple-compose-bar .couple-send-btn:active { transform: scale(0.95); }
+      .couple-compose-bar .couple-send-btn:disabled {
+        background: #f8bbd0;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      /* Unbind button */
+      .couple-unbind-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: none;
+        border: 1px solid #f48fb1;
+        border-radius: 16px;
+        color: #f48fb1;
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: 16px;
+        transition: all 0.15s;
+      }
+      .couple-unbind-btn:hover { background: rgba(233,30,99,0.05); }
+
+      /* AI generate button */
+      .couple-ai-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #f48fb1, #e91e63);
+        color: #fff;
+        border: none;
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 16px rgba(233,30,99,0.25);
+        transition: all 0.15s;
+      }
+      .couple-ai-btn:active { transform: scale(0.98); }
+      .couple-ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+      /* Couple empty state */
+      .couple-empty-timeline {
+        text-align: center;
+        padding: 40px 20px;
+        color: #f48fb1;
+        font-size: 14px;
+      }
+      .couple-empty-timeline .couple-empty-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.6;
+      }
     </style>
   </head>
   <body>
@@ -5135,6 +5599,16 @@
                 <label>温度 (Temperature)</label
                 ><input type="number" id="settingTemperature" placeholder="0.7" min="0" max="2" step="0.1" />
                 <div class="hint">控制回复的随机性，范围 0-2</div>
+              </div>
+              <div class="settings-item">
+                <label>回复条数范围</label>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="number" id="settingReplyMin" placeholder="3" min="1" max="20" step="1" style="flex:1;text-align:center;" />
+                  <span style="color:#86868b;font-size:14px;">到</span>
+                  <input type="number" id="settingReplyMax" placeholder="6" min="1" max="20" step="1" style="flex:1;text-align:center;" />
+                  <span style="color:#86868b;font-size:14px;">条</span>
+                </div>
+                <div class="hint">角色每次回复时拆分成的消息条数范围（模拟真人聊天习惯）。设为 1-1 则不拆分。</div>
               </div>
             </div>
           </div>
@@ -5689,6 +6163,26 @@
       </div>
       <input type="file" id="pwFileInput" accept="image/*" multiple style="display: none" />
 
+      <!-- Couple Space Screen -->
+      <div class="screen couple-screen" id="coupleScreen">
+        <div class="app-header">
+          <div class="back-btn" onclick="closeCoupleSpace()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
+          <div class="header-title">情侣空间</div>
+          <div class="header-actions">
+            <span onclick="coupleSpaceSettings()" style="font-size:16px">⚙️</span>
+          </div>
+        </div>
+        <div class="couple-body" id="coupleBody"></div>
+        <div class="couple-compose-bar" id="coupleComposeBar" style="display:none">
+          <div class="couple-img-btn" onclick="pickCoupleImage()">🖼</div>
+          <textarea id="coupleInput" rows="1" placeholder="记录甜蜜瞬间…"></textarea>
+          <button class="couple-send-btn" onclick="postCoupleEntry()">发布</button>
+        </div>
+      </div>
+      <input type="file" id="coupleImageInput" accept="image/*" style="display:none" />
+
       <!-- Widget Picker Modal -->
       <div class="modal-overlay" id="widgetPickerModal">
         <div class="modal-box" style="width: 320px; max-height: 520px">
@@ -5741,6 +6235,8 @@
         persona: '',
         worldbook: '',
         jailbreak: '',
+        replyMinMessages: 3,
+        replyMaxMessages: 6,
       };
       function loadSettings() {
         try {
@@ -6107,6 +6603,8 @@
         document.getElementById('settingPersona').value = settings.persona || '';
         document.getElementById('settingWorldbook').value = settings.worldbook || '';
         document.getElementById('settingJailbreak').value = settings.jailbreak || '';
+        document.getElementById('settingReplyMin').value = settings.replyMinMessages || defaultSettings.replyMinMessages;
+        document.getElementById('settingReplyMax').value = settings.replyMaxMessages || defaultSettings.replyMaxMessages;
         const uap = document.getElementById('userAvatarPreview');
         if (settings.userAvatar) {
           uap.innerHTML = `<img src="${settings.userAvatar}">`;
@@ -6265,6 +6763,13 @@
         settings.persona = document.getElementById('settingPersona').value;
         settings.worldbook = document.getElementById('settingWorldbook').value;
         settings.jailbreak = document.getElementById('settingJailbreak').value;
+        let rMin = parseInt(document.getElementById('settingReplyMin').value) || defaultSettings.replyMinMessages;
+        let rMax = parseInt(document.getElementById('settingReplyMax').value) || defaultSettings.replyMaxMessages;
+        rMin = Math.max(1, Math.min(20, rMin));
+        rMax = Math.max(1, Math.min(20, rMax));
+        if (rMin > rMax) { const t = rMin; rMin = rMax; rMax = t; }
+        settings.replyMinMessages = rMin;
+        settings.replyMaxMessages = rMax;
         storeSettings(settings);
         showToast('✅ 设置已保存');
       }
@@ -6991,19 +7496,39 @@
           });
         }
 
+        // Time label
+        let timeStr = '';
+        if (typeof msgIndex === 'number' && contact.messages[msgIndex]) {
+          const msg = contact.messages[msgIndex];
+          if (msg.time) {
+            const d = new Date(msg.time);
+            timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          }
+        }
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'msg-time';
+        timeLabel.textContent = timeStr;
+
         row.appendChild(avatar);
         if (isGroupChat && role === 'ai') {
           const msgWrapper = document.createElement('div');
-          msgWrapper.style.cssText = 'display:flex;flex-direction:column;';
+          msgWrapper.style.cssText = 'min-width:0;max-width:72%;';
           const senderName = sender ? sender.name : '未知';
           const nameLabel = document.createElement('div');
           nameLabel.style.cssText = 'font-size:11px;color:#999;margin-bottom:2px;';
           nameLabel.textContent = senderName;
           msgWrapper.appendChild(nameLabel);
+          bubble.style.maxWidth = 'none';
           msgWrapper.appendChild(bubble);
+          if (timeStr) msgWrapper.appendChild(timeLabel);
           row.appendChild(msgWrapper);
         } else {
-          row.appendChild(bubble);
+          const contentWrap = document.createElement('div');
+          contentWrap.style.cssText = 'min-width:0;max-width:72%;';
+          bubble.style.maxWidth = 'none';
+          contentWrap.appendChild(bubble);
+          if (timeStr) contentWrap.appendChild(timeLabel);
+          row.appendChild(contentWrap);
         }
         return row;
       }
@@ -7179,7 +7704,7 @@
         const contact = contacts.find(c => c.id === currentContactId);
         if (!contact) return;
         chatContainer.appendChild(createMessageRow('user', text, contact));
-        contact.messages.push({ role: 'user', content: text });
+        contact.messages.push({ role: 'user', content: text, time: Date.now() });
         contact.lastTime = getNowTimeStr();
         storeContacts(contacts);
         userInput.value = '';
@@ -7332,7 +7857,7 @@
 
                 // Add as a message from this member
                 const msgIdx = contact.messages.length;
-                contact.messages.push({ role: 'assistant', content: reply, senderId: memberId });
+                contact.messages.push({ role: 'assistant', content: reply, senderId: memberId, time: Date.now() });
                 // Save incrementally after each member responds
                 storeContacts(contacts);
                 const row = createMessageRow('ai', reply, contact, msgIdx);
@@ -7391,8 +7916,11 @@
           const messages = [];
 
           // Core chat format instruction
-          const chatFormatPrompt =
-            '你正在通过手机线上聊天。请像真人发微信/QQ一样回复，遵守以下规则：\n1. 必须把回复拆成3到6条短消息，每条用 \\n---\\n 分隔。像真人一样一条一条地发，每条只说1-2句话，不能少于3条。\n2. 严禁使用动作描写（如*动作*、（动作）等）、旁白、场景描述或小说化叙述。\n3. 语气口语化、自然，可以用emoji和颜文字。\n4. 绝对不要把所有内容挤在一条消息里，这不像真人。\n\n示例格式：\n你好呀~\n---\n今天怎么样\n---\n我刚吃完饭\n---\n好撑哈哈哈\n---\n你吃了吗';
+          const rMin = settings.replyMinMessages || defaultSettings.replyMinMessages;
+          const rMax = settings.replyMaxMessages || defaultSettings.replyMaxMessages;
+          const chatFormatPrompt = rMin === 1 && rMax === 1
+            ? '你正在通过手机线上聊天。请像真人发微信/QQ一样回复，遵守以下规则：\n1. 用一条消息回复，语气口语化、自然，可以用emoji和颜文字。\n2. 严禁使用动作描写（如*动作*、（动作）等）、旁白、场景描述或小说化叙述。'
+            : `你正在通过手机线上聊天。请像真人发微信/QQ一样回复，遵守以下规则：\n1. 必须把回复拆成${rMin}到${rMax}条短消息，每条用 \\n---\\n 分隔。像真人一样一条一条地发，每条只说1-2句话，不能少于${rMin}条。\n2. 严禁使用动作描写（如*动作*、（动作）等）、旁白、场景描述或小说化叙述。\n3. 语气口语化、自然，可以用emoji和颜文字。\n4. 绝对不要把所有内容挤在一条消息里，这不像真人。\n\n示例格式：\n你好呀~\n---\n今天怎么样\n---\n我刚吃完饭\n---\n好撑哈哈哈\n---\n你吃了吗`;
 
           {
             if (contact.systemPrompt)
@@ -7489,7 +8017,7 @@
             if (parts.length > 1) {
               // Store full content as single message for context, but display as multiple bubbles
               const msgIdx = contact.messages.length;
-              contact.messages.push({ role: 'assistant', content: fullContent });
+              contact.messages.push({ role: 'assistant', content: fullContent, time: Date.now() });
               parts.forEach((part, i) => {
                 const row = createMessageRow('ai', part, contact, msgIdx);
                 chatContainer.appendChild(row);
@@ -7497,7 +8025,7 @@
               });
             } else {
               const msgIdx = contact.messages.length;
-              contact.messages.push({ role: 'assistant', content: fullContent });
+              contact.messages.push({ role: 'assistant', content: fullContent, time: Date.now() });
               const row = createMessageRow('ai', fullContent, contact, msgIdx);
               chatContainer.appendChild(row);
               scrollToBottom();
@@ -8926,6 +9454,14 @@ ${charContext}
           svgIcon:
             '<svg viewBox="0 0 24 24" width="32" height="32" stroke="white" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>',
         },
+        {
+          id: 'coupleSpace',
+          name: '情侣空间',
+          icon: '',
+          action: 'openCoupleSpace',
+          svgIcon:
+            '<svg viewBox="0 0 24 24" width="32" height="32" stroke="white" stroke-width="2" fill="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+        },
       ];
 
       function loadHomeLayout() {
@@ -8946,6 +9482,15 @@ ${charContext}
       if (!homeLayout.pages || homeLayout.pages.length < 2) {
         homeLayout = { pages: [{ apps: APP_DEFS.map(a => a.id) }, { apps: [] }] };
         storeHomeLayout(homeLayout);
+      }
+      // Ensure new apps added to APP_DEFS are present in the layout
+      {
+        const allLayoutApps = homeLayout.pages.flatMap(p => p.apps);
+        const missingApps = APP_DEFS.filter(a => !allLayoutApps.includes(a.id)).map(a => a.id);
+        if (missingApps.length > 0) {
+          homeLayout.pages[0].apps.push(...missingApps);
+          storeHomeLayout(homeLayout);
+        }
       }
 
       // ======= HOME DECORATIVE ELEMENTS DATA =======
@@ -10009,7 +10554,7 @@ ${charContext}
         if (shopGiftMode && currentContactId) {
           const contact = contacts.find(c => c.id === currentContactId);
           if (contact) {
-            contact.messages.push({ role: 'user', content: `__gift__${JSON.stringify({ icon, name })}` });
+            contact.messages.push({ role: 'user', content: `__gift__${JSON.stringify({ icon, name })}`, time: Date.now() });
             contact.lastTime = getNowTimeStr();
             storeContacts(contacts);
             closeShop();
@@ -10045,7 +10590,7 @@ ${charContext}
           const dataUrl = await compressImage(ev.target.result, 300);
           const contact = contacts.find(c => c.id === currentContactId);
           if (!contact) return;
-          contact.messages.push({ role: 'user', content: '__image__' + dataUrl });
+          contact.messages.push({ role: 'user', content: '__image__' + dataUrl, time: Date.now() });
           contact.lastTime = getNowTimeStr();
           storeContacts(contacts);
           renderChatMessages(contact);
@@ -10481,6 +11026,10 @@ ${chatStr}
       const photowallScreenEl = document.getElementById('photowallScreen');
       allScreens['photowall'] = photowallScreenEl;
 
+      // Register couple space screen
+      const coupleScreenEl = document.getElementById('coupleScreen');
+      allScreens['coupleSpace'] = coupleScreenEl;
+
       // ======= PHOTO WALL =======
       function loadPhotos() {
         try {
@@ -10712,6 +11261,316 @@ ${chatStr}
       }
 
       applyCustomFont();
+
+      // ======= COUPLE SPACE =======
+      function loadCoupleData() {
+        try { return JSON.parse(localStorage.getItem('ai_phone_couple') || '{}'); }
+        catch { return {}; }
+      }
+      function storeCoupleData(d) { safeStore('ai_phone_couple', d); }
+      let coupleData = loadCoupleData();
+      // coupleData: { partnerId, startDate, entries: [{id, author:'user'|'partner', content, image, time, likes}] }
+
+      let coupleImageData = null;
+
+      function openCoupleSpace() {
+        renderCoupleSpace();
+        pushScreen('coupleSpace');
+      }
+      function closeCoupleSpace() { popScreen(); }
+
+      function renderCoupleSpace() {
+        const body = document.getElementById('coupleBody');
+        const composeBar = document.getElementById('coupleComposeBar');
+        if (!coupleData.partnerId) {
+          composeBar.style.display = 'none';
+          body.innerHTML = renderCoupleBindScreen();
+          return;
+        }
+        const partner = contacts.find(c => c.id === coupleData.partnerId);
+        if (!partner) {
+          coupleData.partnerId = null;
+          storeCoupleData(coupleData);
+          composeBar.style.display = 'none';
+          body.innerHTML = renderCoupleBindScreen();
+          return;
+        }
+        composeBar.style.display = 'flex';
+        const entries = coupleData.entries || [];
+        const startDate = new Date(coupleData.startDate || Date.now());
+        const days = Math.max(0, Math.floor((Date.now() - startDate.getTime()) / 86400000));
+        const userAvatar = settings.userAvatar
+          ? `<img src="${settings.userAvatar}">`
+          : `<span style="font-size:24px;color:#e91e63;">${(settings.userName||'我').charAt(0)}</span>`;
+        const partnerAvatar = partner.avatar
+          ? `<img src="${partner.avatar}">`
+          : `<span style="font-size:24px;color:#fff;">${partner.name.charAt(0)}</span>`;
+        const partnerAvatarBg = partner.avatar ? '' : `background:${partner.color};`;
+
+        // Stats
+        const userEntries = entries.filter(e => e.author === 'user').length;
+        const partnerEntries = entries.filter(e => e.author === 'partner').length;
+        const totalLikes = entries.reduce((s,e) => s + (e.likes||0), 0);
+
+        let html = '';
+        // Header
+        html += `<div class="couple-header-card">
+          <div class="couple-avatars">
+            <div class="couple-avatar" style="background:#fce4ec;">${userAvatar}</div>
+            <div class="couple-heart-icon">💕</div>
+            <div class="couple-avatar" style="${partnerAvatarBg}">${partnerAvatar}</div>
+          </div>
+          <div class="couple-names">${esc(settings.userName||'我')} & ${esc(partner.name)}</div>
+          <div class="couple-days-big">${days}</div>
+          <div class="couple-days-label">天的甜蜜时光</div>
+          <div class="couple-date-info">💗 ${coupleData.startDate || '今天'} 在一起</div>
+        </div>`;
+
+        // Stats row
+        html += `<div class="couple-stats-row">
+          <div class="couple-stat-card"><div class="couple-stat-num">${entries.length}</div><div class="couple-stat-label">动态</div></div>
+          <div class="couple-stat-card"><div class="couple-stat-num">${totalLikes}</div><div class="couple-stat-label">点赞</div></div>
+          <div class="couple-stat-card"><div class="couple-stat-num">${userEntries}</div><div class="couple-stat-label">我的</div></div>
+          <div class="couple-stat-card"><div class="couple-stat-num">${partnerEntries}</div><div class="couple-stat-label">${esc(partner.name)}</div></div>
+        </div>`;
+
+        // AI generate button
+        html += `<button class="couple-ai-btn" id="coupleAiBtn" onclick="generatePartnerEntry()">✨ 让${esc(partner.name)}写一条动态</button>`;
+
+        // Timeline
+        html += `<div class="couple-section-title">💌 恋爱日记</div>`;
+        if (entries.length === 0) {
+          html += `<div class="couple-empty-timeline"><div class="couple-empty-icon">💝</div><div>还没有动态</div><div style="margin-top:6px;font-size:12px;color:#ddd;">在下方输入框记录你们的甜蜜瞬间吧~</div></div>`;
+        } else {
+          html += `<div class="couple-timeline">`;
+          // Show newest first
+          [...entries].reverse().forEach((entry, ri) => {
+            const realIdx = entries.length - 1 - ri;
+            const isUser = entry.author === 'user';
+            const authorName = isUser ? (settings.userName||'我') : partner.name;
+            const avatarHtml = isUser
+              ? (settings.userAvatar ? `<img src="${settings.userAvatar}">` : (settings.userName||'我').charAt(0))
+              : (partner.avatar ? `<img src="${partner.avatar}">` : partner.name.charAt(0));
+            const avatarBg = isUser
+              ? (settings.userAvatar ? '' : 'background:#f48fb1;')
+              : (partner.avatar ? '' : `background:${partner.color};`);
+            const entryClass = isUser ? '' : ' partner-entry';
+            const likedClass = entry.liked ? ' liked' : '';
+            let imgHtml = '';
+            if (entry.image) {
+              imgHtml = `<div class="couple-entry-img"><img src="${entry.image}" loading="lazy"></div>`;
+            }
+            html += `<div class="couple-entry${entryClass}">
+              <span class="couple-entry-delete" onclick="deleteCoupleEntry(${realIdx})">✕</span>
+              <div class="couple-entry-header">
+                <div class="couple-entry-avatar" style="${avatarBg}">${avatarHtml}</div>
+                <div class="couple-entry-name">${esc(authorName)}</div>
+                <div class="couple-entry-time">${entry.time || ''}</div>
+              </div>
+              <div class="couple-entry-content">${esc(entry.content)}</div>
+              ${imgHtml}
+              <div class="couple-entry-actions">
+                <div class="couple-entry-action${likedClass}" onclick="likeCoupleEntry(${realIdx})">❤️ ${entry.likes||0}</div>
+                <div class="couple-entry-action" onclick="showToast('评论功能开发中')">💬 评论</div>
+              </div>
+            </div>`;
+          });
+          html += `</div>`;
+        }
+        body.innerHTML = html;
+      }
+
+      function renderCoupleBindScreen() {
+        const availableContacts = contacts.filter(c => !c.isGroup && c.systemPrompt);
+        if (availableContacts.length === 0) {
+          return `<div class="couple-bind-card">
+            <div class="couple-bind-icon">💕</div>
+            <div class="couple-bind-title">情侣空间</div>
+            <div class="couple-bind-desc">还没有联系人可以绑定<br>请先在信息中创建一个联系人</div>
+          </div>`;
+        }
+        let listHtml = availableContacts.map(c => {
+          const avatarBg = c.avatar ? '' : `background:${c.color};`;
+          const avatarContent = c.avatar ? `<img src="${c.avatar}">` : c.name.charAt(0).toUpperCase();
+          return `<div class="couple-bind-item" onclick="bindPartner(${c.id})">
+            <div class="cb-avatar" style="${avatarBg}">${avatarContent}</div>
+            <div class="cb-name">${esc(c.name)}</div>
+            <div class="cb-select">绑定 💗</div>
+          </div>`;
+        }).join('');
+        return `<div class="couple-bind-card">
+          <div class="couple-bind-icon">💕</div>
+          <div class="couple-bind-title">选择你的另一半</div>
+          <div class="couple-bind-desc">选择一位联系人绑定为情侣<br>你们可以一起记录恋爱生活</div>
+          <div class="couple-bind-list">${listHtml}</div>
+        </div>`;
+      }
+
+      function bindPartner(contactId) {
+        const c = contacts.find(x => x.id === contactId);
+        if (!c) return;
+        if (!confirm(`确定要和 ${c.name} 绑定为情侣吗？💕`)) return;
+        coupleData.partnerId = contactId;
+        coupleData.startDate = new Date().toISOString().slice(0,10);
+        if (!coupleData.entries) coupleData.entries = [];
+        storeCoupleData(coupleData);
+        renderCoupleSpace();
+        showToast(`💕 已和 ${c.name} 绑定成功！`);
+      }
+
+      function unbindPartner() {
+        if (!confirm('确定解除情侣绑定吗？动态记录将保留。')) return;
+        coupleData.partnerId = null;
+        storeCoupleData(coupleData);
+        renderCoupleSpace();
+        showToast('已解除绑定');
+      }
+
+      function postCoupleEntry() {
+        const input = document.getElementById('coupleInput');
+        const content = input.value.trim();
+        if (!content && !coupleImageData) { showToast('请输入内容'); return; }
+        if (!coupleData.entries) coupleData.entries = [];
+        const now = new Date();
+        const timeStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        coupleData.entries.push({
+          id: Date.now(),
+          author: 'user',
+          content: content || '分享了一张照片',
+          image: coupleImageData || '',
+          time: timeStr,
+          likes: 0,
+          liked: false,
+        });
+        storeCoupleData(coupleData);
+        input.value = '';
+        coupleImageData = null;
+        renderCoupleSpace();
+        // Scroll to top to see latest entry
+        document.getElementById('coupleBody').scrollTop = 0;
+        showToast('✅ 动态已发布');
+      }
+
+      function deleteCoupleEntry(idx) {
+        if (!coupleData.entries || idx < 0 || idx >= coupleData.entries.length) return;
+        if (!confirm('删除这条动态？')) return;
+        coupleData.entries.splice(idx, 1);
+        storeCoupleData(coupleData);
+        renderCoupleSpace();
+        showToast('已删除');
+      }
+
+      function likeCoupleEntry(idx) {
+        if (!coupleData.entries || idx < 0 || idx >= coupleData.entries.length) return;
+        const entry = coupleData.entries[idx];
+        if (entry.liked) {
+          entry.likes = Math.max(0, (entry.likes||1) - 1);
+          entry.liked = false;
+        } else {
+          entry.likes = (entry.likes||0) + 1;
+          entry.liked = true;
+        }
+        storeCoupleData(coupleData);
+        renderCoupleSpace();
+      }
+
+      function pickCoupleImage() {
+        document.getElementById('coupleImageInput').click();
+      }
+      document.getElementById('coupleImageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async ev => {
+          coupleImageData = await compressImage(ev.target.result, 400);
+          showToast('📷 图片已添加，输入文字后点击发布');
+        };
+        reader.readAsDataURL(file);
+        this.value = '';
+      });
+
+      async function generatePartnerEntry() {
+        if (!coupleData.partnerId) return;
+        const partner = contacts.find(c => c.id === coupleData.partnerId);
+        if (!partner) return;
+        const btn = document.getElementById('coupleAiBtn');
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.textContent = '⏳ 生成中…';
+        try {
+          const entries = coupleData.entries || [];
+          const recentEntries = entries.slice(-10).map(e => {
+            const who = e.author === 'user' ? (settings.userName||'我') : partner.name;
+            return `${who}: ${e.content}`;
+          }).join('\n');
+          const days = Math.max(0, Math.floor((Date.now() - new Date(coupleData.startDate).getTime()) / 86400000));
+          const prompt = `你是${partner.name}。${partner.systemPrompt || ''}
+
+你正在和${settings.userName||'用户'}恋爱，已经在一起${days}天了。现在请你在情侣空间写一条动态，记录你们的恋爱日常或你的心情。
+
+${recentEntries ? '最近的情侣空间动态：\n'+recentEntries : ''}
+
+要求：
+1. 以${partner.name}的口吻和性格写
+2. 内容温馨、甜蜜、有真实感，像真正的恋人会发的动态
+3. 可以是日常分享、对另一半的想念、甜蜜瞬间、小情绪等
+4. 30-80字左右，可以用emoji
+5. 不要加任何前缀或说明，直接输出动态内容`;
+
+          const result = await aiCall('你是情侣空间的动态生成器，直接输出动态内容，不要其他文字。', prompt);
+          if (!result.trim()) throw new Error('AI返回空内容');
+          const now = new Date();
+          const timeStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+          if (!coupleData.entries) coupleData.entries = [];
+          coupleData.entries.push({
+            id: Date.now(),
+            author: 'partner',
+            content: result.trim(),
+            image: '',
+            time: timeStr,
+            likes: 0,
+            liked: false,
+          });
+          storeCoupleData(coupleData);
+          renderCoupleSpace();
+          document.getElementById('coupleBody').scrollTop = 0;
+          showToast(`💕 ${partner.name}发布了新动态`);
+        } catch(err) {
+          showToast(`⚠️ 生成失败：${err.message}`);
+        } finally {
+          btn.disabled = false;
+          if (partner) btn.textContent = `✨ 让${partner.name}写一条动态`;
+        }
+      }
+
+      function coupleSpaceSettings() {
+        if (!coupleData.partnerId) {
+          showToast('请先绑定另一半');
+          return;
+        }
+        const partner = contacts.find(c => c.id === coupleData.partnerId);
+        const action = prompt(
+          `情侣空间设置\n\n当前绑定：${partner ? partner.name : '未知'}\n在一起日期：${coupleData.startDate || '未设置'}\n\n输入操作：\n1 - 修改在一起日期\n2 - 更换绑定对象\n3 - 解除绑定`
+        );
+        if (!action) return;
+        if (action.trim() === '1') {
+          const newDate = prompt('输入在一起日期（格式 YYYY-MM-DD）：', coupleData.startDate || new Date().toISOString().slice(0,10));
+          if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+            coupleData.startDate = newDate;
+            storeCoupleData(coupleData);
+            renderCoupleSpace();
+            showToast('✅ 日期已更新');
+          } else if (newDate) {
+            showToast('⚠️ 日期格式不正确');
+          }
+        } else if (action.trim() === '2') {
+          coupleData.partnerId = null;
+          storeCoupleData(coupleData);
+          renderCoupleSpace();
+        } else if (action.trim() === '3') {
+          unbindPartner();
+        }
+      }
 
       // Init
       renderColorOptions();
