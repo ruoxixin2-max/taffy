@@ -1689,7 +1689,7 @@ body.fullscreen-mode #phone-container {
             </div>
             
             <!-- 隐藏的上传输入框 -->
-            <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+            <input type="file" id="image-upload" accept="image/*" style="opacity: 0; position: absolute; z-index: -1;" onchange="handleImageUpload(event)">
         </div>
 
         <!-- 微信应用 -->
@@ -1702,7 +1702,7 @@ body.fullscreen-mode #phone-container {
                 <div class="back-btn" onclick="closeApp()">返回</div>
                 <div class="title">微信</div>
                 <div class="more-btn" onclick="document.getElementById('char-import').click()">导入</div>
-                <input type="file" id="char-import" accept=".json" style="display:none" onchange="importCharacter(event)">
+                <input type="file" id="char-import" accept=".json" style="opacity: 0; position: absolute; z-index: -1;" onchange="importCharacter(event)">
             </div>
             
             <div class="wechat-content">
@@ -1790,7 +1790,7 @@ body.fullscreen-mode #phone-container {
                         <div class="more-icon tf-icon"></div>
                         <span>转账</span>
                     </div>
-                    <input type="file" id="chat-img-upload" accept="image/*" style="display:none" onchange="sendChatImage(event)">
+                    <input type="file" id="chat-img-upload" accept="image/*" style="opacity: 0; position: absolute; z-index: -1;" onchange="sendChatImage(event)">
                 </div>
             </div>
         </div>
