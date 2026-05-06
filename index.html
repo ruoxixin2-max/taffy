@@ -1575,6 +1575,32 @@ body.fullscreen-mode #phone-container {
   background-position: center;
   border: 2px dashed #f48fb1;
 }
+
+/* 消息操作菜单 */
+.msg-action-menu {
+  position: fixed;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 1000;
+  overflow: hidden;
+  min-width: 100px;
+}
+.msg-action-item {
+  padding: 12px 20px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  text-align: center;
+}
+.msg-action-item:last-child {
+  border-bottom: none;
+}
+.msg-action-item:active {
+  background: #f5f5f5;
+}
 \n</style>
 </head>
 <body>
@@ -1772,10 +1798,6 @@ body.fullscreen-mode #phone-container {
                 </div>
             </div>
             <div class="chat-messages" id="chat-messages">
-                <div class="message received">
-                    <div class="avatar ai-avatar" id="chat-msg-avatar">AI</div>
-                    <div class="message-content">你好，我是你的AI助手。请在设置中配置API Key后与我对话。</div>
-                </div>
             </div>
             <div class="chat-input-container">
                 <div class="chat-input-area">
@@ -1973,6 +1995,20 @@ body.fullscreen-mode #phone-container {
                         <button class="action-btn" onclick="toggleFullScreen()">切换全屏</button>
                     </div>
                 </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">数据管理</div>
+                    <div class="setting-item">
+                        <button class="action-btn" onclick="exportData()">导出所有数据</button>
+                    </div>
+                    <div class="setting-item">
+                        <button class="action-btn" onclick="document.getElementById('data-import').click()">导入数据</button>
+                        <input type="file" id="data-import" accept=".json" style="opacity: 0; position: absolute; z-index: -1;" onchange="importData(event)">
+                    </div>
+                    <div class="setting-item">
+                        <button class="action-btn" style="color: #ff4d4f;" onclick="clearAllData()">清除所有数据</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -2092,6 +2128,13 @@ body.fullscreen-mode #phone-container {
                     <button class="modal-btn confirm" onclick="generateChatStatus()">重新感知</button>
                 </div>
             </div>
+        </div>
+
+        <!-- 消息操作菜单 -->
+        <div id="msg-action-menu" class="msg-action-menu">
+            <div class="msg-action-item" onclick="editMessage()">编辑</div>
+            <div class="msg-action-item" onclick="recallMessage()">撤回</div>
+            <div class="msg-action-item" onclick="deleteMessage()">删除</div>
         </div>
     </div>
 
@@ -2511,19 +2554,17 @@ function openChat(charId) {
     }
   }
 
-  // 清空之前的聊天记录（除了第一条欢迎语）
+  // 清空之前的聊天记录
   const container = document.getElementById("chat-messages");
-  while (container.children.length > 1) {
-    container.removeChild(container.lastChild);
-  }
+  container.innerHTML = "";
 
   // 加载历史记录
   if (currentChatChar && currentChatChar.history) {
     currentChatChar.history.forEach((msg) => {
       if (msg.role === "user") {
-        appendMessage("sent", msg.content, msg.isHtml);
+        appendMessage("sent", msg.content, msg.isHtml, msg.id, msg.isRecall);
       } else if (msg.role === "assistant") {
-        appendMessage("received", msg.content, msg.isHtml);
+        appendMessage("received", msg.content, msg.isHtml, msg.id, msg.isRecall);
       }
     });
   }
@@ -2772,8 +2813,16 @@ async function sendMessage() {
 
     messages.push({ role: "system", content: systemPrompt });
 
-    // TODO: 这里应该实现记忆条数限制，目前只发送当前消息
-    messages.push({ role: "user", content: text });
+    if (currentChatChar && currentChatChar.id !== "ai" && currentChatChar.history) {
+      const memoryCount = (currentChatChar.settings && currentChatChar.settings.memoryCount) || 10;
+      const validHistory = currentChatChar.history.filter(m => !m.isRecall && !m.isHtml);
+      const recentHistory = validHistory.slice(-memoryCount);
+      recentHistory.forEach(m => {
+        messages.push({ role: m.role, content: m.content });
+      });
+    } else {
+      messages.push({ role: "user", content: text });
+    }
 
     const response = await fetch(`${apiConfig.baseUrl}/chat/completions`, {
       method: "POST",
@@ -2842,9 +2891,38 @@ function sendChatImage(event) {
   event.target.value = "";
 }
 
-function appendMessage(type, content, isHtml = false) {
+function appendMessage(type, content, isHtml = false, msgId = null, isRecall = false) {
   const container = document.getElementById("chat-messages");
   const msgDiv = document.createElement("div");
+  
+  if (!msgId) {
+    msgId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    if (currentChatChar && currentChatChar.id !== 'ai') {
+      if (!currentChatChar.history) currentChatChar.history = [];
+      currentChatChar.history.push({
+        id: msgId,
+        role: type === 'sent' ? 'user' : 'assistant',
+        content: content,
+        isHtml: isHtml,
+        isRecall: isRecall
+      });
+      saveCharacters();
+    }
+  }
+  
+  msgDiv.id = msgId;
+  msgDiv.dataset.isHtml = isHtml;
+  
+  if (isRecall) {
+    msgDiv.className = 'message system-msg';
+    msgDiv.style.alignSelf = 'center';
+    msgDiv.style.maxWidth = '100%';
+    msgDiv.innerHTML = `<div class="message-content" style="background:transparent; color:#999; font-size:12px; text-align:center; width:100%; padding:5px;">${escapeHtml(content)}</div>`;
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+    return;
+  }
+
   msgDiv.className = `message ${type}`;
 
   let avatarHtml = "";
@@ -2873,8 +2951,126 @@ function appendMessage(type, content, isHtml = false) {
         <div class="message-content">${contentHtml}</div>
     `;
 
+  const contentDiv = msgDiv.querySelector('.message-content');
+  
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    showMsgActionMenu(e, msgId, type);
+  };
+  
+  contentDiv.addEventListener('contextmenu', handleContextMenu);
+  
+  let pressTimer;
+  contentDiv.addEventListener('touchstart', (e) => {
+    pressTimer = setTimeout(() => {
+      showMsgActionMenu(e.touches[0], msgId, type);
+    }, 500);
+  }, {passive: true});
+  
+  contentDiv.addEventListener('touchend', () => clearTimeout(pressTimer));
+  contentDiv.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
+}
+
+let currentActionMsgId = null;
+
+function showMsgActionMenu(e, msgId, type) {
+  currentActionMsgId = msgId;
+  const menu = document.getElementById('msg-action-menu');
+  menu.style.display = 'block';
+  
+  let x = e.clientX || (e.touches && e.touches[0].clientX);
+  let y = e.clientY || (e.touches && e.touches[0].clientY);
+  
+  const menuWidth = 120;
+  const menuHeight = 130;
+  
+  if (x + menuWidth > window.innerWidth) {
+    x = window.innerWidth - menuWidth - 10;
+  }
+  if (y + menuHeight > window.innerHeight) {
+    y = window.innerHeight - menuHeight - 10;
+  }
+  
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  
+  setTimeout(() => {
+    document.addEventListener('click', hideMsgActionMenu, { once: true });
+    document.addEventListener('touchstart', hideMsgActionMenu, { once: true });
+  }, 10);
+}
+
+function hideMsgActionMenu() {
+  document.getElementById('msg-action-menu').style.display = 'none';
+}
+
+function deleteMessage() {
+  if (!currentActionMsgId) return;
+  
+  const msgDiv = document.getElementById(currentActionMsgId);
+  if (msgDiv) msgDiv.remove();
+  
+  if (currentChatChar && currentChatChar.history) {
+    currentChatChar.history = currentChatChar.history.filter(m => m.id !== currentActionMsgId);
+    saveCharacters();
+  }
+}
+
+function recallMessage() {
+  if (!currentActionMsgId) return;
+  
+  const msgDiv = document.getElementById(currentActionMsgId);
+  if (msgDiv) {
+    msgDiv.className = 'message system-msg';
+    msgDiv.style.alignSelf = 'center';
+    msgDiv.style.maxWidth = '100%';
+    msgDiv.innerHTML = '<div class="message-content" style="background:transparent; color:#999; font-size:12px; text-align:center; width:100%; padding:5px;">撤回了一条消息</div>';
+  }
+  
+  if (currentChatChar && currentChatChar.history) {
+    const msg = currentChatChar.history.find(m => m.id === currentActionMsgId);
+    if (msg) {
+      msg.isRecall = true;
+      msg.content = "撤回了一条消息";
+      saveCharacters();
+    }
+  }
+}
+
+function editMessage() {
+  if (!currentActionMsgId) return;
+  
+  const msgDiv = document.getElementById(currentActionMsgId);
+  if (!msgDiv) return;
+  
+  const isHtml = msgDiv.dataset.isHtml === 'true';
+  if (isHtml) {
+    alert("富文本消息无法编辑");
+    return;
+  }
+  
+  let oldContent = "";
+  if (currentChatChar && currentChatChar.history) {
+    const msg = currentChatChar.history.find(m => m.id === currentActionMsgId);
+    if (msg) oldContent = msg.content;
+  } else {
+    oldContent = msgDiv.querySelector('.message-content').innerText;
+  }
+  
+  const newContent = prompt("编辑消息:", oldContent);
+  if (newContent !== null && newContent.trim() !== "") {
+    msgDiv.querySelector('.message-content').innerText = newContent;
+    if (currentChatChar && currentChatChar.history) {
+      const msg = currentChatChar.history.find(m => m.id === currentActionMsgId);
+      if (msg) {
+        msg.content = newContent;
+        saveCharacters();
+      }
+    }
+  }
 }
 
 function escapeHtml(unsafe) {
@@ -3550,26 +3746,106 @@ function toggleSyncTime() {
 }
 
 function toggleFullScreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch((err) => {
-      console.log(
-        `Error attempting to enable full-screen mode: ${err.message}`,
-      );
-    });
-    document.body.classList.add("fullscreen-mode");
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
+  const isFullscreen = document.body.classList.toggle("fullscreen-mode");
+  
+  try {
+    if (isFullscreen) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log(e));
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen && document.fullscreenElement) {
+        document.exitFullscreen().catch(e => console.log(e));
+      } else if (document.webkitExitFullscreen && document.webkitFullscreenElement) {
+        document.webkitExitFullscreen();
+      }
     }
-    document.body.classList.remove("fullscreen-mode");
+  } catch (e) {
+    console.log("Fullscreen API error:", e);
   }
 }
 
 document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) {
-    document.body.classList.remove("fullscreen-mode");
+  // 仅当原生全屏退出且body仍有fullscreen-mode时才移除
+  if (!document.fullscreenElement && document.body.classList.contains("fullscreen-mode")) {
+    // 延迟检查，避免与toggleFullScreen冲突
+    setTimeout(() => {
+      if (!document.fullscreenElement) {
+        document.body.classList.remove("fullscreen-mode");
+      }
+    }, 100);
   }
 });
+
+// 数据管理功能
+function exportData() {
+  const data = {
+    images: localStorage.getItem("little_phone_images"),
+    texts: localStorage.getItem("little_phone_texts"),
+    apiConfig: localStorage.getItem("little_phone_api_config"),
+    syncTime: localStorage.getItem("little_phone_sync_time"),
+    name: localStorage.getItem("little_phone_name"),
+    moments: localStorage.getItem("little_phone_moments"),
+    characters: localStorage.getItem("little_phone_characters"),
+    musicConfig: localStorage.getItem("little_phone_music_config")
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `little_phone_backup_${new Date().getTime()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (data.images) localStorage.setItem("little_phone_images", data.images);
+      if (data.texts) localStorage.setItem("little_phone_texts", data.texts);
+      if (data.apiConfig) localStorage.setItem("little_phone_api_config", data.apiConfig);
+      if (data.syncTime) localStorage.setItem("little_phone_sync_time", data.syncTime);
+      if (data.name) localStorage.setItem("little_phone_name", data.name);
+      if (data.moments) localStorage.setItem("little_phone_moments", data.moments);
+      if (data.characters) localStorage.setItem("little_phone_characters", data.characters);
+      if (data.musicConfig) localStorage.setItem("little_phone_music_config", data.musicConfig);
+
+      alert("数据导入成功！页面将刷新以应用更改。");
+      location.reload();
+    } catch (err) {
+      alert("导入失败，请确保文件格式正确。");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function clearAllData() {
+  if (confirm("确定要清除所有数据吗？此操作不可恢复！建议先导出备份。")) {
+    localStorage.removeItem("little_phone_images");
+    localStorage.removeItem("little_phone_texts");
+    localStorage.removeItem("little_phone_api_config");
+    localStorage.removeItem("little_phone_sync_time");
+    localStorage.removeItem("little_phone_name");
+    localStorage.removeItem("little_phone_moments");
+    localStorage.removeItem("little_phone_characters");
+    localStorage.removeItem("little_phone_music_config");
+    
+    alert("数据已清除！页面将刷新。");
+    location.reload();
+  }
+}
 </script>
 </body>
 </html>
