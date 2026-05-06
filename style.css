@@ -30,6 +30,19 @@ body {
   transition: all 0.3s ease;
 }
 
+/* 移动端适配 */
+@media screen and (max-width: 480px) {
+  body {
+    align-items: flex-start;
+  }
+  #phone-container {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+}
+
 /* 全屏模式 */
 body.fullscreen-mode #phone-container {
   width: 100vw;
