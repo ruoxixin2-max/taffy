@@ -1,0 +1,1552 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 手机容器 */
+#phone-container {
+  width: 375px;
+  height: 812px;
+  background-color: #ffffff;
+  border-radius: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  border: 8px solid #fce4ec;
+  transition: all 0.3s ease;
+}
+
+/* 全屏模式 */
+body.fullscreen-mode #phone-container {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+/* 屏幕通用 */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  display: none;
+  flex-direction: column;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* 状态栏 */
+.status-bar {
+  height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  z-index: 100;
+}
+
+.status-bar.dark {
+  color: #2c2c2c;
+}
+
+/* 锁屏界面 */
+#lock-screen {
+  background-color: #fce4ec;
+  color: #2c2c2c;
+  align-items: center;
+}
+
+.lock-header {
+  margin-top: 100px;
+  text-align: center;
+}
+
+.lock-header .time {
+  font-size: 72px;
+  font-weight: 200;
+  letter-spacing: 2px;
+  color: #f48fb1;
+}
+
+.lock-header .date {
+  font-size: 18px;
+  color: #f06292;
+  margin-top: 10px;
+}
+
+.slide-to-unlock {
+  position: absolute;
+  bottom: 80px;
+  width: 80%;
+  height: 60px;
+  background-color: #ffffff;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.slider-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-text {
+  color: #f48fb1;
+  font-size: 16px;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.slider-thumb {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 50px;
+  height: 50px;
+  background-color: #fce4ec;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(244, 143, 177, 0.3);
+}
+
+/* 主界面 */
+#main-screen {
+  background-color: #f4f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+/* iOS 风格状态栏 */
+.ios-status-bar {
+  color: #000 !important;
+  padding: 10px 25px 0;
+  height: 44px;
+  background: transparent;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.dynamic-island {
+  width: 100px;
+  height: 28px;
+  background: #000;
+  border-radius: 14px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.camera-dot {
+  width: 8px;
+  height: 8px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  position: relative;
+}
+
+.camera-dot::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #2a4b7c;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+}
+
+.battery-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.battery-icon {
+  width: 22px;
+  height: 11px;
+  border: 1px solid #000;
+  border-radius: 3px;
+  position: relative;
+  padding: 1px;
+}
+
+.battery-icon::before {
+  content: "";
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: block;
+  border-radius: 1px;
+}
+
+.battery-icon::after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  top: 3px;
+  width: 2px;
+  height: 3px;
+  background: #000;
+  border-radius: 0 1px 1px 0;
+}
+
+/* 主界面滚动区 */
+.main-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 50px 15px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 个人信息卡片 */
+.profile-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  padding-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.profile-bg {
+  height: 120px;
+  background: #e0e0e0;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.profile-avatar-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow: hidden;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-name {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  outline: none;
+}
+
+.profile-sign {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  outline: none;
+}
+
+/* 消息卡片 */
+.message-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+}
+
+.msg-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.msg-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.msg-info {
+  margin-left: 10px;
+  flex: 1;
+}
+
+.msg-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+  outline: none;
+}
+
+.msg-text {
+  font-size: 13px;
+  color: #666;
+  margin-top: 2px;
+  outline: none;
+}
+
+.msg-meta {
+  text-align: right;
+}
+
+.msg-time {
+  font-size: 11px;
+  color: #999;
+  outline: none;
+}
+
+.msg-badge {
+  display: inline-block;
+  background: #e0e0e0;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 5px;
+}
+
+.msg-images {
+  display: flex;
+  gap: 10px;
+}
+
+.msg-img {
+  flex: 1;
+  aspect-ratio: 1;
+  background: #f0f0f0;
+  border-radius: 10px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* 应用网格 */
+.apps-grid {
+  display: flex;
+  gap: 15px;
+}
+
+.large-app-card {
+  width: 140px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 15px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.clip-icon {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 40px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  background: transparent;
+  z-index: 2;
+}
+
+.large-app-img-wrapper {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #f0f0f0;
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.large-app-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.large-app-name {
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+  margin-top: 10px;
+  outline: none;
+}
+
+.small-apps {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.app-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.app-icon-box {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  margin-bottom: 5px;
+}
+
+.app-item span {
+  font-size: 11px;
+  color: #333;
+  outline: none;
+}
+
+/* 纯CSS图标 */
+.icon-wechat-small {
+  width: 24px;
+  height: 20px;
+  background: #f48fb1;
+  border-radius: 10px;
+  position: relative;
+}
+.icon-wechat-small::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 4px;
+  border-width: 4px 4px 0 0;
+  border-style: solid;
+  border-color: #f48fb1 transparent transparent transparent;
+}
+
+.icon-settings-new {
+  width: 24px;
+  height: 24px;
+  border: 2px dashed #333;
+  border-radius: 50%;
+  position: relative;
+}
+.icon-settings-new::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border: 2px solid #333;
+  border-radius: 50%;
+}
+
+.icon-book {
+  width: 20px;
+  height: 24px;
+  border: 2px solid #333;
+  border-radius: 2px;
+}
+
+.icon-music {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  border-radius: 50%;
+  position: relative;
+}
+.icon-music::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: #333;
+  border-radius: 50%;
+}
+
+/* 搜索栏 */
+.search-bar-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.search-bar {
+  background: #e8e9ed;
+  padding: 8px 20px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #666;
+  font-size: 13px;
+}
+
+.search-bar span {
+  outline: none;
+}
+
+.search-icon {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #666;
+  border-radius: 50%;
+  position: relative;
+}
+.search-icon::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 6px;
+  height: 2px;
+  background: #666;
+  transform: rotate(45deg);
+}
+
+/* 底部Dock */
+.dock-container {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dock {
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 30px;
+  display: flex;
+  gap: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.dock-item {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 1px solid #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-control {
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #333;
+  border-bottom: 2px solid #333;
+  position: relative;
+}
+.icon-control::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #333;
+  transform: translateY(-50%);
+}
+
+.icon-clock {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  border-radius: 50%;
+  position: relative;
+}
+.icon-clock::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 8px;
+  background: #333;
+  transform-origin: bottom;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+
+.icon-more {
+  display: flex;
+  gap: 2px;
+}
+
+.icon-camera {
+  width: 22px;
+  height: 16px;
+  border: 2px solid #333;
+  border-radius: 4px;
+  position: relative;
+}
+.icon-camera::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border: 2px solid #333;
+  border-radius: 50%;
+}
+
+.page-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.dot.active {
+  background: #ff4d4f;
+}
+
+/* 应用通用头部 */
+.app-header {
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.back-btn,
+.more-btn,
+.post-btn {
+  font-size: 16px;
+  color: #f48fb1;
+  cursor: pointer;
+  width: 40px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-text {
+  font-size: 14px;
+  color: #f48fb1;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+/* 微信内容区 */
+.wechat-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+.tab-content {
+  display: none;
+  height: 100%;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* 聊天列表 */
+.chat-item {
+  display: flex;
+  padding: 15px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 18px;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.ai-avatar {
+  background-color: #f48fb1;
+}
+
+.my-avatar {
+  background-color: #f06292;
+}
+
+.chat-info {
+  margin-left: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chat-name {
+  font-size: 16px;
+  color: #2c2c2c;
+  margin-bottom: 5px;
+}
+
+.chat-last-msg {
+  font-size: 14px;
+  color: #999999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 微信底部导航 */
+.wechat-tabs {
+  height: 60px;
+  display: flex;
+  background-color: #ffffff;
+  border-top: 1px solid #f5f5f5;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  color: #999999;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: #f48fb1;
+}
+
+/* 聊天界面 */
+.chat-messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message {
+  display: flex;
+  max-width: 80%;
+}
+
+.message.received {
+  align-self: flex-start;
+}
+
+.message.sent {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-content {
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.message.received .message-content {
+  background-color: #ffffff;
+  color: #2c2c2c;
+  margin-left: 10px;
+}
+
+.message.sent .message-content {
+  background-color: #f48fb1;
+  color: #ffffff;
+  margin-right: 10px;
+}
+
+.chat-img-msg {
+  max-width: 200px;
+  border-radius: 8px;
+}
+
+.chat-money-msg {
+  background-color: #fce4ec !important;
+  border: 1px solid #f48fb1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+}
+
+.money-title {
+  font-weight: bold;
+  color: #d81b60;
+}
+
+.money-desc {
+  font-size: 12px;
+  color: #f06292;
+}
+
+.chat-input-container {
+  background-color: #ffffff;
+  border-top: 1px solid #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-input-area {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  gap: 10px;
+}
+
+.chat-more-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #999;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+}
+
+#chat-input {
+  flex: 1;
+  height: 40px;
+  border: none;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  padding: 0 15px;
+  font-size: 15px;
+  outline: none;
+}
+
+.send-btn {
+  background-color: #f48fb1;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 0 15px;
+  height: 40px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.chat-more-panel {
+  display: none;
+  padding: 20px;
+  background: #f5f5f5;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.chat-more-panel.active {
+  display: grid;
+}
+
+.more-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.more-icon {
+  width: 50px;
+  height: 50px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.img-icon {
+  border: 2px solid #333;
+  border-radius: 4px;
+  width: 24px;
+  height: 20px;
+}
+
+.rp-icon {
+  background: #fce4ec;
+  border: 2px solid #f48fb1;
+  width: 20px;
+  height: 26px;
+  border-radius: 2px;
+}
+
+.tf-icon {
+  border: 2px solid #f48fb1;
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.more-item span {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 朋友圈 */
+.moments-header {
+  position: relative;
+  height: 250px;
+  background-color: #ffffff;
+  margin-bottom: 40px;
+}
+
+.moments-cover {
+  height: 200px;
+  background-color: #fce4ec;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.moments-user {
+  position: absolute;
+  right: 15px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.moments-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.moments-feed {
+  padding: 0 15px;
+}
+
+.moment-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 15px;
+}
+
+.moment-content {
+  flex: 1;
+}
+
+.moment-name {
+  color: #f48fb1;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.moment-text {
+  color: #2c2c2c;
+  font-size: 15px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.moment-time {
+  color: #999999;
+  font-size: 12px;
+}
+
+.post-moment-btn {
+  position: absolute;
+  right: 20px;
+  bottom: 80px;
+  width: 50px;
+  height: 50px;
+  background-color: #f48fb1;
+  color: #ffffff;
+  border-radius: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(244, 143, 177, 0.4);
+  cursor: pointer;
+}
+
+/* 发布朋友圈 */
+.post-moment-content {
+  flex: 1;
+  padding: 15px;
+  background-color: #ffffff;
+}
+
+#moment-input {
+  width: 100%;
+  height: 150px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  resize: none;
+}
+
+/* 个人信息 */
+.profile-header {
+  display: flex;
+  padding: 30px 20px;
+  background-color: #ffffff;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 10px solid #f5f5f5;
+}
+
+.profile-header .avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 24px;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+#my-name-input {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c2c2c;
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.profile-desc {
+  font-size: 14px;
+  color: #999999;
+}
+
+/* 世界书 */
+.worldbook-content {
+  flex: 1;
+  background: #f5f5f5;
+  overflow-y: auto;
+}
+
+.wb-actions {
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.wb-btn {
+  flex: 1;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #fce4ec;
+  border-radius: 8px;
+  color: #f48fb1;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.wb-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #fce4ec;
+  border-radius: 8px;
+  outline: none;
+  color: #333;
+}
+
+.character-list {
+  padding: 0 15px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.char-item {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+}
+
+.char-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  background: #fce4ec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #f48fb1;
+  font-weight: bold;
+  background-size: cover;
+  background-position: center;
+}
+
+.char-info {
+  flex: 1;
+}
+
+.char-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.char-desc {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 音乐 */
+.music-content {
+  flex: 1;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.record-player {
+  width: 240px;
+  height: 240px;
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.record-disk {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 4px solid #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: spin 10s linear infinite;
+  animation-play-state: paused;
+}
+
+.record-disk.playing {
+  animation-play-state: running;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.record-center {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #fce4ec;
+  border: 2px solid #f48fb1;
+}
+
+.record-stylus {
+  position: absolute;
+  top: -20px;
+  right: 20px;
+  width: 4px;
+  height: 100px;
+  background: #ccc;
+  transform-origin: top center;
+  transform: rotate(-30deg);
+  transition: transform 0.3s;
+}
+
+.record-stylus.playing {
+  transform: rotate(10deg);
+}
+
+.music-info {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.music-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.music-artist {
+  font-size: 14px;
+  color: #999;
+}
+
+.music-progress {
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #f5f5f5;
+  border-radius: 2px;
+  position: relative;
+}
+
+.progress-current {
+  width: 0%;
+  height: 100%;
+  background: #f48fb1;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.music-controls {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.ctrl-btn {
+  cursor: pointer;
+}
+
+.prev-btn {
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 15px solid #333;
+  position: relative;
+}
+.prev-btn::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -10px;
+  width: 4px;
+  height: 20px;
+  background: #333;
+}
+
+.play-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  background: #f48fb1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.play-btn::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid #fff;
+  margin-left: 4px;
+}
+.play-btn.playing::after {
+  border: none;
+  width: 12px;
+  height: 16px;
+  border-left: 4px solid #fff;
+  border-right: 4px solid #fff;
+  margin-left: 0;
+}
+
+.next-btn {
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 15px solid #333;
+  position: relative;
+}
+.next-btn::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: -10px;
+  width: 4px;
+  height: 20px;
+  background: #333;
+}
+
+/* 设置界面 */
+.settings-content {
+  flex: 1;
+  background-color: #f5f5f5;
+  overflow-y: auto;
+}
+
+.settings-group {
+  margin-top: 15px;
+  background-color: #ffffff;
+}
+
+.settings-title {
+  padding: 10px 15px;
+  font-size: 12px;
+  color: #999999;
+  background-color: #f5f5f5;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.setting-item-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.setting-item-col label {
+  font-size: 14px;
+  color: #666;
+}
+
+.setting-item label {
+  font-size: 16px;
+  color: #2c2c2c;
+}
+
+.setting-item input {
+  text-align: right;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #999999;
+  width: 60%;
+}
+
+.save-btn,
+.action-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #ffffff;
+  color: #f48fb1;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 开关 */
+.toggle-switch {
+  width: 50px;
+  height: 30px;
+  background-color: #e0e0e0;
+  border-radius: 15px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-switch.active {
+  background-color: #f48fb1;
+}
+
+.toggle-knob {
+  width: 26px;
+  height: 26px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(20px);
+}
+
+/* 弹窗 */
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: none;
+}
+
+.custom-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  background: #fff;
+  border-radius: 16px;
+  z-index: 201;
+  display: none;
+  overflow: hidden;
+}
+
+.scrollable-modal {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-content h3 {
+  text-align: center;
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.modal-input,
+.modal-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+}
+
+.modal-textarea {
+  resize: none;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-btn.cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-btn.confirm {
+  background: #f48fb1;
+  color: #fff;
+}
+
+.avatar-upload {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  background-color: #fce4ec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #f48fb1;
+  font-size: 12px;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center;
+  border: 2px dashed #f48fb1;
+}
