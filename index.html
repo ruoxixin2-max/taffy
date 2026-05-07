@@ -953,6 +953,104 @@
         cursor: pointer;
       }
 
+      .chat-sticker-btn {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #999;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .icon-smile {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #999;
+        border-radius: 50%;
+        position: relative;
+      }
+      .icon-smile::before {
+        content: '';
+        position: absolute;
+        top: 4px;
+        left: 3px;
+        width: 2px;
+        height: 2px;
+        background: #999;
+        border-radius: 50%;
+        box-shadow: 6px 0 0 #999;
+      }
+      .icon-smile::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        left: 3px;
+        width: 8px;
+        height: 4px;
+        border-bottom: 2px solid #999;
+        border-radius: 50%;
+      }
+
+      .chat-sticker-panel {
+        display: none;
+        padding: 15px;
+        background: #f5f5f5;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .chat-sticker-panel.active {
+        display: grid;
+      }
+
+      .sticker-item {
+        width: 100%;
+        aspect-ratio: 1;
+        background-size: cover;
+        background-position: center;
+        border-radius: 8px;
+        cursor: pointer;
+        position: relative;
+        background-color: #e0e0e0;
+      }
+
+      .sticker-add-btn {
+        border: 2px dashed #ccc;
+        background-color: transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        color: #ccc;
+      }
+
+      .sticker-name-tag {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.5);
+        color: #fff;
+        font-size: 10px;
+        text-align: center;
+        padding: 2px 0;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .chat-sticker-msg {
+        max-width: 120px;
+        border-radius: 8px;
+        background: transparent !important;
+      }
+
       #chat-input {
         flex: 1;
         height: 40px;
@@ -1547,7 +1645,7 @@
       }
 
       .scrollable-modal {
-        max-height: 80vh;
+        max-height: 80%;
         overflow-y: auto;
       }
 
@@ -2068,6 +2166,9 @@
         <div class="chat-input-container">
           <div class="chat-input-area">
             <div class="chat-more-btn" onclick="toggleChatMore()">+</div>
+            <div class="chat-sticker-btn" onclick="toggleChatSticker()">
+              <div class="icon-smile"></div>
+            </div>
             <input
               type="text"
               id="chat-input"
@@ -2076,6 +2177,16 @@
             />
             <button class="send-btn" onclick="sendMessage()">发送</button>
           </div>
+          <div class="chat-sticker-panel" id="chat-sticker-panel">
+            <!-- Stickers will be rendered here -->
+          </div>
+          <input
+            type="file"
+            id="sticker-upload-input"
+            accept="image/*"
+            style="opacity: 0; position: absolute; z-index: -1"
+            onchange="handleStickerUpload(event)"
+          />
           <div class="chat-more-panel" id="chat-more-panel">
             <div
               class="more-item"
@@ -2801,6 +2912,10 @@
       let aiHistory = JSON.parse(
         localStorage.getItem("little_phone_ai_history") || "[]",
       );
+      let aiSettings = JSON.parse(
+        localStorage.getItem("little_phone_ai_settings") || '{"memoryCount": 10}'
+      );
+      let stickers = JSON.parse(localStorage.getItem("little_phone_stickers") || "[]");
 
       // 活人聊天提示词
       const getRealisticPrompt = (min, max) => `
@@ -3348,17 +3463,17 @@ instruction:
         document.getElementById("chat-interface").classList.add("active");
 
         if (charId === "ai") {
+          let aiAvatar = JSON.parse(localStorage.getItem("little_phone_images") || "{}")["ai_avatar_custom"];
           currentChatChar = {
             id: "ai",
             name: "AI 助手",
             prompt: "你是一个有用的AI助手。",
-            settings: { memoryCount: 10 },
+            settings: aiSettings,
             history: aiHistory,
+            avatar: aiAvatar
           };
-          document.getElementById("chat-title").textContent = "AI 助手";
-          document.getElementById("chat-msg-avatar").textContent = "AI";
-          document.getElementById("chat-msg-avatar").style.backgroundImage =
-            "none";
+          document.getElementById("chat-title").textContent = aiSettings.remark || "AI 助手";
+          // Note: chat-msg-avatar is not in the HTML, we use chat-title
         } else {
           const char = characters.find((c) => c.id === charId);
           if (char) {
@@ -3411,8 +3526,9 @@ instruction:
           });
         }
 
-        // 隐藏更多面板
+        // 隐藏更多面板和表情面板
         document.getElementById("chat-more-panel").classList.remove("active");
+        document.getElementById("chat-sticker-panel").classList.remove("active");
       }
 
       function closeChat() {
@@ -3421,8 +3537,89 @@ instruction:
         currentChatChar = null;
       }
 
+      function toggleChatSticker() {
+        document.getElementById("chat-more-panel").classList.remove("active");
+        document.getElementById("chat-sticker-panel").classList.toggle("active");
+        renderStickers();
+      }
+
       function toggleChatMore() {
+        document.getElementById("chat-sticker-panel").classList.remove("active");
         document.getElementById("chat-more-panel").classList.toggle("active");
+      }
+
+      function renderStickers() {
+        const panel = document.getElementById("chat-sticker-panel");
+        panel.innerHTML = '';
+        
+        stickers.forEach(sticker => {
+          const item = document.createElement('div');
+          item.className = 'sticker-item';
+          item.style.backgroundImage = `url(${sticker.url})`;
+          item.onclick = () => sendSticker(sticker);
+          
+          const nameTag = document.createElement('div');
+          nameTag.className = 'sticker-name-tag';
+          nameTag.textContent = sticker.name;
+          item.appendChild(nameTag);
+          
+          const delBtn = document.createElement('div');
+          delBtn.innerHTML = '×';
+          delBtn.style.cssText = 'position:absolute;top:-5px;right:-5px;background:#ff4d4f;color:white;border-radius:50%;width:16px;height:16px;font-size:12px;display:flex;justify-content:center;align-items:center;z-index:10;line-height:1;';
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteSticker(sticker.id);
+          };
+          item.appendChild(delBtn);
+          
+          panel.appendChild(item);
+        });
+        
+        const addBtn = document.createElement('div');
+        addBtn.className = 'sticker-item sticker-add-btn';
+        addBtn.textContent = '+';
+        addBtn.onclick = () => document.getElementById('sticker-upload-input').click();
+        panel.appendChild(addBtn);
+      }
+
+      function deleteSticker(id) {
+        if(confirm('确定删除这个表情包吗？')) {
+          stickers = stickers.filter(s => s.id !== id);
+          localStorage.setItem("little_phone_stickers", JSON.stringify(stickers));
+          renderStickers();
+        }
+      }
+
+      function handleStickerUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const name = prompt("请为这个表情包命名（AI将通过这个名字来使用它，例如：开心、大哭）：");
+        if (!name) {
+          event.target.value = '';
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const dataUrl = e.target.result;
+          stickers.push({
+            id: 'sticker_' + Date.now(),
+            name: name,
+            url: dataUrl
+          });
+          localStorage.setItem("little_phone_stickers", JSON.stringify(stickers));
+          renderStickers();
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+      }
+
+      async function sendSticker(sticker) {
+        const text = `[表情包:${sticker.name}]`;
+        document.getElementById("chat-input").value = text;
+        sendMessage();
+        document.getElementById("chat-sticker-panel").classList.remove("active");
       }
 
       // 聊天设置与状态
@@ -3463,7 +3660,7 @@ instruction:
       }
 
       function saveChatSettings() {
-        if (!currentChatChar || currentChatChar.id === "ai") {
+        if (!currentChatChar) {
           hideChatSettings();
           return;
         }
@@ -3499,7 +3696,17 @@ instruction:
             .replace(/['"]?\)$/, "");
         }
 
-        saveCharacters();
+        if (currentChatChar.id === "ai") {
+          aiSettings = currentChatChar.settings;
+          localStorage.setItem("little_phone_ai_settings", JSON.stringify(aiSettings));
+          if (currentChatChar.avatar) {
+             let images = JSON.parse(localStorage.getItem("little_phone_images") || "{}");
+             images["ai_avatar_custom"] = currentChatChar.avatar;
+             localStorage.setItem("little_phone_images", JSON.stringify(images));
+          }
+        } else {
+          saveCharacters();
+        }
 
         // 更新当前聊天标题
         document.getElementById("chat-title").textContent =
@@ -3699,23 +3906,30 @@ ${historyText || "暂无聊天记录"}
             }
           }
 
+          if (stickers.length > 0) {
+            const stickerNames = stickers.map(s => s.name).join('、');
+            systemPrompt += `\n\n[表情包功能]\n你可以使用以下表情包：${stickerNames}。\n发送表情包时，请严格使用 [表情包:名称] 的格式。你可以单独发送表情包，也可以在文字后加上表情包。`;
+          }
+
           messages.push({ role: "system", content: systemPrompt });
 
-          if (
-            currentChatChar &&
-            currentChatChar.id !== "ai" &&
-            currentChatChar.history
-          ) {
+          if (currentChatChar && currentChatChar.history) {
             const memoryCount =
               (currentChatChar.settings &&
                 currentChatChar.settings.memoryCount) ||
               10;
             const validHistory = currentChatChar.history.filter(
-              (m) => !m.isRecall && !m.isHtml,
+              (m) => !m.isRecall
             );
             const recentHistory = validHistory.slice(-memoryCount);
             recentHistory.forEach((m) => {
-              messages.push({ role: m.role, content: m.content });
+              let content = m.content;
+              if (m.isHtml) {
+                if (content.includes('chat-img-msg')) content = '[发送了一张图片]';
+                else if (content.includes('chat-money-msg')) content = '[发送了红包/转账]';
+                else content = '[特殊消息]';
+              }
+              messages.push({ role: m.role, content: content });
             });
           } else {
             messages.push({ role: "user", content: text });
@@ -3894,11 +4108,30 @@ ${historyText || "暂无聊天记录"}
           }
         }
 
-        const contentHtml = isHtml ? content : escapeHtml(content);
+        let contentHtml = isHtml ? content : escapeHtml(content);
+        let isOnlySticker = false;
+
+        if (!isHtml) {
+          const stickerMatch = content.match(/^\[表情包:(.*?)\]$/);
+          if (stickerMatch) {
+            const sticker = stickers.find(s => s.name === stickerMatch[1]);
+            if (sticker) {
+              isOnlySticker = true;
+            }
+          }
+          
+          contentHtml = contentHtml.replace(/\[表情包:(.*?)\]/g, (match, name) => {
+            const sticker = stickers.find(s => s.name === name);
+            if (sticker) {
+              return `<img src="${sticker.url}" class="chat-sticker-msg" alt="[表情包:${name}]">`;
+            }
+            return match;
+          });
+        }
 
         msgDiv.innerHTML = `
         ${avatarHtml}
-        <div class="message-content">${contentHtml}</div>
+        <div class="message-content" ${isOnlySticker ? 'style="background:transparent; padding:0;"' : ''}>${contentHtml}</div>
     `;
 
         const contentDiv = msgDiv.querySelector(".message-content");
@@ -4836,6 +5069,7 @@ ${typePrompt}
           moments: localStorage.getItem("little_phone_moments"),
           characters: localStorage.getItem("little_phone_characters"),
           musicConfig: localStorage.getItem("little_phone_music_config"),
+          stickers: localStorage.getItem("little_phone_stickers"),
         };
 
         const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -4878,6 +5112,8 @@ ${typePrompt}
                 "little_phone_music_config",
                 data.musicConfig,
               );
+            if (data.stickers)
+              localStorage.setItem("little_phone_stickers", data.stickers);
 
             alert("数据导入成功！页面将刷新以应用更改。");
             location.reload();
@@ -4899,6 +5135,7 @@ ${typePrompt}
           localStorage.removeItem("little_phone_moments");
           localStorage.removeItem("little_phone_characters");
           localStorage.removeItem("little_phone_music_config");
+          localStorage.removeItem("little_phone_stickers");
 
           alert("数据已清除！页面将刷新。");
           location.reload();
