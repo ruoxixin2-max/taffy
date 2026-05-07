@@ -41,7 +41,7 @@
       }
 
       /* 移动端适配 */
-      @media screen and (max-width: 480px) {
+      @media screen and (max-width: 800px) {
         body {
           align-items: flex-start;
         }
@@ -50,6 +50,13 @@
           height: 100vh;
           border-radius: 0;
           border: none;
+        }
+        .status-bar, .ios-status-bar {
+          display: none !important;
+        }
+        .app-header {
+          padding-top: env(safe-area-inset-top, 40px);
+          height: calc(50px + env(safe-area-inset-top, 40px));
         }
       }
 
@@ -690,11 +697,11 @@
 
       /* 应用通用头部 */
       .app-header {
-        height: 50px;
+        height: 94px;
+        padding: 44px 15px 0 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 15px;
         background-color: #ffffff;
         border-bottom: 1px solid #f5f5f5;
       }
@@ -1743,16 +1750,66 @@
       .msg-action-item:active {
         background: #f5f5f5;
       }
-      \n
+
+      /* 新图标 */
+      .icon-shop { width: 24px; height: 24px; border: 2px solid #333; border-radius: 4px 4px 8px 8px; position: relative; }
+      .icon-shop::before { content: ''; position: absolute; top: -8px; left: 4px; width: 12px; height: 8px; border: 2px solid #333; border-bottom: none; border-radius: 6px 6px 0 0; }
+      .icon-food { width: 24px; height: 20px; border: 2px solid #333; border-radius: 12px 12px 4px 4px; position: relative; }
+      .icon-food::before { content: ''; position: absolute; top: -6px; left: 10px; width: 4px; height: 4px; background: #333; border-radius: 50%; }
+      .fc-icon { border: 2px solid #f48fb1; width: 24px; height: 16px; border-radius: 4px; position: relative; }
+      .fc-icon::after { content: '♥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; color: #f48fb1; }
+      .wallet-icon { width: 24px; height: 24px; border: 2px solid #f48fb1; border-radius: 4px; position: relative; }
+      .wallet-icon::after { content: ''; position: absolute; top: 50%; right: 2px; transform: translateY(-50%); width: 6px; height: 8px; background: #f48fb1; border-radius: 2px; }
+
+      /* 钱包界面 */
+      .wallet-header { background: #f48fb1; color: #fff; padding: 40px 20px 30px; text-align: center; }
+      .wallet-balance { font-size: 36px; font-weight: bold; margin-top: 10px; }
+      .wallet-menu { padding: 20px; flex: 1; overflow-y: auto; background: #f5f5f5; }
+      .wallet-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02); cursor: pointer; }
+      .wallet-card-title { font-size: 16px; color: #333; font-weight: 500; }
+      .wallet-card-desc { font-size: 12px; color: #999; margin-top: 4px; }
+      .wallet-card-value { font-size: 16px; color: #f48fb1; font-weight: bold; }
+
+      /* 商城/外卖列表 */
+      .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: #f5f5f5; flex: 1; overflow-y: auto; }
+      .product-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+      .product-img { width: 100%; aspect-ratio: 1; background: #fce4ec; display: flex; justify-content: center; align-items: center; font-size: 40px; color: #f48fb1; }
+      .product-info { padding: 10px; }
+      .product-name { font-size: 14px; color: #333; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .product-price { color: #f48fb1; font-weight: bold; font-size: 16px; }
+      .buy-btn { background: #f48fb1; color: #fff; border: none; padding: 5px 12px; border-radius: 15px; font-size: 12px; float: right; cursor: pointer; }
+
+      /* 亲属卡消息 */
+      .chat-fc-msg { background: #fff !important; border: 1px solid #fce4ec; border-radius: 8px; padding: 15px !important; min-width: 200px; color: #333 !important; }
+      .fc-title { color: #f48fb1; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+      .fc-limit { font-size: 24px; color: #333; margin: 10px 0; font-weight: bold; }
+      .fc-desc { font-size: 12px; color: #999; }
+
+      /* 消费弹窗 */
+      .consume-popup { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: #fff; border-radius: 16px; padding: 15px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; display: flex; align-items: center; gap: 15px; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 90%; max-width: 340px; }
+      .consume-popup.hidden { top: -100px; }
     </style>
   </head>
   <body>
     <div id="phone-container">
+      <div class="ios-status-bar">
+          <div class="dynamic-island">
+            <div class="camera-dot"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: -5px;">
+            <span class="time-small status-time-sync" style="font-weight: 600; font-size: 15px;">12:00</span>
+            <div class="battery-container">
+              <span class="battery" style="font-weight: 600; font-size: 13px;">100%</span>
+              <div class="battery-icon"></div>
+            </div>
+          </div>
+      </div>
       <!-- 锁屏界面 -->
       <div id="lock-screen" class="screen active">
+        
         <div class="lock-header">
           <div class="time" id="lock-time">12:00</div>
-          <div class="date" id="lock-date">5月7日 星期四</div>
+          <div class="date" id="lock-date">1月1日 星期一</div>
         </div>
         <div class="slide-to-unlock">
           <div class="slider-track" id="slider-track">
@@ -1764,20 +1821,9 @@
 
       <!-- 主界面 -->
       <div id="main-screen" class="screen">
-        <div class="status-bar ios-status-bar">
-          <span class="time-small" id="status-time">11:45</span>
-          <div class="dynamic-island">
-            <div class="camera-dot"></div>
-          </div>
-          <div class="battery-container">
-            <span class="battery-text">59%</span>
-            <div class="battery-icon"></div>
-          </div>
-        </div>
-
         <div class="main-scroll-area">
           <!-- 个人信息卡片 -->
-          <div class="profile-card">
+          <div class="profile-card" onclick="openApp('wechat-app'); switchWechatTab('profile-view', document.querySelectorAll('.wechat-tabs .tab'))">
             <div
               class="profile-bg"
               id="img-bg"
@@ -1995,6 +2041,26 @@
                   >查手机</span
                 >
               </div>
+              <div class="app-item" onclick="openApp('shop-app'); renderProducts('shop-grid', shopProducts);">
+                <div class="app-icon-box"><div class="icon-shop"></div></div>
+                <span
+                  id="text-app-6"
+                  contenteditable="true"
+                  onblur="saveCustomText(this.id)"
+                  onclick="event.stopPropagation()"
+                  >商城</span
+                >
+              </div>
+              <div class="app-item" onclick="openApp('food-app'); renderProducts('food-grid', foodProducts);">
+                <div class="app-icon-box"><div class="icon-food"></div></div>
+                <span
+                  id="text-app-7"
+                  contenteditable="true"
+                  onblur="saveCustomText(this.id)"
+                  onclick="event.stopPropagation()"
+                  >外卖</span
+                >
+              </div>
             </div>
           </div>
 
@@ -2051,40 +2117,19 @@
 
       <!-- 微信应用 -->
       <div id="wechat-app" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closeApp()">返回</div>
           <div class="title">微信</div>
-          <div
-            class="more-btn"
-            onclick="document.getElementById('char-import').click()"
-          >
-            导入
+          <div class="header-actions">
+            <div class="action-text" onclick="document.getElementById('char-import').click()">导入</div>
+            <input type="file" id="char-import" accept=".json" style="display: none;" onchange="importCharacter(event)">
           </div>
-          <input
-            type="file"
-            id="char-import"
-            accept=".json"
-            style="opacity: 0; position: absolute; z-index: -1"
-            onchange="importCharacter(event)"
-          />
         </div>
 
         <div class="wechat-content">
           <!-- 聊天列表 -->
           <div id="chat-list" class="tab-content active">
-            <div class="chat-item" onclick="openChat('ai')">
-              <div class="avatar ai-avatar" id="chat-list-avatar">AI</div>
-              <div class="chat-info">
-                <div class="chat-name" id="chat-list-name">AI 助手</div>
-                <div class="chat-last-msg" id="last-msg-preview">
-                  你好，我是你的AI助手。
-                </div>
-              </div>
-            </div>
+            <!-- 聊天项将由JS动态生成 -->
           </div>
 
           <!-- 朋友圈 -->
@@ -2132,6 +2177,15 @@
                 <div class="profile-desc">点击上方编辑昵称，点击头像更换</div>
               </div>
             </div>
+            <div style="margin-top: 20px; background: #fff;">
+              <div class="setting-item" onclick="openWallet()">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                  <div class="wallet-icon"></div>
+                  <label style="cursor: pointer;">服务 / 钱包</label>
+                </div>
+                <span style="color: #ccc;">></span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2150,17 +2204,10 @@
 
       <!-- 聊天界面 -->
       <div id="chat-interface" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closeChat()">返回</div>
-          <div class="title" id="chat-title">AI 助手</div>
-          <div class="header-actions">
-            <div class="action-text" onclick="showChatStatus()">状态</div>
-            <div class="action-text" onclick="showChatSettings()">设置</div>
-          </div>
+          <div class="title" id="chat-title">聊天</div>
+          <div class="more-btn" onclick="showChatSettings()">...</div>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input-container">
@@ -2184,6 +2231,7 @@
             type="file"
             id="sticker-upload-input"
             accept="image/*"
+            multiple
             style="opacity: 0; position: absolute; z-index: -1"
             onchange="handleStickerUpload(event)"
           />
@@ -2203,6 +2251,14 @@
               <div class="more-icon tf-icon"></div>
               <span>转账</span>
             </div>
+            <div class="more-item" onclick="simulateCharConsumption()">
+              <div class="more-icon fc-icon"></div>
+              <span>模拟消费</span>
+            </div>
+            <div class="more-item" onclick="charGiveFamilyCard(currentChatChar.id, 5000)">
+              <div class="more-icon fc-icon"></div>
+              <span>索要亲属卡</span>
+            </div>
             <input
               type="file"
               id="chat-img-upload"
@@ -2216,13 +2272,9 @@
 
       <!-- 发布朋友圈界面 -->
       <div id="post-moment-interface" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closePostMoment()">取消</div>
-          <div class="title">发表文字</div>
+          <div class="title">发布动态</div>
           <div class="post-btn" onclick="submitMoment()">发表</div>
         </div>
         <div class="post-moment-content">
@@ -2232,16 +2284,11 @@
 
       <!-- 世界书应用 -->
       <div id="worldbook-app" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closeApp()">返回</div>
           <div class="title">世界书</div>
-          <div class="more-btn" onclick="showAddCharacter()">添加</div>
+          <div class="more-btn" onclick="showAddCharacter()">+</div>
         </div>
-        div>
         <div class="worldbook-content">
           <div class="character-list" id="character-list">
             <!-- 角色列表 -->
@@ -2251,14 +2298,10 @@
 
       <!-- 查手机应用 -->
       <div id="spy-app" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closeApp()">返回</div>
           <div class="title">查手机</div>
-          <div class="more-btn"></div>
+          <div style="width: 40px"></div>
         </div>
         <div class="worldbook-content">
           <div class="character-list" id="spy-character-list">
@@ -2269,14 +2312,10 @@
 
       <!-- 查手机 - 角色详情 -->
       <div id="spy-detail-app" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
-          <div class="back-btn" onclick="openApp('spy-app')">返回</div>
-          <div class="title" id="spy-detail-title">目标手机</div>
-          <div class="more-btn"></div>
+          <div class="back-btn" onclick="document.getElementById('spy-detail-app').classList.remove('active'); document.getElementById('spy-app').classList.add('active');">返回</div>
+          <div class="title" id="spy-detail-title">手机内容</div>
+          <div style="width: 40px"></div>
         </div>
         <div
           class="spy-detail-content"
@@ -2437,10 +2476,6 @@
 
       <!-- 音乐应用 -->
       <div id="music-app" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closeApp()">返回</div>
           <div class="title">音乐</div>
@@ -2480,14 +2515,10 @@
 
       <!-- 设置应用 -->
       <div id="settings-app" class="screen app-screen">
-        <div class="status-bar dark">
-          <span class="time-small status-time-sync">12:00</span>
-          <span class="battery">100%</span>
-        </div>
         <div class="app-header">
           <div class="back-btn" onclick="closeApp()">返回</div>
           <div class="title">设置</div>
-          <div class="more-btn"></div>
+          <div style="width: 40px"></div>
         </div>
         <div class="settings-content">
           <div class="settings-group">
@@ -2602,6 +2633,63 @@
         </div>
       </div>
 
+      <!-- 钱包界面 -->
+      <div id="wallet-app" class="screen app-screen">
+        <div class="app-header" style="background: #f48fb1; border: none;">
+          <div class="back-btn" onclick="closeWallet()" style="color: #fff;">返回</div>
+          <div class="title" style="color: #fff;">服务</div>
+          <div style="width: 40px"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; height: 100%;">
+          <div class="wallet-header">
+            <div style="font-size: 14px; opacity: 0.9;">我的余额</div>
+            <div class="wallet-balance" id="wallet-balance-display">¥ 10000.00</div>
+          </div>
+          <div class="wallet-menu">
+            <div class="wallet-card" onclick="showFamilyCardModal()">
+              <div>
+                <div class="wallet-card-title">亲属卡</div>
+                <div class="wallet-card-desc">赠送给重要的人</div>
+              </div>
+              <div class="wallet-card-value" id="family-card-status">未开通</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商城应用 -->
+      <div id="shop-app" class="screen app-screen">
+        <div class="app-header">
+          <div class="back-btn" onclick="closeApp()">返回</div>
+          <div class="title">购物商城</div>
+          <div style="width: 40px"></div>
+        </div>
+        <div class="product-grid" id="shop-grid">
+          <!-- Products will be rendered here -->
+        </div>
+      </div>
+
+      <!-- 外卖应用 -->
+      <div id="food-app" class="screen app-screen">
+        <div class="app-header" style="background: #ffc300; border: none;">
+          <div class="back-btn" onclick="closeApp()" style="color: #333;">返回</div>
+          <div class="title" style="color: #333;">美团外卖</div>
+          <div style="width: 40px"></div>
+        </div>
+        <div class="product-grid" id="food-grid">
+          <!-- Food will be rendered here -->
+        </div>
+      </div>
+
+      <!-- 消费弹窗 -->
+      <div id="consume-popup" class="consume-popup hidden">
+        <div style="width: 40px; height: 40px; background: #f48fb1; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 20px; flex-shrink: 0;">¥</div>
+        <div style="flex: 1;">
+          <div style="font-size: 14px; color: #333; font-weight: bold; margin-bottom: 4px;" id="consume-popup-title">亲属卡消费</div>
+          <div style="font-size: 12px; color: #666;" id="consume-popup-desc">对方消费了 100 元</div>
+        </div>
+      </div>
+
       <!-- 弹窗遮罩 -->
       <div
         id="modal-overlay"
@@ -2668,6 +2756,25 @@
             <button class="modal-btn confirm" onclick="sendMoney()">
               发送
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 亲属卡弹窗 -->
+      <div id="family-card-modal" class="custom-modal">
+        <div class="modal-content">
+          <h3>赠送亲属卡</h3>
+          <div class="setting-item-col">
+            <label>选择赠送对象</label>
+            <select id="fc-target-select" class="modal-input"></select>
+          </div>
+          <div class="setting-item-col">
+            <label>每月消费额度</label>
+            <input type="number" id="fc-limit-input" class="modal-input" placeholder="例如：3000" value="3000" />
+          </div>
+          <div class="modal-btns">
+            <button class="modal-btn cancel" onclick="hideFamilyCardModal()">取消</button>
+            <button class="modal-btn confirm" onclick="sendFamilyCard()">赠送</button>
           </div>
         </div>
       </div>
@@ -3361,7 +3468,9 @@ instruction:
 
         document.getElementById("lock-time").textContent = timeStr;
         document.getElementById("lock-date").textContent = dateStr;
-        document.getElementById("status-time").textContent = timeStr;
+        
+        const statusTimeEl = document.getElementById("status-time");
+        if (statusTimeEl) statusTimeEl.textContent = timeStr;
 
         const syncTimes = document.querySelectorAll(".status-time-sync");
         syncTimes.forEach((el) => (el.textContent = timeStr));
@@ -3590,28 +3699,43 @@ instruction:
         }
       }
 
-      function handleStickerUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+      async function handleStickerUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
         
-        const name = prompt("请为这个表情包命名（AI将通过这个名字来使用它，例如：开心、大哭）：");
-        if (!name) {
-          event.target.value = '';
-          return;
+        let addedCount = 0;
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const defaultName = file.name.split('.')[0];
+          const name = prompt(`请为表情包 "${file.name}" 命名（AI将通过这个名字来使用它）：`, defaultName);
+          if (!name) continue;
+          
+          await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              const dataUrl = e.target.result;
+              stickers.push({
+                id: 'sticker_' + Date.now() + '_' + i,
+                name: name,
+                url: dataUrl
+              });
+              addedCount++;
+              resolve();
+            };
+            reader.readAsDataURL(file);
+          });
         }
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const dataUrl = e.target.result;
-          stickers.push({
-            id: 'sticker_' + Date.now(),
-            name: name,
-            url: dataUrl
-          });
-          localStorage.setItem("little_phone_stickers", JSON.stringify(stickers));
+        if (addedCount > 0) {
+          try {
+            localStorage.setItem("little_phone_stickers", JSON.stringify(stickers));
+          } catch (e) {
+            alert("保存失败，可能是图片太大导致存储空间不足。建议压缩图片后再上传。");
+            // 回滚
+            stickers = JSON.parse(localStorage.getItem("little_phone_stickers") || "[]");
+          }
           renderStickers();
-        };
-        reader.readAsDataURL(file);
+        }
         event.target.value = '';
       }
 
@@ -5136,11 +5260,334 @@ ${typePrompt}
           localStorage.removeItem("little_phone_characters");
           localStorage.removeItem("little_phone_music_config");
           localStorage.removeItem("little_phone_stickers");
+          localStorage.removeItem("little_phone_wallet_balance");
+          localStorage.removeItem("little_phone_family_cards");
 
           alert("数据已清除！页面将刷新。");
           location.reload();
         }
       }
+
+      // 钱包与亲属卡逻辑
+      let walletBalance = 10000.00;
+      let familyCards = {};
+
+      function loadWalletData() {
+          const savedBalance = localStorage.getItem("little_phone_wallet_balance");
+          if (savedBalance !== null) walletBalance = parseFloat(savedBalance);
+          
+          const savedCards = localStorage.getItem("little_phone_family_cards");
+          if (savedCards) familyCards = JSON.parse(savedCards);
+      }
+
+      function saveWalletData() {
+          localStorage.setItem("little_phone_wallet_balance", walletBalance);
+          localStorage.setItem("little_phone_family_cards", JSON.stringify(familyCards));
+      }
+
+      function openWallet() {
+          document.getElementById("wechat-app").classList.remove("active");
+          document.getElementById("wallet-app").classList.add("active");
+          document.getElementById("wallet-balance-display").textContent = `¥ ${walletBalance.toFixed(2)}`;
+          
+          const givenCards = Object.values(familyCards).filter(c => c.from === 'user');
+          if (givenCards.length > 0) {
+              document.getElementById("family-card-status").textContent = `已赠送 ${givenCards.length} 张`;
+          } else {
+              document.getElementById("family-card-status").textContent = "未开通";
+          }
+      }
+
+      function closeWallet() {
+          document.getElementById("wallet-app").classList.remove("active");
+          document.getElementById("wechat-app").classList.add("active");
+      }
+
+      function showFamilyCardModal() {
+          document.getElementById("modal-overlay").style.display = "block";
+          document.getElementById("family-card-modal").style.display = "block";
+          
+          const select = document.getElementById("fc-target-select");
+          select.innerHTML = "";
+          characters.forEach(char => {
+              const option = document.createElement("option");
+              option.value = char.id;
+              option.textContent = char.name;
+              select.appendChild(option);
+          });
+      }
+
+      function hideFamilyCardModal() {
+          document.getElementById("modal-overlay").style.display = "none";
+          document.getElementById("family-card-modal").style.display = "none";
+      }
+
+      function sendFamilyCard() {
+          const targetId = document.getElementById("fc-target-select").value;
+          const limit = parseFloat(document.getElementById("fc-limit-input").value);
+          
+          if (!targetId || isNaN(limit) || limit <= 0) {
+              alert("请输入有效额度");
+              return;
+          }
+          
+          const char = characters.find(c => c.id === targetId);
+          if (!char) return;
+          
+          familyCards[`user_to_${targetId}`] = {
+              from: 'user',
+              to: targetId,
+              limit: limit,
+              used: 0
+          };
+          
+          saveWalletData();
+          hideFamilyCardModal();
+          openWallet();
+          
+          const html = `
+              <div class="chat-fc-msg">
+                  <div class="fc-title"><div class="fc-icon" style="width:16px;height:12px;border-width:1px;"></div> 赠送亲属卡</div>
+                  <div class="fc-limit">¥${limit.toFixed(2)}</div>
+                  <div class="fc-desc">每月额度</div>
+              </div>
+          `;
+          
+          if (!char.history) char.history = [];
+          const msgId = "msg_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+          char.history.push({
+              id: msgId,
+              role: "user",
+              content: html,
+              isHtml: true,
+              isRecall: false
+          });
+          saveCharacters();
+          
+          alert(`已成功赠送亲属卡给 ${char.name}`);
+      }
+
+      function charGiveFamilyCard(charId, limit) {
+          if (!charId || charId === 'ai') {
+              alert("请选择一个真实角色");
+              return;
+          }
+          const char = characters.find(c => c.id === charId);
+          if (!char) return;
+          
+          familyCards[`${charId}_to_user`] = {
+              from: charId,
+              to: 'user',
+              limit: limit,
+              used: 0
+          };
+          saveWalletData();
+          
+          const html = `
+              <div class="chat-fc-msg">
+                  <div class="fc-title"><div class="fc-icon" style="width:16px;height:12px;border-width:1px;"></div> 赠送亲属卡</div>
+                  <div class="fc-limit">¥${limit.toFixed(2)}</div>
+                  <div class="fc-desc">每月额度</div>
+              </div>
+          `;
+          
+          if (!char.history) char.history = [];
+          const msgId = "msg_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+          char.history.push({
+              id: msgId,
+              role: "assistant",
+              content: html,
+              isHtml: true,
+              isRecall: false
+          });
+          saveCharacters();
+          
+          if (currentChatChar && currentChatChar.id === charId) {
+              appendMessage("received", html, true, msgId);
+          }
+          document.getElementById("chat-more-panel").classList.remove("active");
+      }
+
+      const shopProducts = [
+          { id: 1, name: "高级口红", price: 299, icon: "💄" },
+          { id: 2, name: "名牌香水", price: 599, icon: "🧴" },
+          { id: 3, name: "时尚包包", price: 4999, icon: "👜" },
+          { id: 4, name: "游戏机", price: 2999, icon: "🎮" },
+          { id: 5, name: "智能手表", price: 1999, icon: "⌚" },
+          { id: 6, name: "蓝牙耳机", price: 899, icon: "🎧" }
+      ];
+
+      const foodProducts = [
+          { id: 1, name: "豪华双人套餐", price: 128, icon: "🍱" },
+          { id: 2, name: "招牌奶茶", price: 28, icon: "🧋" },
+          { id: 3, name: "炸鸡全家桶", price: 88, icon: "🍗" },
+          { id: 4, name: "海鲜披萨", price: 98, icon: "🍕" },
+          { id: 5, name: "日式寿司", price: 68, icon: "🍣" },
+          { id: 6, name: "精致甜点", price: 45, icon: "🍰" }
+      ];
+
+      function renderProducts(containerId, products) {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          container.innerHTML = "";
+          
+          products.forEach(p => {
+              const card = document.createElement("div");
+              card.className = "product-card";
+              card.innerHTML = `
+                  <div class="product-img">${p.icon}</div>
+                  <div class="product-info">
+                      <div class="product-name">${p.name}</div>
+                      <div class="product-price">¥${p.price}</div>
+                      <button class="buy-btn" onclick="buyProduct('${p.name}', ${p.price})">购买</button>
+                  </div>
+              `;
+              container.appendChild(card);
+          });
+      }
+
+      function buyProduct(name, price) {
+          const availableCards = Object.values(familyCards).filter(c => c.to === 'user' && (c.limit - c.used) >= price);
+          
+          if (availableCards.length > 0) {
+              let options = "请选择支付方式：\n0: 余额 (¥" + walletBalance.toFixed(2) + ")\n";
+              availableCards.forEach((c, index) => {
+                  const char = characters.find(ch => ch.id === c.from);
+                  options += `${index + 1}: ${char ? char.name : '未知'}的亲属卡 (剩余 ¥${(c.limit - c.used).toFixed(2)})\n`;
+              });
+              
+              const choice = prompt(options, "0");
+              if (choice === null) return;
+              
+              const choiceIdx = parseInt(choice);
+              if (choiceIdx === 0) {
+                  processPayment(name, price, null);
+              } else if (choiceIdx > 0 && choiceIdx <= availableCards.length) {
+                  processPayment(name, price, availableCards[choiceIdx - 1]);
+              } else {
+                  alert("无效的选择");
+              }
+          } else {
+              processPayment(name, price, null);
+          }
+      }
+
+      function processPayment(name, price, familyCard) {
+          if (familyCard) {
+              familyCard.used += price;
+              saveWalletData();
+              alert(`购买成功！使用了亲属卡支付 ¥${price}`);
+              triggerCharAskAboutPurchase(familyCard.from, name, price);
+          } else {
+              if (walletBalance >= price) {
+                  walletBalance -= price;
+                  saveWalletData();
+                  alert(`购买成功！余额支付 ¥${price}`);
+              } else {
+                  alert("余额不足！");
+              }
+          }
+      }
+
+      async function triggerCharAskAboutPurchase(charId, itemName, price) {
+          const char = characters.find(c => c.id === charId);
+          if (!char || !apiConfig.key) return;
+          
+          try {
+              const prompt = `
+你现在扮演角色：${char.name}。
+设定：${char.prompt}
+
+刚才，用户（我）使用了你赠送的亲属卡，消费了 ${price} 元，购买了“${itemName}”。
+请你根据你的性格，主动发一条微信消息询问或评论这次消费。
+要求：
+1. 符合角色性格（比如霸道、温柔、傲娇、关心等）。
+2. 简短口语化，像真实的微信聊天。
+3. 不要包含任何解释，直接输出消息内容。
+`;
+
+              const response = await fetch(`${apiConfig.baseUrl}/chat/completions`, {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${apiConfig.key}`
+                  },
+                  body: JSON.stringify({
+                      model: apiConfig.model,
+                      messages: [{ role: "user", content: prompt }]
+                  })
+              });
+
+              const data = await response.json();
+              if (data.choices && data.choices.length > 0) {
+                  const reply = data.choices[0].message.content.trim();
+                  
+                  if (!char.history) char.history = [];
+                  const msgId = "msg_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+                  char.history.push({
+                      id: msgId,
+                      role: "assistant",
+                      content: reply,
+                      isHtml: false,
+                      isRecall: false
+                  });
+                  saveCharacters();
+                  
+                  if (currentChatChar && currentChatChar.id === charId && document.getElementById("chat-interface").classList.contains("active")) {
+                      appendMessage("received", reply, false, msgId);
+                  } else {
+                      showConsumePopup(char.name, reply);
+                  }
+              }
+          } catch (e) {
+              console.error("Failed to generate char response", e);
+          }
+      }
+
+      function showConsumePopup(title, desc) {
+          const popup = document.getElementById("consume-popup");
+          document.getElementById("consume-popup-title").textContent = title;
+          document.getElementById("consume-popup-desc").textContent = desc;
+          
+          popup.classList.remove("hidden");
+          setTimeout(() => {
+              popup.classList.add("hidden");
+          }, 3000);
+      }
+
+      function simulateCharConsumption() {
+          if (!currentChatChar || currentChatChar.id === 'ai') {
+              alert("请选择一个真实角色");
+              return;
+          }
+          
+          const cardKey = `user_to_${currentChatChar.id}`;
+          const card = familyCards[cardKey];
+          
+          if (!card) {
+              alert("你还没有赠送亲属卡给该角色");
+              return;
+          }
+          
+          const items = ["奶茶", "咖啡", "电影票", "衣服", "零食", "打车"];
+          const item = items[Math.floor(Math.random() * items.length)];
+          const price = Math.floor(Math.random() * 100) + 20;
+          
+          if (card.limit - card.used >= price) {
+              card.used += price;
+              saveWalletData();
+              
+              showConsumePopup("亲属卡消费", `${currentChatChar.name} 消费了 ¥${price} (${item})`);
+          } else {
+              alert("亲属卡额度不足，对方消费失败");
+          }
+          document.getElementById("chat-more-panel").classList.remove("active");
+      }
+
+      // Initialize wallet data
+      document.addEventListener("DOMContentLoaded", () => {
+          loadWalletData();
+      });
     </script>
   </body>
 </html>
