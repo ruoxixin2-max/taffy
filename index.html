@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V4.1 · 小红书</title>
+<title>咖喱小手机 V4.2 · 双屏桌面</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -879,6 +879,101 @@ body.phoneActive .page{
 .xhsEditor{display:grid;gap:11px}.xhsImagePreview{display:none;margin-top:8px}.xhsImagePreview.show{display:block}.xhsImagePreview img{max-width:100%;max-height:240px;border-radius:12px;object-fit:contain;background:#f5f5f3}
 .xhsGeneratedBadge{font-size:7px;color:#a37f7d;margin-left:5px}
 
+
+/* ===== V4.2 双屏桌面 ===== */
+.curryHome{
+  padding:0!important;
+  overflow:hidden!important;
+}
+.phoneMode .curryHome,
+.fullscreenPhone .curryHome,
+#root.immersive .curryHome{
+  padding:0!important;
+}
+.curryHomePager{
+  position:absolute!important;
+  inset:0!important;
+  z-index:1;
+  display:flex;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  touch-action:auto!important;
+}
+.curryHomePager::-webkit-scrollbar{display:none}
+.curryHomeScreen{
+  flex:0 0 100%;
+  width:100%;
+  height:100%;
+  min-width:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  padding:18px 18px 108px;
+  scrollbar-width:none;
+  touch-action:auto!important;
+}
+.curryHomeScreen::-webkit-scrollbar{display:none}
+.curryHomeScreenMain .curryAppGrid{
+  margin-bottom:6px;
+}
+.curryHomeScreenSecond{
+  padding-top:28px;
+}
+.currySecondEyebrow{
+  font-size:7px;
+  letter-spacing:.22em;
+  color:#8c8372;
+  font-weight:800;
+}
+.currySecondTitle{
+  margin:7px 0 24px;
+  font:600 24px/1.15 Georgia,"Songti SC",serif;
+  color:#2d2d2a;
+}
+.curryAppGridPage2{
+  grid-template-columns:repeat(4,1fr)!important;
+  align-content:start;
+}
+.curryHomeDots{
+  position:absolute!important;
+  left:50%;
+  bottom:92px;
+  transform:translateX(-50%);
+  z-index:10;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:999px;
+  background:rgba(244,243,239,.48);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  pointer-events:auto;
+}
+.curryHomeDot{
+  width:5px;
+  height:5px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:rgba(80,78,72,.28);
+}
+.curryHomeDot.active{
+  background:rgba(65,63,58,.82);
+}
+body.phoneActive .curryHomePager,
+body.phoneActive .curryHomeScreen{
+  touch-action:auto!important;
+}
+@media(max-width:360px){
+  .curryHomeScreen{padding-left:14px;padding-right:14px}
+}
+
 </style>
 <style id="customThemeStyle"></style>
 <style id="chatCustomThemeStyle"></style>
@@ -1101,32 +1196,60 @@ body.phoneActive{
 </style>
 </head><body>
 <div id="root"><div class="shell">
-<section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V4.0</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
+<section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V4.2</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
 <section class="os"><div class="status"><span id="statusTime"></span><span>5G　▮</span></div><div class="phoneNotices" id="phoneNotices"></div><div class="screen">
 <section class="page home active curryHome" data-page="home">
-  <div class="curryHomeTop">
-    <div class="curryHomeDate"><div class="date" id="date"></div><div class="clock" id="clock"></div></div>
-    <button class="curryProfile" id="curryProfileBtn" type="button" title="切换 User 面具"><span id="curryProfileAvatar">U</span></button>
+  <div class="curryHomePager" id="curryHomePager">
+
+    <div class="curryHomeScreen curryHomeScreenMain">
+      <div class="curryHomeTop">
+        <div class="curryHomeDate"><div class="date" id="date"></div><div class="clock" id="clock"></div></div>
+        <button class="curryProfile" id="curryProfileBtn" type="button" title="切换 User 面具"><span id="curryProfileAvatar">U</span></button>
+      </div>
+
+      <div class="curryGreeting">
+        <div class="curryGreetingEyebrow">CURRY PHONE</div>
+        <div class="curryGreetingTitle" id="curryGreetingTitle">下午好。</div>
+        <div class="curryGreetingSub" id="curryGreetingSub">今天也和喜欢的人说说话吧。</div>
+      </div>
+
+      <div class="curryRecentHead"><span>最近聊天</span><button type="button" data-open="messages">全部</button></div>
+      <div class="curryRecent" id="curryRecent"></div>
+
+      <div class="grid curryAppGrid curryAppGridPage1">
+        <button class="app" data-open="messages" data-app-key="messages"><span class="appBadge" id="messagesBadge"></span><div class="icon" data-icon-slot="messages">M</div><div class="label">消息</div></button>
+        <button class="app" data-open="contacts" data-app-key="contacts"><div class="icon" data-icon-slot="contacts">C</div><div class="label">联系人</div></button>
+        <button class="app" data-open="moments" data-app-key="moments"><span class="appBadge" id="momentsBadge"></span><div class="icon" data-icon-slot="moments">D</div><div class="label">朋友圈</div></button>
+        <button class="app" data-open="forum" data-app-key="forum"><div class="icon" data-icon-slot="forum">F</div><div class="label">论坛</div></button>
+
+        <button class="app" data-open="xhs" data-app-key="xhs"><div class="icon" data-icon-slot="xhs">X</div><div class="label">小红书</div></button>
+        <button class="app" data-open="mcp" data-app-key="mcp"><div class="icon" data-icon-slot="mcp">P</div><div class="label">MCP</div></button>
+        <button class="app" data-open="worldbook" data-app-key="worldbook"><div class="icon" data-icon-slot="worldbook">L</div><div class="label">世界书</div></button>
+        <button class="app" data-open="masks" data-app-key="masks"><div class="icon" data-icon-slot="masks">U</div><div class="label">User面具</div></button>
+
+        <button class="app" data-open="stickers" data-app-key="stickers"><div class="icon" data-icon-slot="stickers">E</div><div class="label">表情包</div></button>
+        <button class="app" data-open="autonomy" data-app-key="autonomy"><div class="icon" data-icon-slot="autonomy">A</div><div class="label">自主</div></button>
+        <button class="app" data-open="chatBeauty" data-app-key="chatBeauty"><div class="icon" data-icon-slot="chatBeauty">T</div><div class="label">聊天美化</div></button>
+        <button class="app" data-open="beautify" data-app-key="beautify"><div class="icon" data-icon-slot="beautify">B</div><div class="label">桌面美化</div></button>
+      </div>
+    </div>
+
+    <div class="curryHomeScreen curryHomeScreenSecond">
+      <div class="currySecondEyebrow">CURRY PHONE</div>
+      <div class="currySecondTitle">更多</div>
+      <div class="grid curryAppGrid curryAppGridPage2">
+        <button class="app" data-open="notes" data-app-key="notes"><div class="icon" data-icon-slot="notes">N</div><div class="label">备忘录</div></button>
+        <button class="app" data-open="settings" data-app-key="settings"><div class="icon" data-icon-slot="settings">S</div><div class="label">设置</div></button>
+      </div>
+    </div>
+
   </div>
-  <div class="curryGreeting"><div class="curryGreetingEyebrow">CURRY PHONE</div><div class="curryGreetingTitle" id="curryGreetingTitle">下午好。</div><div class="curryGreetingSub" id="curryGreetingSub">今天也和喜欢的人说说话吧。</div></div>
-  <div class="curryRecentHead"><span>最近聊天</span><button type="button" data-open="messages">全部</button></div>
-  <div class="curryRecent" id="curryRecent"></div>
-  <div class="grid curryAppGrid">
-    <button class="app" data-open="messages" data-app-key="messages"><span class="appBadge" id="messagesBadge"></span><div class="icon" data-icon-slot="messages">M</div><div class="label">消息</div></button>
-    <button class="app" data-open="contacts" data-app-key="contacts"><div class="icon" data-icon-slot="contacts">C</div><div class="label">联系人</div></button>
-    <button class="app" data-open="moments" data-app-key="moments"><span class="appBadge" id="momentsBadge"></span><div class="icon" data-icon-slot="moments">D</div><div class="label">朋友圈</div></button>
-    <button class="app" data-open="forum" data-app-key="forum"><div class="icon" data-icon-slot="forum">F</div><div class="label">论坛</div></button>
-    <button class="app" data-open="xhs" data-app-key="xhs"><div class="icon" data-icon-slot="xhs">X</div><div class="label">小红书</div></button>
-    <button class="app" data-open="mcp" data-app-key="mcp"><div class="icon" data-icon-slot="mcp">P</div><div class="label">MCP</div></button>
-    <button class="app" data-open="worldbook" data-app-key="worldbook"><div class="icon" data-icon-slot="worldbook">L</div><div class="label">世界书</div></button>
-    <button class="app" data-open="masks" data-app-key="masks"><div class="icon" data-icon-slot="masks">U</div><div class="label">User面具</div></button>
-    <button class="app" data-open="stickers" data-app-key="stickers"><div class="icon" data-icon-slot="stickers">E</div><div class="label">表情包</div></button>
-    <button class="app" data-open="autonomy" data-app-key="autonomy"><div class="icon" data-icon-slot="autonomy">A</div><div class="label">自主</div></button>
-    <button class="app" data-open="chatBeauty" data-app-key="chatBeauty"><div class="icon" data-icon-slot="chatBeauty">T</div><div class="label">聊天美化</div></button>
-    <button class="app" data-open="beautify" data-app-key="beautify"><div class="icon" data-icon-slot="beautify">B</div><div class="label">桌面美化</div></button>
-    <button class="app" data-open="notes" data-app-key="notes"><div class="icon" data-icon-slot="notes">N</div><div class="label">备忘录</div></button>
-    <button class="app" data-open="settings" data-app-key="settings"><div class="icon" data-icon-slot="settings">S</div><div class="label">设置</div></button>
+
+  <div class="curryHomeDots" id="curryHomeDots" aria-label="桌面分页">
+    <button type="button" class="curryHomeDot active" data-home-screen="0" aria-label="第一页"></button>
+    <button type="button" class="curryHomeDot" data-home-screen="1" aria-label="第二页"></button>
   </div>
+
   <div class="curryDock">
     <button class="app" data-open="messages" data-app-key="messagesDock"><div class="icon">M</div></button>
     <button class="app" data-open="contacts" data-app-key="contactsDock"><div class="icon">♡</div></button>
@@ -1508,7 +1631,7 @@ window.addEventListener("scroll",hardRecenterPhone,{passive:true});
 if(window.visualViewport){
   visualViewport.addEventListener("scroll",hardRecenterPhone,{passive:true});
 }
-function page(n){$$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===n));if(n==="home")setTimeout(renderHome39,0)}
+function page(n){$$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===n));if(n==="home")setTimeout(()=>{renderHome39();updateCurryHomeDots()},0)}
 function clock(){let d=new Date(),t=now();$("#statusTime").textContent=$("#clock").textContent=t;$("#date").textContent=new Intl.DateTimeFormat("zh-CN",{month:"long",day:"numeric",weekday:"long"}).format(d)}clock();setInterval(clock,30000);setTimeout(updateMessageBadge,0);
 setTimeout(()=>{
   if($("#summaryAutoEnabled"))$("#summaryAutoEnabled").checked=!!summarySettings.auto;
@@ -1577,6 +1700,38 @@ const script=src=>new Promise((r,j)=>{let s=document.createElement("script");s.s
 function activeMask(){return masks.find(m=>m.id===activeMaskId)||masks[0]}
 function convoKey(contactId,maskId=activeMaskId){return contactId+"::"+maskId}
 function convoPreview(l){if(!l)return"尚未开始对话";if(l.type==="sticker")return`[表情] ${l.mood||""}`.trim();if(l.type==="image")return"[图片]";if(l.type==="voice")return`[语音] ${l.transcript||""}`.trim();if(l.type==="transfer")return`[转账] ¥${Number(l.amount||0).toFixed(2)} ${l.note||""}`.trim();return l.content||"尚未开始对话"}
+
+/* ===== V4.2 双屏桌面分页 ===== */
+function curryHomeScreenIndex(){
+  let pager=$("#curryHomePager");
+  if(!pager||!pager.clientWidth)return 0;
+  return Math.max(0,Math.min(1,Math.round(pager.scrollLeft/pager.clientWidth)));
+}
+function updateCurryHomeDots(){
+  let i=curryHomeScreenIndex();
+  $$(".curryHomeDot").forEach((d,n)=>d.classList.toggle("active",n===i));
+}
+function goCurryHomeScreen(i,behavior="smooth"){
+  let pager=$("#curryHomePager");
+  if(!pager)return;
+  i=Math.max(0,Math.min(1,Number(i)||0));
+  pager.scrollTo({left:pager.clientWidth*i,top:0,behavior});
+  setTimeout(updateCurryHomeDots,behavior==="smooth"?260:0);
+}
+setTimeout(()=>{
+  let pager=$("#curryHomePager");
+  if(pager){
+    let ticking=false;
+    pager.addEventListener("scroll",()=>{
+      if(ticking)return;
+      ticking=true;
+      requestAnimationFrame(()=>{updateCurryHomeDots();ticking=false});
+    },{passive:true});
+  }
+  $$(".curryHomeDot").forEach(d=>d.onclick=()=>goCurryHomeScreen(Number(d.dataset.homeScreen)));
+  updateCurryHomeDots();
+},0);
+
 function renderHome39(){
  let host=$("#curryRecent"),mask=activeMask?.(),h=new Date().getHours();
  if($("#curryGreetingTitle"))$("#curryGreetingTitle").textContent=(h<6?"夜深了。":h<11?"早上好。":h<14?"中午好。":h<18?"下午好。":"晚上好。");
