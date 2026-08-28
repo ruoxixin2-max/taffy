@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Web Phone V3.7 · Mobile Layout Lock</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>咖喱小手机 V3.9.3 · 禁用缩放防漂移</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
 #root{min-height:100vh;display:flex;justify-content:center;align-items:flex-start}.shell{width:100%;min-height:100vh;position:relative;overflow:hidden;background:var(--paper);transition:width .5s,min-height .5s,border-radius .5s,box-shadow .5s}
 .web{min-height:100vh;background:linear-gradient(180deg,#fbfbfa,#eeeeeb);transition:.3s}nav{height:66px;padding:0 6vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.logo{font-size:12px;letter-spacing:.18em;font-weight:700}.navcopy{font-size:11px;color:var(--muted)}
-.hero{min-height:calc(100vh - 66px);display:grid;place-items:center;padding:50px 8vw}.heroIn{width:min(920px,100%);display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center}.kicker{font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:16px}.hero h1{font:400 clamp(42px,7vw,78px)/1.03 Georgia,"Songti SC",serif;margin:0 0 20px;letter-spacing:-.04em}.hero p{color:var(--muted);line-height:1.9;font-size:14px;max-width:520px}.pill{border:0;border-radius:999px;padding:13px 21px;background:var(--accent);color:#fff;margin-top:18px}.art{height:340px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,#fff,#e8eae6);box-shadow:0 22px 50px #00000012;position:relative}.art:after{content:"WEB / PHONE";position:absolute;left:28px;bottom:28px;font:28px Georgia,serif;color:#4a4e49}
+.hero{min-height:calc(100vh - 66px);display:grid;place-items:center;padding:50px 8vw}.heroIn{width:min(920px,100%);display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center}.kicker{font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:16px}.hero h1{font:400 clamp(42px,7vw,78px)/1.03 Georgia,"Songti SC",serif;margin:0 0 20px;letter-spacing:-.04em}.hero p{color:var(--muted);line-height:1.9;font-size:14px;max-width:520px}.pill{border:0;border-radius:999px;padding:13px 21px;background:var(--accent);color:#fff;margin-top:18px}.art{height:340px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,#fff,#e8eae6);box-shadow:0 22px 50px #00000012;position:relative}.art:after{content:"咖喱 / 小手机";position:absolute;left:28px;bottom:28px;font:28px Georgia,serif;color:#4a4e49}
 .phoneMode{padding:28px 8px}.phoneMode .shell{width:min(var(--phone),calc(100vw - 16px));min-height:780px;border-radius:var(--radius);box-shadow:0 24px 60px #0000002b}.phoneMode .web{opacity:0;pointer-events:none;position:absolute;inset:0}.os{display:none;min-height:780px;background:linear-gradient(160deg,#f8f9f6,#e2e5df);border-radius:inherit;overflow:hidden;position:relative}.phoneMode .os{display:block}.status{height:45px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:650}.screen{height:711px;position:relative;overflow:hidden}.page{position:absolute;inset:0;opacity:0;transform:translateX(18px);pointer-events:none;transition:.22s;background:#f6f7f4}.page.active{opacity:1;transform:none;pointer-events:auto}
 .home{padding:24px 21px;background:transparent}.date{font-size:11px;color:var(--muted)}.clock{font:400 50px Georgia,serif;margin:4px 0 30px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 12px}.app{border:0;background:none;padding:0;text-align:center}.icon{width:55px;height:55px;margin:auto auto 7px;border:1px solid #ffffff99;border-radius:17px;background:#ffffffa8;display:grid;place-items:center;box-shadow:0 5px 12px #0000000c;font:18px Georgia,serif}.label{font-size:9px}
 .head{height:54px;display:grid;grid-template-columns:55px 1fr 55px;align-items:center;border-bottom:1px solid var(--line);background:#fbfbf9}.headTitle{text-align:center;font-size:12px;font-weight:700}.back,.headAction{border:0;background:none;height:54px;font-size:11px}.body{height:657px;overflow:auto;padding:13px}.row{display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:center;padding:12px 5px;border:0;border-bottom:1px solid var(--line);background:none;width:100%;text-align:left}.avatar{width:42px;height:42px;border-radius:50%;background:#e0e3dd;border:1px solid #c8cbc5;display:grid;place-items:center;overflow:hidden;font:15px Georgia,serif}.avatar img,.bigAvatar img{width:100%;height:100%;object-fit:cover}.name{font-size:12px;font-weight:700}.sub{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tiny{font-size:8px;color:#999}.empty{text-align:center;color:var(--muted);font-size:10px;line-height:1.8;padding:75px 20px}.fab{position:absolute;right:18px;bottom:18px;width:48px;height:48px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:22px;box-shadow:0 8px 22px #0002}
@@ -208,6 +208,8 @@
 .mcpTop{display:flex;align-items:center;justify-content:space-between;gap:8px}.mcpName{font-size:11px;font-weight:700}.mcpMeta{font-size:8px;color:var(--muted);margin-top:4px;word-break:break-all}
 .toolChip{display:inline-block;padding:5px 7px;margin:4px 4px 0 0;border:1px solid var(--line);border-radius:999px;font-size:8px;background:#f5f6f3}
 .mcpToolCall{border:1px dashed #bfc4bd;border-radius:10px;padding:8px;margin:8px 0;font-size:9px;background:#f7f8f5}
+
+.mcpPresetGrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px}.mcpPreset{border:1px solid var(--line);border-radius:14px;background:#fff;padding:11px}.mcpPresetTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.mcpPresetName{font-size:11px;font-weight:800}.mcpPresetDesc{font-size:8px;line-height:1.55;color:var(--muted);margin-top:4px}.mcpPreset .actions{margin-top:9px}.mcpPresetBadge{font-size:7px;padding:3px 6px;border-radius:999px;background:#f0f2ee;color:#687068;white-space:nowrap}.mcpPresetNote{font-size:8px;color:var(--muted);line-height:1.55;margin:8px 0 2px}.mcpPresetToken{display:none;margin-top:9px}.mcpPresetToken.show{display:block}.mcpPresetToken .input{font-size:10px}
 
 
 
@@ -589,26 +591,389 @@
 .listenAvatarUser{transform:translateY(5px)}
 .listenAvatarChar{transform:translateY(5px)}
 
+
+/* ===== V3.9 咖喱小手机 · 新主界面 ===== */
+.curryHome{padding:18px 18px 104px!important;overflow:auto!important;background-image:linear-gradient(var(--home-overlay),var(--home-overlay)),var(--home-wallpaper),linear-gradient(155deg,#fffaf0 0%,#f4f1e9 48%,#ebe7dc 100%)!important;background-size:cover!important;background-position:center!important;scrollbar-width:none}
+.curryHome::-webkit-scrollbar{display:none}.curryHome::before{background:rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity)))!important}
+.curryHomeTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.curryHomeDate .date{font-size:10px;color:rgba(55,54,49,.54);letter-spacing:.04em}.curryHomeDate .clock{font:500 42px/1 Georgia,"Times New Roman",serif;letter-spacing:-.045em;margin:4px 0 0;color:#24241f}
+.curryProfile{width:48px;height:48px;border:1px solid rgba(255,255,255,.76);border-radius:50%;padding:0;background:rgba(255,255,255,.62);box-shadow:0 8px 24px #5a4a2515;overflow:hidden;display:grid;place-items:center;color:#665941;font:600 15px Georgia,serif;backdrop-filter:blur(16px)}.curryProfile img{width:100%;height:100%;object-fit:cover;display:block}
+.curryGreeting{margin:20px 0 18px}.curryGreetingEyebrow{font-size:7px;letter-spacing:.22em;color:#aa7a2e;font-weight:800}.curryGreetingTitle{margin-top:6px;font:600 24px/1.15 Georgia,"Songti SC",serif;color:#25241f}.curryGreetingSub{font-size:9px;color:#7e7b72;margin-top:7px}
+.curryRecentHead{display:flex;align-items:center;justify-content:space-between;margin:0 1px 8px;font-size:10px;font-weight:750}.curryRecentHead button{border:0;background:none;color:#9a7b49;font-size:8px;padding:4px}
+.curryRecent{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:20px;min-height:88px}.curryRecentCard{min-width:0;border:1px solid rgba(255,255,255,.72);border-radius:18px;background:rgba(255,255,255,.58);backdrop-filter:blur(18px);padding:10px 8px;text-align:left;box-shadow:0 7px 22px rgba(74,59,25,.07)}.curryRecentAvatar{width:34px;height:34px;border-radius:50%;overflow:hidden;background:#e8dfce;display:grid;place-items:center;font:600 12px Georgia,serif;margin-bottom:8px}.curryRecentAvatar img{width:100%;height:100%;object-fit:cover}.curryRecentName{font-size:9px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.curryRecentText{font-size:7px;color:#858179;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.curryRecentEmpty{grid-column:1/-1;border:1px dashed rgba(115,104,80,.23);border-radius:18px;display:grid;place-items:center;color:#aaa392;font-size:8px;min-height:82px;background:rgba(255,255,255,.25)}
+.curryAppGrid{grid-template-columns:repeat(4,1fr)!important;gap:17px 11px!important}.curryAppGrid .icon{width:54px;height:54px;border-radius:17px;border:1px solid rgba(255,255,255,.72);box-shadow:0 7px 18px rgba(53,47,32,.09);color:#fff;font:700 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-shadow:0 1px 8px #0001}.curryAppGrid .label{font-size:8px;color:var(--icon-label);margin-top:1px}
+.curryAppGrid [data-app-key="messages"] .icon{background:linear-gradient(145deg,#ffc443,#e49a22)}.curryAppGrid [data-app-key="contacts"] .icon{background:linear-gradient(145deg,#e89080,#be6557)}.curryAppGrid [data-app-key="moments"] .icon{background:linear-gradient(145deg,#8db88a,#567e5e)}.curryAppGrid [data-app-key="mcp"] .icon{background:linear-gradient(145deg,#777a9e,#4d506f)}.curryAppGrid [data-app-key="worldbook"] .icon{background:linear-gradient(145deg,#bea276,#8c714b)}.curryAppGrid [data-app-key="masks"] .icon{background:linear-gradient(145deg,#88aeb4,#557b82)}.curryAppGrid [data-app-key="stickers"] .icon{background:linear-gradient(145deg,#d5a4bf,#a86e8e)}.curryAppGrid [data-app-key="autonomy"] .icon{background:linear-gradient(145deg,#899bc4,#586c9b)}.curryAppGrid [data-app-key="chatBeauty"] .icon{background:linear-gradient(145deg,#9d91b9,#716487)}.curryAppGrid [data-app-key="beautify"] .icon{background:linear-gradient(145deg,#c9aa72,#99733f)}.curryAppGrid [data-app-key="notes"] .icon{background:linear-gradient(145deg,#93ad88,#657e5d)}.curryAppGrid [data-app-key="settings"] .icon{background:linear-gradient(145deg,#92958f,#666963)}
+.curryDock{position:absolute;left:18px;right:18px;bottom:14px;height:72px;border:1px solid rgba(255,255,255,.76);border-radius:24px;background:rgba(255,255,255,.62);backdrop-filter:blur(22px);box-shadow:0 12px 32px rgba(70,58,32,.12);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:8px 12px;z-index:9}.curryDock .app{display:grid;place-items:center}.curryDock .icon{width:48px;height:48px;border:0;border-radius:15px;margin:0;background:rgba(255,255,255,.74);font:600 16px/1 -apple-system,sans-serif;color:#544d40;box-shadow:0 4px 12px #0000000a}.curryDock .app:first-child .icon{background:#2f312d;color:#fff}.curryDock .app:nth-child(2) .icon{background:#f5e5c2;color:#a46c18}
+.phoneMode .curryHome,.fullscreenPhone .curryHome,#root.immersive .curryHome{padding-bottom:104px!important}
+@media(max-width:360px){.curryHome{padding-left:14px!important;padding-right:14px!important}.curryRecent{gap:6px}.curryAppGrid{gap:14px 7px!important}.curryAppGrid .icon{width:50px;height:50px}.curryDock{left:14px;right:14px}}
+
+/* ===== V3.9.1 主界面 · 低饱和 / 无 Emoji ===== */
+.curryHome{
+  background-image:
+    linear-gradient(var(--home-overlay),var(--home-overlay)),
+    var(--home-wallpaper),
+    linear-gradient(155deg,#f5f3ee 0%,#eeece7 52%,#e8e6e1 100%) !important;
+}
+.curryProfile{
+  background:rgba(245,244,240,.72) !important;
+  border-color:rgba(255,255,255,.64) !important;
+  color:#5f5b53 !important;
+  box-shadow:0 7px 20px rgba(54,50,42,.07) !important;
+}
+.curryGreetingEyebrow{color:#8c8372 !important}
+.curryGreetingTitle{color:#2d2d2a !important}
+.curryGreetingSub{color:#85827b !important}
+.curryRecentHead button{color:#77746d !important}
+.curryRecentCard{
+  background:rgba(246,245,242,.66) !important;
+  border-color:rgba(255,255,255,.62) !important;
+  box-shadow:0 6px 18px rgba(45,43,38,.055) !important;
+}
+.curryRecentAvatar{background:#ddd9d0 !important}
+.curryRecentEmpty{
+  background:rgba(246,245,242,.35) !important;
+  border-color:rgba(92,89,81,.18) !important;
+  color:#9a968d !important;
+}
+
+/* 所有 App 图标统一降低饱和度 */
+.curryAppGrid .icon{
+  color:rgba(255,255,255,.92) !important;
+  text-shadow:none !important;
+  border-color:rgba(255,255,255,.45) !important;
+  box-shadow:0 6px 16px rgba(43,42,38,.07) !important;
+}
+.curryAppGrid [data-app-key="messages"] .icon{background:linear-gradient(145deg,#aaa28e,#8f8776) !important}
+.curryAppGrid [data-app-key="contacts"] .icon{background:linear-gradient(145deg,#aa9691,#8e7b77) !important}
+.curryAppGrid [data-app-key="moments"] .icon{background:linear-gradient(145deg,#909e8d,#748172) !important}
+.curryAppGrid [data-app-key="mcp"] .icon{background:linear-gradient(145deg,#8e8f9a,#747580) !important}
+.curryAppGrid [data-app-key="worldbook"] .icon{background:linear-gradient(145deg,#a49b89,#887f70) !important}
+.curryAppGrid [data-app-key="masks"] .icon{background:linear-gradient(145deg,#8d9c9d,#748385) !important}
+.curryAppGrid [data-app-key="stickers"] .icon{background:linear-gradient(145deg,#a99a9f,#8e7f84) !important}
+.curryAppGrid [data-app-key="autonomy"] .icon{background:linear-gradient(145deg,#8f98a8,#747d8d) !important}
+.curryAppGrid [data-app-key="chatBeauty"] .icon{background:linear-gradient(145deg,#99939f,#7d7784) !important}
+.curryAppGrid [data-app-key="beautify"] .icon{background:linear-gradient(145deg,#aaa08c,#8c826f) !important}
+.curryAppGrid [data-app-key="notes"] .icon{background:linear-gradient(145deg,#939d8f,#778274) !important}
+.curryAppGrid [data-app-key="settings"] .icon{background:linear-gradient(145deg,#969793,#797a77) !important}
+
+.curryDock{
+  background:rgba(244,243,239,.72) !important;
+  border-color:rgba(255,255,255,.62) !important;
+  box-shadow:0 10px 28px rgba(48,46,40,.08) !important;
+}
+.curryDock .icon{
+  background:#e5e3dd !important;
+  color:#575650 !important;
+  text-shadow:none !important;
+  box-shadow:none !important;
+}
+.curryDock .app:first-child .icon{
+  background:#5e605b !important;
+  color:#f6f5f1 !important;
+}
+.curryDock .app:nth-child(2) .icon{
+  background:#d9d4c9 !important;
+  color:#666158 !important;
+}
+
+/* ===== V3.9.3 Pinch Zoom / Drift Lock ===== */
+html,body{
+  width:100%;
+  min-width:100%;
+  max-width:100%;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+/* Phone shell itself must never participate in pinch/pan viewport transforms. */
+body.phoneActive,
+body.phoneActive #root,
+body.phoneActive .shell,
+body.phoneActive .os,
+body.phoneActive .screen{
+  touch-action:none!important;
+  overscroll-behavior:none!important;
+}
+
+/* Only actual scroll regions may vertically pan. No pinch zoom. */
+body.phoneActive .body,
+body.phoneActive .chatBody,
+body.phoneActive .stickerPicker,
+body.phoneActive .mediaPicker,
+body.phoneActive textarea,
+body.phoneActive input,
+body.phoneActive select{
+  touch-action:pan-y!important;
+}
+
+/* Controls should react to taps without double-tap zoom. */
+body.phoneActive button,
+body.phoneActive .app,
+body.phoneActive .row,
+body.phoneActive .choice,
+body.phoneActive .fileBtn,
+body.phoneActive .backupFileBtn{
+  touch-action:manipulation!important;
+}
+
+/* Prevent accidental horizontal drift in every page. */
+body.phoneActive .page{
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:hidden!important;
+}
+
 </style>
 <style id="customThemeStyle"></style>
-<style id="chatCustomThemeStyle"></style>\n<style id="layoutLockStyle">\n/* ===== V3.7 Mobile Layout Lock =====\n   This style intentionally loads AFTER user chat CSS.\n   It protects geometry only; colors, bubbles, backgrounds and decorative CSS remain customizable. */\n:root{\n  --app-height:100dvh;\n  --phone-safe-top:env(safe-area-inset-top,0px);\n  --phone-safe-bottom:env(safe-area-inset-bottom,0px);\n}\n\nhtml,body{max-width:100%;overflow-x:hidden}\nbody.phoneActive{\n  position:fixed!important;\n  inset:0!important;\n  width:100%!important;\n  height:var(--app-height)!important;\n  overflow:hidden!important;\n  overscroll-behavior:none!important;\n}\n\n/* Keep the phone itself pinned to one viewport instead of allowing the document to scroll around it. */\n#root.phoneMode,\n#root.immersive,\n.fullscreenPhone #root{\n  position:fixed!important;\n  inset:0!important;\n  width:100vw!important;\n  height:var(--app-height)!important;\n  min-height:0!important;\n  max-height:var(--app-height)!important;\n  padding:0!important;\n  margin:0!important;\n  overflow:hidden!important;\n  align-items:stretch!important;\n}\n\n#root.phoneMode .shell,\n#root.immersive .shell,\n.fullscreenPhone #root .shell{\n  width:100%!important;\n  height:100%!important;\n  min-height:0!important;\n  max-height:100%!important;\n  margin:0!important;\n  border-radius:0!important;\n  box-shadow:none!important;\n  overflow:hidden!important;\n}\n\n#root.phoneMode .os,\n#root.immersive .os,\n.fullscreenPhone #root .os{\n  display:flex!important;\n  flex-direction:column!important;\n  width:100%!important;\n  height:100%!important;\n  min-height:0!important;\n  max-height:100%!important;\n  border-radius:0!important;\n  overflow:hidden!important;\n}\n\n#root.phoneMode .status,\n#root.immersive .status,\n.fullscreenPhone #root .status{\n  flex:0 0 calc(45px + var(--phone-safe-top))!important;\n  height:calc(45px + var(--phone-safe-top))!important;\n  min-height:calc(45px + var(--phone-safe-top))!important;\n  padding-top:var(--phone-safe-top)!important;\n  box-sizing:border-box!important;\n}\n\n#root.phoneMode .screen,\n#root.immersive .screen,\n.fullscreenPhone #root .screen{\n  position:relative!important;\n  flex:1 1 auto!important;\n  width:100%!important;\n  height:auto!important;\n  min-height:0!important;\n  max-height:none!important;\n  overflow:hidden!important;\n}\n\n#root.phoneMode .page,\n#root.immersive .page,\n.fullscreenPhone #root .page{\n  position:absolute!important;\n  inset:0!important;\n  width:100%!important;\n  height:100%!important;\n  min-width:0!important;\n  min-height:0!important;\n  max-width:100%!important;\n  max-height:100%!important;\n  overflow:hidden!important;\n  box-sizing:border-box!important;\n  will-change:opacity,transform;\n}\n\n/* Stop themes from accidentally moving the entire chat frame. */\n#root.phoneMode .chatPage,\n#root.immersive .chatPage,\n.fullscreenPhone #root .chatPage{\n  display:flex!important;\n  flex-direction:column!important;\n  align-items:stretch!important;\n  justify-content:flex-start!important;\n  width:100%!important;\n  height:100%!important;\n  min-height:0!important;\n  max-height:100%!important;\n  padding:0!important;\n  margin:0!important;\n  transform:none!important;\n  overflow:hidden!important;\n}\n\n#root.phoneMode .chatPage>.head,\n#root.immersive .chatPage>.head,\n.fullscreenPhone #root .chatPage>.head{\n  position:relative!important;\n  inset:auto!important;\n  flex:0 0 auto!important;\n  width:100%!important;\n  min-width:0!important;\n  margin:0!important;\n  transform:none!important;\n  box-sizing:border-box!important;\n}\n\n#root.phoneMode .chatBody,\n#root.immersive .chatBody,\n.fullscreenPhone #root .chatBody{\n  position:relative!important;\n  inset:auto!important;\n  flex:1 1 0!important;\n  width:100%!important;\n  height:auto!important;\n  min-width:0!important;\n  min-height:0!important;\n  max-height:none!important;\n  margin:0!important;\n  transform:none!important;\n  overflow-x:hidden!important;\n  overflow-y:auto!important;\n  overscroll-behavior-y:contain!important;\n  -webkit-overflow-scrolling:touch;\n  box-sizing:border-box!important;\n}\n\n/* Composer stays in normal flex flow. Custom CSS may restyle it, but cannot fling it around the page. */\n#root.phoneMode .chatPage>.compose,\n#root.immersive .chatPage>.compose,\n.fullscreenPhone #root .chatPage>.compose{\n  position:relative!important;\n  inset:auto!important;\n  left:auto!important;\n  right:auto!important;\n  top:auto!important;\n  bottom:auto!important;\n  flex:0 0 auto!important;\n  width:calc(100% - 16px)!important;\n  max-width:calc(100% - 16px)!important;\n  min-width:0!important;\n  height:auto!important;\n  margin:0 8px calc(8px + var(--phone-safe-bottom))!important;\n  transform:none!important;\n  box-sizing:border-box!important;\n  z-index:70!important;\n}\n\n/* Popovers are still absolute, but kept inside the visible chat frame. */\n#root.phoneMode .stickerPicker,\n#root.phoneMode .mediaPicker,\n#root.immersive .stickerPicker,\n#root.immersive .mediaPicker{\n  max-width:calc(100% - 16px)!important;\n  max-height:min(42vh,320px)!important;\n  overflow:auto!important;\n}\n\n/* Other app pages: header + scrollable body, no document-level drifting. */\n#root.phoneMode .page>.head:not(.chatPage .head),\n#root.immersive .page>.head:not(.chatPage .head){\n  position:relative!important;\n  inset:auto!important;\n  width:100%!important;\n  transform:none!important;\n}\n#root.phoneMode .page>.body,\n#root.immersive .page>.body{\n  height:calc(100% - 54px)!important;\n  max-height:calc(100% - 54px)!important;\n  overflow-x:hidden!important;\n  overflow-y:auto!important;\n  overscroll-behavior-y:contain!important;\n  -webkit-overflow-scrolling:touch;\n}\n\n/* Inputs must stay >=16px on iOS or Safari zooms the whole UI on focus. */\n@media(max-width:700px){\n  input,textarea,select{font-size:16px!important}\n  #root.phoneMode .shell{border-radius:0!important}\n  #root.phoneMode .home{height:100%!important;overflow-y:auto!important;overscroll-behavior-y:contain!important}\n}\n\n/* Landscape phones: keep usable content rather than stretching the decorative phone frame. */\n@media(max-width:950px) and (orientation:landscape){\n  #root.phoneMode .status{flex-basis:calc(38px + var(--phone-safe-top))!important;height:calc(38px + var(--phone-safe-top))!important;min-height:calc(38px + var(--phone-safe-top))!important}\n}\n</style>\n</head><body>
+<style id="chatCustomThemeStyle"></style>
+<style id="layoutLockStyle">
+/* ===== V3.7 Mobile Layout Lock =====
+   This style intentionally loads AFTER user chat CSS.
+   It protects geometry only; colors, bubbles, backgrounds and decorative CSS remain customizable. */
+:root{
+  --app-height:100dvh;
+  --phone-safe-top:env(safe-area-inset-top,0px);
+  --phone-safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+html,body{max-width:100%;overflow-x:hidden}
+body.phoneActive{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:var(--app-height)!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+
+/* Keep the phone itself pinned to one viewport instead of allowing the document to scroll around it. */
+#root.phoneMode,
+#root.immersive,
+.fullscreenPhone #root{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:var(--app-height)!important;
+  min-height:0!important;
+  max-height:var(--app-height)!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  align-items:stretch!important;
+}
+
+#root.phoneMode .shell,
+#root.immersive .shell,
+.fullscreenPhone #root .shell{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:100%!important;
+  margin:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+
+#root.phoneMode .os,
+#root.immersive .os,
+.fullscreenPhone #root .os{
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:100%!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+
+#root.phoneMode .status,
+#root.immersive .status,
+.fullscreenPhone #root .status{
+  flex:0 0 calc(45px + var(--phone-safe-top))!important;
+  height:calc(45px + var(--phone-safe-top))!important;
+  min-height:calc(45px + var(--phone-safe-top))!important;
+  padding-top:var(--phone-safe-top)!important;
+  box-sizing:border-box!important;
+}
+
+#root.phoneMode .screen,
+#root.immersive .screen,
+.fullscreenPhone #root .screen{
+  position:relative!important;
+  flex:1 1 auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:hidden!important;
+}
+
+#root.phoneMode .page,
+#root.immersive .page,
+.fullscreenPhone #root .page{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+  will-change:opacity,transform;
+}
+
+/* Stop themes from accidentally moving the entire chat frame. */
+#root.phoneMode .chatPage,
+#root.immersive .chatPage,
+.fullscreenPhone #root .chatPage{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:100%!important;
+  padding:0!important;
+  margin:0!important;
+  transform:none!important;
+  overflow:hidden!important;
+}
+
+#root.phoneMode .chatPage>.head,
+#root.immersive .chatPage>.head,
+.fullscreenPhone #root .chatPage>.head{
+  position:relative!important;
+  inset:auto!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  transform:none!important;
+  box-sizing:border-box!important;
+}
+
+#root.phoneMode .chatBody,
+#root.immersive .chatBody,
+.fullscreenPhone #root .chatBody{
+  position:relative!important;
+  inset:auto!important;
+  flex:1 1 0!important;
+  width:100%!important;
+  height:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  transform:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch;
+  box-sizing:border-box!important;
+}
+
+/* Composer stays in normal flex flow. Custom CSS may restyle it, but cannot fling it around the page. */
+#root.phoneMode .chatPage>.compose,
+#root.immersive .chatPage>.compose,
+.fullscreenPhone #root .chatPage>.compose{
+  position:relative!important;
+  inset:auto!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  flex:0 0 auto!important;
+  width:calc(100% - 16px)!important;
+  max-width:calc(100% - 16px)!important;
+  min-width:0!important;
+  height:auto!important;
+  margin:0 8px calc(8px + var(--phone-safe-bottom))!important;
+  transform:none!important;
+  box-sizing:border-box!important;
+  z-index:70!important;
+}
+
+/* Popovers are still absolute, but kept inside the visible chat frame. */
+#root.phoneMode .stickerPicker,
+#root.phoneMode .mediaPicker,
+#root.immersive .stickerPicker,
+#root.immersive .mediaPicker{
+  max-width:calc(100% - 16px)!important;
+  max-height:min(42vh,320px)!important;
+  overflow:auto!important;
+}
+
+/* Other app pages: header + scrollable body, no document-level drifting. */
+#root.phoneMode .page>.head:not(.chatPage .head),
+#root.immersive .page>.head:not(.chatPage .head){
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  transform:none!important;
+}
+#root.phoneMode .page>.body,
+#root.immersive .page>.body{
+  height:calc(100% - 54px)!important;
+  max-height:calc(100% - 54px)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Inputs must stay >=16px on iOS or Safari zooms the whole UI on focus. */
+@media(max-width:700px){
+  input,textarea,select{font-size:16px!important}
+  #root.phoneMode .shell{border-radius:0!important}
+  #root.phoneMode .home{height:100%!important;overflow-y:auto!important;overscroll-behavior-y:contain!important}
+}
+
+/* Landscape phones: keep usable content rather than stretching the decorative phone frame. */
+@media(max-width:950px) and (orientation:landscape){
+  #root.phoneMode .status{flex-basis:calc(38px + var(--phone-safe-top))!important;height:calc(38px + var(--phone-safe-top))!important;min-height:calc(38px + var(--phone-safe-top))!important}
+}
+</style>
+</head><body>
 <div id="root"><div class="shell">
-<section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">WEB / PHONE V3.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
+<section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V3.8</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
 <section class="os"><div class="status"><span id="statusTime"></span><span>5G　▮</span></div><div class="phoneNotices" id="phoneNotices"></div><div class="screen">
-<section class="page home active" data-page="home"><div class="date" id="date"></div><div class="clock" id="clock"></div><div class="grid">
-<button class="app" data-open="messages" data-app-key="messages"><span class="appBadge" id="messagesBadge"></span><div class="icon" data-icon-slot="messages">M</div><div class="label">消息</div></button>
-<button class="app" data-open="contacts" data-app-key="contacts"><div class="icon" data-icon-slot="contacts">C</div><div class="label">联系人</div></button>
-<button class="app" data-open="notes" data-app-key="notes"><div class="icon" data-icon-slot="notes">N</div><div class="label">备忘录</div></button>
-<button class="app" data-open="settings" data-app-key="settings"><div class="icon" data-icon-slot="settings">S</div><div class="label">设置</div></button>
-<button class="app" data-open="beautify" data-app-key="beautify"><div class="icon" data-icon-slot="beautify">B</div><div class="label">美化</div></button><button class="app" data-open="chatBeauty" data-app-key="chatBeauty"><div class="icon" data-icon-slot="chatBeauty">T</div><div class="label">聊天美化</div></button>
-<button class="app" data-open="mcp" data-app-key="mcp"><div class="icon" data-icon-slot="mcp">P</div><div class="label">MCP</div></button>
-<button class="app" data-open="moments" data-app-key="moments"><span class="appBadge" id="momentsBadge"></span><div class="icon" data-icon-slot="moments">D</div><div class="label">朋友圈</div></button>
-<button class="app" data-open="autonomy" data-app-key="autonomy"><div class="icon" data-icon-slot="autonomy">A</div><div class="label">自主</div></button><button class="app" data-open="stickers" data-app-key="stickers"><div class="icon" data-icon-slot="stickers">E</div><div class="label">表情包</div></button>
-<button class="app" data-open="masks" data-app-key="masks"><div class="icon" data-icon-slot="masks">U</div><div class="label">User面具</div></button>
-<button class="app" data-open="worldbook" data-app-key="worldbook"><div class="icon" data-icon-slot="worldbook">L</div><div class="label">世界书</div></button>
-<button class="app" id="fullscreenApp" data-app-key="fullscreen"><div class="icon" data-icon-slot="fullscreen">F</div><div class="label">全屏</div></button>
-<button class="app" id="exit" data-app-key="web"><div class="icon" data-icon-slot="web">W</div><div class="label">返回网页</div></button>
-</div></section>
+<section class="page home active curryHome" data-page="home">
+  <div class="curryHomeTop">
+    <div class="curryHomeDate"><div class="date" id="date"></div><div class="clock" id="clock"></div></div>
+    <button class="curryProfile" id="curryProfileBtn" type="button" title="切换 User 面具"><span id="curryProfileAvatar">U</span></button>
+  </div>
+  <div class="curryGreeting"><div class="curryGreetingEyebrow">CURRY PHONE</div><div class="curryGreetingTitle" id="curryGreetingTitle">下午好。</div><div class="curryGreetingSub" id="curryGreetingSub">今天也和喜欢的人说说话吧。</div></div>
+  <div class="curryRecentHead"><span>最近聊天</span><button type="button" data-open="messages">全部</button></div>
+  <div class="curryRecent" id="curryRecent"></div>
+  <div class="grid curryAppGrid">
+    <button class="app" data-open="messages" data-app-key="messages"><span class="appBadge" id="messagesBadge"></span><div class="icon" data-icon-slot="messages">M</div><div class="label">消息</div></button>
+    <button class="app" data-open="contacts" data-app-key="contacts"><div class="icon" data-icon-slot="contacts">C</div><div class="label">联系人</div></button>
+    <button class="app" data-open="moments" data-app-key="moments"><span class="appBadge" id="momentsBadge"></span><div class="icon" data-icon-slot="moments">D</div><div class="label">朋友圈</div></button>
+    <button class="app" data-open="mcp" data-app-key="mcp"><div class="icon" data-icon-slot="mcp">P</div><div class="label">MCP</div></button>
+    <button class="app" data-open="worldbook" data-app-key="worldbook"><div class="icon" data-icon-slot="worldbook">L</div><div class="label">世界书</div></button>
+    <button class="app" data-open="masks" data-app-key="masks"><div class="icon" data-icon-slot="masks">U</div><div class="label">User面具</div></button>
+    <button class="app" data-open="stickers" data-app-key="stickers"><div class="icon" data-icon-slot="stickers">E</div><div class="label">表情包</div></button>
+    <button class="app" data-open="autonomy" data-app-key="autonomy"><div class="icon" data-icon-slot="autonomy">A</div><div class="label">自主</div></button>
+    <button class="app" data-open="chatBeauty" data-app-key="chatBeauty"><div class="icon" data-icon-slot="chatBeauty">T</div><div class="label">聊天美化</div></button>
+    <button class="app" data-open="beautify" data-app-key="beautify"><div class="icon" data-icon-slot="beautify">B</div><div class="label">桌面美化</div></button>
+    <button class="app" data-open="notes" data-app-key="notes"><div class="icon" data-icon-slot="notes">N</div><div class="label">备忘录</div></button>
+    <button class="app" data-open="settings" data-app-key="settings"><div class="icon" data-icon-slot="settings">S</div><div class="label">设置</div></button>
+  </div>
+  <div class="curryDock">
+    <button class="app" data-open="messages" data-app-key="messagesDock"><div class="icon">M</div></button>
+    <button class="app" data-open="contacts" data-app-key="contactsDock"><div class="icon">♡</div></button>
+    <button class="app" id="fullscreenApp" data-app-key="fullscreen"><div class="icon" data-icon-slot="fullscreen">F</div></button>
+    <button class="app" id="exit" data-app-key="web"><div class="icon" data-icon-slot="web">W</div></button>
+  </div>
+</section>
 <section class="page" data-page="contacts"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">联系人</div><div></div></header><div class="body" id="contactsList"></div><button class="fab" id="addContact">＋</button></section>
 <section class="page" data-page="contactDetail"><header class="head"><button class="back" data-back="contacts">返回</button><div class="headTitle">联系人</div><button class="headAction" id="editContact">编辑</button></header><div class="body" id="contactDetailBody"></div></section>
 <section class="page" data-page="contactWorldbooks"><header class="head"><button class="back" data-back="contactDetail">返回</button><div class="headTitle">世界书绑定</div><div></div></header><div class="body" id="contactWorldbookBody"></div></section>
@@ -766,7 +1131,8 @@
 <header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">MCP</div><button class="headAction" id="addMcpServer">添加</button></header>
 <div class="body">
 <div class="card"><div class="cardTitle">MODEL CONTEXT PROTOCOL</div><div class="cardText">连接远程 Streamable HTTP MCP Server。启用后，回复时模型可以看到服务器提供的工具，并按需调用。</div></div>
-<div id="mcpServerList"></div>
+<div class="settingGroup"><h3>内置 MCP</h3><div class="mcpPresetGrid" id="mcpPresetGrid"></div><div class="mcpPresetNote">Token 只保存在当前浏览器 localStorage，整机备份会自动移除。浏览器直连仍取决于服务端 CORS 支持。</div></div>
+<div class="settingGroup"><h3>已添加</h3><div id="mcpServerList"></div></div>
 </div></section>
 
 <section class="page" data-page="mcpEditor">
@@ -905,7 +1271,47 @@ if(window.visualViewport){
   visualViewport.addEventListener("resize",syncPhoneViewport,{passive:true});
   visualViewport.addEventListener("scroll",syncPhoneViewport,{passive:true});
 }
-function page(n){$$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===n))}
+
+/* ===== V3.9.3 iOS pinch / gesture lock ===== */
+const phoneGestureLocked=()=>document.body.classList.contains("phoneActive");
+
+["gesturestart","gesturechange","gestureend"].forEach(type=>{
+  document.addEventListener(type,e=>{
+    if(phoneGestureLocked())e.preventDefault();
+  },{passive:false});
+});
+
+/* iOS may expose pinch as a 2-finger touchmove rather than gesture events. */
+document.addEventListener("touchmove",e=>{
+  if(phoneGestureLocked() && e.touches && e.touches.length>1){
+    e.preventDefault();
+  }
+},{passive:false});
+
+/* Stop double-tap zoom while preserving normal single taps. */
+let lastPhoneTouchEnd=0;
+document.addEventListener("touchend",e=>{
+  if(!phoneGestureLocked())return;
+  const now=Date.now();
+  if(now-lastPhoneTouchEnd<300)e.preventDefault();
+  lastPhoneTouchEnd=now;
+},{passive:false});
+
+/* If Safari has already shifted the visual viewport, re-pin geometry. */
+function hardRecenterPhone(){
+  if(!phoneGestureLocked())return;
+  syncPhoneViewport();
+  window.scrollTo(0,0);
+  document.documentElement.scrollLeft=0;
+  document.documentElement.scrollTop=0;
+  document.body.scrollLeft=0;
+  document.body.scrollTop=0;
+}
+window.addEventListener("scroll",hardRecenterPhone,{passive:true});
+if(window.visualViewport){
+  visualViewport.addEventListener("scroll",hardRecenterPhone,{passive:true});
+}
+function page(n){$$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===n));if(n==="home")setTimeout(renderHome39,0)}
 function clock(){let d=new Date(),t=now();$("#statusTime").textContent=$("#clock").textContent=t;$("#date").textContent=new Intl.DateTimeFormat("zh-CN",{month:"long",day:"numeric",weekday:"long"}).format(d)}clock();setInterval(clock,30000);setTimeout(updateMessageBadge,0);
 setTimeout(()=>{
   if($("#summaryAutoEnabled"))$("#summaryAutoEnabled").checked=!!summarySettings.auto;
@@ -974,6 +1380,18 @@ const script=src=>new Promise((r,j)=>{let s=document.createElement("script");s.s
 function activeMask(){return masks.find(m=>m.id===activeMaskId)||masks[0]}
 function convoKey(contactId,maskId=activeMaskId){return contactId+"::"+maskId}
 function convoPreview(l){if(!l)return"尚未开始对话";if(l.type==="sticker")return`[表情] ${l.mood||""}`.trim();if(l.type==="image")return"[图片]";if(l.type==="voice")return`[语音] ${l.transcript||""}`.trim();if(l.type==="transfer")return`[转账] ¥${Number(l.amount||0).toFixed(2)} ${l.note||""}`.trim();return l.content||"尚未开始对话"}
+function renderHome39(){
+ let host=$("#curryRecent"),mask=activeMask?.(),h=new Date().getHours();
+ if($("#curryGreetingTitle"))$("#curryGreetingTitle").textContent=(h<6?"夜深了。":h<11?"早上好。":h<14?"中午好。":h<18?"下午好。":"晚上好。");
+ if($("#curryGreetingSub"))$("#curryGreetingSub").textContent=mask?`${mask.userName||mask.name||"user"}，今天也和喜欢的人说说话吧。`:"今天也和喜欢的人说说话吧。";
+ let pa=$("#curryProfileAvatar");if(pa){pa.innerHTML=mask?.avatar?`<img src="${esc(mask.avatar)}" alt="">`:esc((mask?.userName||mask?.name||"U").trim().charAt(0)||"U")}
+ if($("#curryProfileBtn"))$("#curryProfileBtn").onclick=()=>{page("masks");renderMasks()};
+ if(!host)return;
+ let rows=contacts.map(c=>{let hs=convos[convoKey(c.id)]||[],last=hs[hs.length-1];return {c,last,score:last?hs.length:0}}).filter(x=>x.last).sort((a,b)=>b.score-a.score).slice(0,3);
+ host.innerHTML=rows.length?rows.map(({c,last})=>`<button class="curryRecentCard" type="button" data-home-chat="${c.id}"><div class="curryRecentAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c.name||"?").charAt(0))}</div><div class="curryRecentName">${esc(c.name)}</div><div class="curryRecentText">${esc(convoPreview(last))}</div></button>`).join(""):'<div class="curryRecentEmpty">还没有最近聊天 · 去找一个人说说话吧</div>';
+ $$('[data-home-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.homeChat));
+ updateMessageBadge();
+} 
 function renderConvos(){let e=$("#conversationList"),m=activeMask();e.innerHTML=contacts.length?contacts.map(c=>{let h=convos[convoKey(c.id)]||[],l=h[h.length-1],u=unreadFor(c.id);return `<button class="row convoRow" data-id="${c.id}">${av(c)}<div><div class="name">${esc(c.name)}</div><div class="sub">${esc(convoPreview(l))} · ${esc(m?.name||"默认 user")}</div></div>${u?`<span class="convoUnread">${u>99?"99+":u}</span>`:""}<div class="tiny">${esc(l?.time||"")}</div></button>`}).join(""):'<div class="empty">还没有联系人。<br>先去联系人 App 创建角色。</div>';$$('.convoRow').forEach(b=>b.onclick=()=>openChat(b.dataset.id));updateMessageBadge()}
 function fillChatMaskSelect(){let sel=$("#chatMaskSelect");sel.innerHTML=masks.map(m=>`<option value="${m.id}" ${m.id===activeMaskId?"selected":""}>${esc(m.name)}</option>`).join("")}
 $("#chatMaskSelect").onchange=e=>{activeMaskId=e.target.value;localStorage.setItem(K.activeMask,activeMaskId);renderChat();toast("已切换 User 面具；对话已切换")}
@@ -1033,7 +1451,7 @@ function sanitizedMediaApi(){
 }
 function sanitizedMcp(){return (mcpServers||[]).map(s=>{let x=cloneJson(s);delete x.token;return x})}
 function phoneDataPayload(){
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"3.6",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"3.9",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -1043,7 +1461,7 @@ function phoneDataPayload(){
 }
 function phoneDataCounts(d){return {contacts:Array.isArray(d.contacts)?d.contacts.length:0,chats:d.convos&&typeof d.convos==="object"?Object.keys(d.convos).length:0,masks:Array.isArray(d.masks)?d.masks.length:0,worldbooks:Array.isArray(d.worldbooks)?d.worldbooks.length:0,moments:Array.isArray(d.moments)?d.moments.length:0,stickers:(d.stickers?.user?.length||0)+Object.values(d.stickers?.chars||{}).reduce((n,a)=>n+(Array.isArray(a)?a.length:0),0)}}
 function normalizePhoneData(raw){
-  if(!raw||raw.schema!==PHONE_DATA_SCHEMA)throw Error("不是 Web Phone 小手机数据备份");
+  if(!raw||raw.schema!==PHONE_DATA_SCHEMA)throw Error("不是咖喱小手机数据备份");
   if(Number(raw.version)!==PHONE_DATA_VERSION)throw Error("暂不支持这个小手机备份版本");
   let d=raw.data||{};
   return {contacts:Array.isArray(d.contacts)?d.contacts:[],convos:d.convos&&typeof d.convos==="object"?d.convos:{},masks:Array.isArray(d.masks)?d.masks:[],activeMaskId:String(d.activeMaskId||""),worldbooks:Array.isArray(d.worldbooks)?d.worldbooks:[],notes:String(d.notes||""),beauty:d.beauty&&typeof d.beauty==="object"?d.beauty:{},chatBeauty:d.chatBeauty&&typeof d.chatBeauty==="object"?d.chatBeauty:{},chatThemes:d.chatThemes&&typeof d.chatThemes==="object"?d.chatThemes:{},moments:Array.isArray(d.moments)?d.moments:[],autonomy:d.autonomy&&typeof d.autonomy==="object"?d.autonomy:{},momentSeen:Number(d.momentSeen||0),stickers:d.stickers&&typeof d.stickers==="object"?d.stickers:{user:[],chars:{},charUseUser:{}},relationNotes:d.relationNotes&&typeof d.relationNotes==="object"?d.relationNotes:{},chatSummaries:d.chatSummaries&&typeof d.chatSummaries==="object"?d.chatSummaries:{},summarySettings:d.summarySettings&&typeof d.summarySettings==="object"?d.summarySettings:{},presence:d.presence&&typeof d.presence==="object"?d.presence:{},unread:d.unread&&typeof d.unread==="object"?d.unread:{},settings:d.settings&&typeof d.settings==="object"?d.settings:{},mediaApi:d.mediaApi&&typeof d.mediaApi==="object"?d.mediaApi:{},mcpServers:Array.isArray(d.mcpServers)?d.mcpServers:[]}
@@ -1091,7 +1509,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"3.6",
+    appVersion:"3.9",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -1122,7 +1540,7 @@ function backupCounts(data){
   }
 }
 function normalizeBackupPayload(raw){
-  if(!raw||raw.schema!==CHAT_BACKUP_SCHEMA)throw Error("不是 Web Phone 聊天备份文件");
+  if(!raw||raw.schema!==CHAT_BACKUP_SCHEMA)throw Error("不是咖喱小手机聊天备份文件");
   if(Number(raw.version)!==1)throw Error("暂不支持这个备份版本");
   let d=raw.data||{};
   return {
@@ -1591,14 +2009,33 @@ $("#showChatAvatar").onchange=e=>{let t=themeTarget();t.showAvatar=e.target.chec
 $("#applyChatCss").onclick=()=>{let t=themeTarget();t.customCss=$("#chatCustomCss").value;saveThemeTarget();applyChatBeauty(t);toast("聊天 CSS 已应用")};
 $("#resetChatBeauty").onclick=()=>{let d={wallpaper:"",overlay:.18,userBubble:"#dce1da",charBubble:"#ffffff",radius:15,font:11,showAvatar:false,customCss:""};if(themeEditContactId&&chatThemes[themeEditContactId]?.enabled){chatThemes[themeEditContactId]=Object.assign({},d,{enabled:true});save(K.chatThemes,chatThemes)}else{chatBeauty=d;save(K.chatBeauty,chatBeauty)}applyChatBeauty(themeTarget());if(currentContact)renderChat();toast("已恢复默认聊天样式")};
 
+const MCP_PRESETS=[
+ {id:"tavily",name:"Tavily",desc:"AI 搜索、网页提取；适合给角色实时查资料。",url:"https://mcp.tavily.com/mcp/",tokenUrl:"https://app.tavily.com",authHeader:"Authorization",authPrefix:"Bearer ",tokenHint:"粘贴 Tavily API Key（tvly-…）"},
+ {id:"firecrawl",name:"Firecrawl",desc:"网页搜索、抓取与解析；适合读取网页正文。",url:"https://mcp.firecrawl.dev/v2/mcp",tokenUrl:"https://www.firecrawl.dev/app",authHeader:"Authorization",authPrefix:"Bearer ",tokenHint:"粘贴 Firecrawl API Key"},
+ {id:"context7",name:"Context7",desc:"查询最新技术文档；写前端、查库文档时很好用。",url:"https://mcp.context7.com/mcp",tokenUrl:"https://context7.com/dashboard",authHeader:"CONTEXT7_API_KEY",authPrefix:"",tokenHint:"粘贴 Context7 API Key（ctx7sk-…）"}
+];
+function renderMcpPresets(){
+ let box=$("#mcpPresetGrid");if(!box)return;
+ box.innerHTML=MCP_PRESETS.map(p=>{let added=mcpServers.some(s=>s.presetId===p.id);return `<div class="mcpPreset"><div class="mcpPresetTop"><div><div class="mcpPresetName">${esc(p.name)}</div><div class="mcpPresetDesc">${esc(p.desc)}</div></div><span class="mcpPresetBadge">${added?"已添加":"官方远程"}</span></div><div class="actions"><button class="btn" data-preset-token="${p.id}">获取 Token</button><button class="btn ${added?"":"primary"}" data-preset-add="${p.id}">${added?"再添加一个":"添加"}</button></div><div class="mcpPresetToken" data-preset-panel="${p.id}"><input class="input" type="password" data-preset-input="${p.id}" placeholder="${esc(p.tokenHint)}"><div class="actions"><button class="btn primary" data-preset-save="${p.id}">保存并测试</button><button class="btn" data-preset-keyless="${p.id}">${p.id==="firecrawl"?"无 Key 添加":"暂不填 Token"}</button></div></div></div>`}).join("");
+ $$('[data-preset-token]').forEach(b=>b.onclick=()=>{let p=MCP_PRESETS.find(x=>x.id===b.dataset.presetToken);window.open(p.tokenUrl,'_blank','noopener')});
+ $$('[data-preset-add]').forEach(b=>b.onclick=()=>{let panel=$(`[data-preset-panel="${b.dataset.presetAdd}"]`);panel?.classList.toggle('show')});
+ $$('[data-preset-keyless]').forEach(b=>b.onclick=()=>addMcpPreset(b.dataset.presetKeyless,"",false));
+ $$('[data-preset-save]').forEach(b=>b.onclick=async()=>{let id=b.dataset.presetSave,input=$(`[data-preset-input="${id}"]`);await addMcpPreset(id,input?.value.trim()||"",true)});
+}
+async function addMcpPreset(id,token,test){
+ let p=MCP_PRESETS.find(x=>x.id===id);if(!p)return;
+ let s={id:uuid(),presetId:p.id,name:p.name,url:p.url,token,authHeader:p.authHeader,authPrefix:p.authPrefix,enabled:true,tools:[]};
+ mcpServers.push(s);save(K.mcp,mcpServers);renderMcp();renderMcpPresets();
+ if(test){try{await refreshMcpTools(s);renderMcp();toast(`${p.name} 已连接 · ${s.tools.length} 个工具`)}catch(e){toast(`${p.name} 已保存，测试失败：${e.message}`)}}else toast(`${p.name} 已添加`);
+}
 function mcpHeaders(s,method,name=""){
  let h={"Content-Type":"application/json","Accept":"application/json, text/event-stream","MCP-Protocol-Version":"2026-07-28","Mcp-Method":method};
  if(name)h["Mcp-Name"]=name;
- if(s.token)h.Authorization="Bearer "+s.token;
+ if(s.token){let k=s.authHeader||"Authorization",prefix=s.authPrefix===undefined?"Bearer ":s.authPrefix;h[k]=prefix+s.token;}
  return h
 }
 async function mcpRpc(s,method,params={},name=""){
- let body={jsonrpc:"2.0",id:Date.now(),method,params,_meta:{"io.modelcontextprotocol/clientInfo":{name:"Web Phone",version:"2.5"}}};
+ let body={jsonrpc:"2.0",id:Date.now(),method,params,_meta:{"io.modelcontextprotocol/clientInfo":{name:"咖喱小手机",version:"3.8"}}};
  let r=await fetch(s.url,{method:"POST",headers:mcpHeaders(s,method,name),body:JSON.stringify(body)});
  let text=await r.text(),data;
  if(!r.ok)throw Error("HTTP "+r.status+" "+text.slice(0,120));
@@ -1611,6 +2048,7 @@ async function mcpRpc(s,method,params={},name=""){
 }
 async function refreshMcpTools(s){let result=await mcpRpc(s,"tools/list",{});s.tools=result?.tools||[];s.lastSync=Date.now();save(K.mcp,mcpServers);return s.tools}
 function renderMcp(){
+ renderMcpPresets();
  let box=$("#mcpServerList");
  if(!mcpServers.length){box.innerHTML='<div class="empty">还没有 MCP Server。<br>点右上角“添加”。</div>';return}
  box.innerHTML=mcpServers.map(s=>`<div class="mcpServer"><div class="mcpTop"><div><div class="mcpName">${esc(s.name)}</div><div class="mcpMeta">${esc(s.url)}</div></div><label class="tiny"><input type="checkbox" data-mcp-toggle="${s.id}" ${s.enabled?"checked":""}> 启用</label></div><div>${(s.tools||[]).map(t=>`<span class="toolChip">${esc(t.name)}</span>`).join("")||'<span class="tiny">尚未读取工具</span>'}</div><div class="actions" style="margin-top:9px"><button class="btn" data-mcp-refresh="${s.id}">刷新工具</button><button class="btn" data-mcp-edit="${s.id}">编辑</button><button class="btn danger" data-mcp-delete="${s.id}">删除</button></div></div>`).join("");
@@ -1621,8 +2059,8 @@ function renderMcp(){
 }
 function openMcpEditor(id=null){editingMcpId=id;let s=mcpServers.find(v=>v.id===id);$("#mcpName").value=s?.name||"";$("#mcpUrl").value=s?.url||"";$("#mcpToken").value=s?.token||"";$("#mcpEnabled").checked=s?.enabled??true;$("#mcpStatus").textContent="";page("mcpEditor")}
 $("#addMcpServer").onclick=()=>openMcpEditor();
-$("#saveMcpServer").onclick=()=>{let name=$("#mcpName").value.trim(),url=$("#mcpUrl").value.trim();if(!name||!url)return toast("请填写名称和 URL");let old=mcpServers.find(v=>v.id===editingMcpId),s={id:editingMcpId||uuid(),name,url,token:$("#mcpToken").value.trim(),enabled:$("#mcpEnabled").checked,tools:old?.tools||[]};if(editingMcpId)mcpServers=mcpServers.map(v=>v.id===editingMcpId?s:v);else mcpServers.push(s);save(K.mcp,mcpServers);renderMcp();page("mcp");toast("MCP 已保存")};
-$("#testMcpServer").onclick=async()=>{let s={name:$("#mcpName").value.trim()||"test",url:$("#mcpUrl").value.trim(),token:$("#mcpToken").value.trim()};$("#mcpStatus").textContent="正在读取 tools/list…";try{let tools=await refreshMcpTools(s);$("#mcpStatus").textContent=`连接成功 · ${tools.length} 个工具：`+tools.map(t=>t.name).join(", ")}catch(e){$("#mcpStatus").textContent="连接失败："+e.message}};
+$("#saveMcpServer").onclick=()=>{let name=$("#mcpName").value.trim(),url=$("#mcpUrl").value.trim();if(!name||!url)return toast("请填写名称和 URL");let old=mcpServers.find(v=>v.id===editingMcpId),s={id:editingMcpId||uuid(),presetId:old?.presetId||"",name,url,token:$("#mcpToken").value.trim(),authHeader:old?.authHeader||"Authorization",authPrefix:old?.authPrefix===undefined?"Bearer ":old.authPrefix,enabled:$("#mcpEnabled").checked,tools:old?.tools||[]};if(editingMcpId)mcpServers=mcpServers.map(v=>v.id===editingMcpId?s:v);else mcpServers.push(s);save(K.mcp,mcpServers);renderMcp();page("mcp");toast("MCP 已保存")};
+$("#testMcpServer").onclick=async()=>{let old=mcpServers.find(v=>v.id===editingMcpId),s={name:$("#mcpName").value.trim()||"test",url:$("#mcpUrl").value.trim(),token:$("#mcpToken").value.trim(),authHeader:old?.authHeader||"Authorization",authPrefix:old?.authPrefix===undefined?"Bearer ":old.authPrefix};$("#mcpStatus").textContent="正在读取 tools/list…";try{let tools=await refreshMcpTools(s);$("#mcpStatus").textContent=`连接成功 · ${tools.length} 个工具：`+tools.map(t=>t.name).join(", ")}catch(e){$("#mcpStatus").textContent="连接失败："+e.message}};
 function enabledMcpTools(){return mcpServers.filter(s=>s.enabled).flatMap(s=>(s.tools||[]).map(t=>({server:s,tool:t})))}
 function mcpToolPrompt(){
  let all=enabledMcpTools();if(!all.length)return"";
