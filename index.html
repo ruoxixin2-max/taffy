@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Web Phone V3.4 · Chat Summary + Context Compression</title>
+<title>Web Phone V3.6 · Phone Data Backup</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -565,10 +565,35 @@
 @keyframes sumSpin{to{transform:rotate(360deg)}}
 .contextBadge{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border-radius:999px;background:#edf1eb;color:#647064;font-size:7px;margin-top:4px}
 
-</style><style id="customThemeStyle"></style>
+
+/* ===== V3.5 Chat Backup ===== */
+.backupBox{display:grid;gap:10px}
+.backupMeta{font-size:8px;color:var(--muted);line-height:1.65}
+.backupStatus{font-size:8px;color:var(--muted);line-height:1.6;white-space:pre-wrap}
+.backupFileBtn{display:flex;align-items:center;justify-content:center;min-height:42px;border:1px dashed #c8cec5;border-radius:11px;background:#f8f9f6;font-size:9px;cursor:pointer}
+.backupFileBtn input{display:none}
+.backupSummary{border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px;font-size:9px;line-height:1.65}
+
+/* ===== V3.6.1 一起听双头像支持 ===== */
+.listenTogetherAvatars{
+  display:flex;align-items:center;justify-content:center;gap:54px;
+  width:100%;padding:8px 0 18px;pointer-events:none;
+}
+.listenTogetherAvatar{
+  width:54px;height:54px;border-radius:50%;overflow:hidden;flex:0 0 54px;
+  display:grid;place-items:center;background:#d9d9d6;color:#555;
+  border:2px solid rgba(255,255,255,.88);box-shadow:0 5px 18px rgba(0,0,0,.13);
+  font:600 16px/1 Georgia,"Songti SC",serif;
+}
+.listenTogetherAvatar img{width:100%;height:100%;display:block;object-fit:cover}
+.listenAvatarUser{transform:translateY(5px)}
+.listenAvatarChar{transform:translateY(5px)}
+
+</style>
+<style id="customThemeStyle"></style>
 <style id="chatCustomThemeStyle"></style></head><body>
 <div id="root"><div class="shell">
-<section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">WEB / PHONE V3.4</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
+<section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">WEB / PHONE V3.6</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
 <section class="os"><div class="status"><span id="statusTime"></span><span>5G　▮</span></div><div class="phoneNotices" id="phoneNotices"></div><div class="screen">
 <section class="page home active" data-page="home"><div class="date" id="date"></div><div class="clock" id="clock"></div><div class="grid">
 <button class="app" data-open="messages" data-app-key="messages"><span class="appBadge" id="messagesBadge"></span><div class="icon" data-icon-slot="messages">M</div><div class="label">消息</div></button>
@@ -643,6 +668,31 @@
 <div class="actions"><button class="btn primary" id="saveVoiceApi">保存</button><button class="btn" id="testVoiceApi">测试语音</button></div>
 <div class="statusText" id="voiceApiStatus"></div><div id="voiceApiPreview"></div>
 <div class="help">MiniMax 已区分中国版与国际版：国内默认 api.minimaxi.com，国际默认 api.minimax.io。ElevenLabs 的 Endpoint 需要包含 Voice ID，选择服务商时会自动生成。</div>
+</div></div>
+
+
+<div class="settingGroup"><h3>PHONE DATA BACKUP</h3><div class="settingBox backupBox">
+  <div class="backupMeta">导出整部“小手机”的本地数据：联系人、所有聊天、User 面具、世界书、备忘录、首页/聊天美化、朋友圈、自主消息、总结、关系便签、表情包、未读与在线状态，以及 API 的地址/模型等非敏感配置。不会导出 Chat / Image / Voice API Key，也不会导出 MCP Token。</div>
+  <div class="actions">
+    <button class="btn primary" id="exportPhoneData" type="button">导出小手机数据</button>
+    <button class="btn" id="phoneDataInfo" type="button">查看导出范围</button>
+  </div>
+  <div class="field"><label>导入方式</label><select class="input" id="phoneImportMode"><option value="merge">合并导入（推荐）</option><option value="replace">完整覆盖当前小手机数据</option></select></div>
+  <label class="backupFileBtn">选择小手机数据 JSON<input id="importPhoneDataFile" type="file" accept=".json,application/json"></label>
+  <div class="actions"><button class="btn" id="importPhoneData" type="button">导入小手机数据</button></div>
+  <div class="backupStatus" id="phoneDataStatus"></div>
+</div></div>
+
+<div class="settingGroup"><h3>CHAT BACKUP</h3><div class="settingBox backupBox">
+  <div class="backupMeta">导出的是可恢复聊天环境的 JSON 备份：联系人、聊天记录、User 面具、聊天总结、关系便签、未读状态、聊天主题、表情包和朋友圈。不会导出 API Key。</div>
+  <div class="actions">
+    <button class="btn primary" id="exportChatBackup" type="button">导出聊天备份</button>
+    <button class="btn" id="quickBackupInfo" type="button">查看备份范围</button>
+  </div>
+  <div class="field"><label>导入方式</label><select class="input" id="backupImportMode"><option value="merge">合并导入（推荐）</option><option value="replace">覆盖当前聊天数据</option></select></div>
+  <label class="backupFileBtn">选择聊天备份 JSON<input id="importChatBackupFile" type="file" accept=".json,application/json"></label>
+  <div class="actions"><button class="btn" id="importChatBackup" type="button">导入备份</button></div>
+  <div class="backupStatus" id="chatBackupStatus"></div>
 </div></div>
 
 <div class="settingGroup"><h3>CONTEXT MEMORY</h3><div class="settingBox form">
@@ -850,7 +900,7 @@ setTimeout(()=>{
 $("#enter").onclick=()=>{$("#root").classList.add("phoneMode");page("home")};$("#exit").onclick=()=>$("#root").classList.remove("phoneMode");$$("[data-open]").forEach(b=>b.onclick=()=>{page(b.dataset.open);if(b.dataset.open==="contacts")renderContacts();if(b.dataset.open==="messages")renderConvos();if(b.dataset.open==="beautify"){applyBeauty();renderIconCustomizer()}if(b.dataset.open==="chatBeauty")renderThemeEditor();if(b.dataset.open==="mcp")renderMcp();if(b.dataset.open==="moments"){renderMoments();markMomentsSeen()}if(b.dataset.open==="autonomy")renderAutonomy();if(b.dataset.open==="stickers")renderStickerLibraries();if(b.dataset.open==="masks")renderMasks();if(b.dataset.open==="worldbook")renderWorldbooks()});$$("[data-back]").forEach(b=>b.onclick=()=>{page(b.dataset.back);if(b.dataset.back==="contacts")renderContacts();if(b.dataset.back==="messages")renderConvos();if(b.dataset.back==="contactDetail"&&currentContact)openContact(currentContact);if(b.dataset.back==="chat"&&currentContact){renderChat();renderPresence()}});
 function av(c,cls="avatar"){return `<div class="${cls}">${c.avatar?`<img src="${c.avatar}" alt="">`:esc((c.name||"?")[0])}</div>`}
 function renderContacts(){let e=$("#contactsList");e.innerHTML=contacts.length?contacts.map(c=>`<button class="row contactRow" data-id="${c.id}">${av(c)}<div><div class="name">${esc(c.name)}</div><div class="sub">${esc(c.sourceLabel||"手动创建")}</div></div><div class="tiny">查看</div></button>`).join(""):'<div class="empty">还没有联系人。<br>可以导入角色卡、文档，或手动创建。</div>';$$(".contactRow").forEach(b=>b.onclick=()=>openContact(b.dataset.id))}
-function openContact(id){currentContact=id;let c=contacts.find(x=>x.id===id);if(!c)return;let boundCount=worldbooks.filter(w=>w.scope==="bound"&&(w.boundContactIds||[]).includes(id)).length;$("#contactDetailBody").innerHTML=`<div class="contactHero">${av(c,"bigAvatar")}<h2>${esc(c.name)}</h2><div class="actions"><button class="btn primary" id="msgC">发消息</button><button class="btn" id="wbBindC">世界书绑定</button><button class="btn" id="relationC">关系痕迹</button><button class="btn danger" id="delC">删除</button></div></div><div class="card"><div class="cardTitle">来源</div><div class="cardText">${esc(c.sourceLabel)}</div></div><div class="card"><div class="cardTitle">独立世界书</div><div class="cardText">已绑定 ${boundCount} 本；全局世界书仍会正常生效。</div></div><div class="card"><div class="cardTitle">角色设定</div><div class="cardText">${esc(c.character.description||c.character.rawText||"未填写")}</div></div>`;$("#msgC").onclick=()=>openChat(id);$("#wbBindC").onclick=()=>openContactWorldbooks(id);$("#relationC").onclick=()=>openRelationTrace(id);$("#delC").onclick=()=>{if(confirm("删除这个联系人及聊天记录？")){contacts=contacts.filter(x=>x.id!==id);Object.keys(convos).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete convos[k]});moments=moments.filter(x=>x.contactId!==id);delete autonomy[id];delete relationNotes[id];worldbooks.forEach(w=>w.boundContactIds=(w.boundContactIds||[]).filter(x=>x!==id));if(stickers.chars)delete stickers.chars[id];if(stickers.charUseUser)delete stickers.charUseUser[id];save(K.contacts,contacts);save(K.convos,convos);save(K.moments,moments);save(K.autonomy,autonomy);save(K.relationNotes,relationNotes);save(K.worldbooks,worldbooks);save(K.stickers,stickers);updateMomentBadge();renderContacts();page("contacts")}};page("contactDetail")}
+function openContact(id){currentContact=id;let c=contacts.find(x=>x.id===id);if(!c)return;let boundCount=worldbooks.filter(w=>w.scope==="bound"&&(w.boundContactIds||[]).includes(id)).length;$("#contactDetailBody").innerHTML=`<div class="contactHero">${av(c,"bigAvatar")}<h2>${esc(c.name)}</h2><div class="actions"><button class="btn primary" id="msgC">发消息</button><button class="btn" id="wbBindC">世界书绑定</button><button class="btn" id="relationC">关系痕迹</button><button class="btn danger" id="delC">删除</button></div></div><div class="card"><div class="cardTitle">来源</div><div class="cardText">${esc(c.sourceLabel)}</div></div><div class="card"><div class="cardTitle">独立世界书</div><div class="cardText">已绑定 ${boundCount} 本；全局世界书仍会正常生效。</div></div><div class="card"><div class="cardTitle">角色设定</div><div class="cardText">${esc(c.character.description||c.character.rawText||"未填写")}</div></div>`;$("#msgC").onclick=()=>openChat(id);$("#wbBindC").onclick=()=>openContactWorldbooks(id);$("#relationC").onclick=()=>openRelationTrace(id);$("#delC").onclick=()=>{if(confirm("删除这个联系人及聊天记录？")){contacts=contacts.filter(x=>x.id!==id);Object.keys(convos).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete convos[k]});moments=moments.filter(x=>x.contactId!==id);delete autonomy[id];Object.keys(relationNotes).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete relationNotes[k]});Object.keys(chatSummaries).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete chatSummaries[k]});delete chatThemes[id];delete presence[id];delete unread[id];worldbooks.forEach(w=>w.boundContactIds=(w.boundContactIds||[]).filter(x=>x!==id));if(stickers.chars)delete stickers.chars[id];if(stickers.charUseUser)delete stickers.charUseUser[id];save(K.contacts,contacts);save(K.convos,convos);save(K.moments,moments);save(K.autonomy,autonomy);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.chatThemes,chatThemes);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.worldbooks,worldbooks);save(K.stickers,stickers);updateMessageBadge();updateMomentBadge();renderContacts();page("contacts")}};page("contactDetail")}
 
 function openContactWorldbooks(id=currentContact){
   currentContact=id;
@@ -913,13 +963,97 @@ $("#chatMaskSelect").onchange=e=>{activeMaskId=e.target.value;localStorage.setIt
 function openChat(id){currentContact=id;chatSearchTerm="";clearReplyTarget();let c=contacts.find(x=>x.id===id);if(!c)return;$("#chatTitle").textContent=c.name;fillChatMaskSelect();let k=convoKey(id);if(!convos[k])convos[k]=[];if(!convos[k].length&&c.character.firstMes){convos[k].push({role:"assistant",content:c.character.firstMes,time:now()});save(K.convos,convos)}renderChat();page("chat");markChatRead(id);renderChat();renderPresence()}
 function pendingUserCount(h){let n=0;for(let i=h.length-1;i>=0;i--){if(h[i].role==="assistant")break;if(h[i].role==="user")n++}return n}
 function messagePlain(m){if(!m)return"";if(m.type==="sticker")return`[表情] ${m.mood||""}`;if(m.type==="image")return`[图片] ${m.caption||""}`;if(m.type==="voice")return`[语音] ${m.transcript||""}`;if(m.type==="transfer")return`[转账] ¥${Number(m.amount||0).toFixed(2)} ${m.note||""}`;return m.content||""}
-function renderChat(){let h=convos[convoKey(currentContact)]||[],pending=pendingUserCount(h),c=contacts.find(x=>x.id===currentContact),theme=effectiveChatBeauty();applyChatBeauty(theme);$("#chatBody").innerHTML=h.length?h.map((m,i)=>{let body=m.type==="sticker"?`<img src="${esc(m.url)}" alt="${esc(m.mood||"表情包")}">`:m.type==="image"?`<img src="${esc(m.url)}" alt="图片消息">`:m.type==="voice"?`<div class="voiceBubble"><span>🎙</span><audio controls src="${esc(m.url)}"></audio></div>`:m.type==="transfer"?`<div class="transferAmount">¥ ${Number(m.amount||0).toFixed(2)}</div><div class="transferNote">${esc(m.note||"转账")}</div>`:esc(m.content),isUser=m.role==="user",showAvatar=theme.showAvatar&&!isUser&&c,avatarHtml=showAvatar?av(c,"chatAvatar"):"",q=m.replyTo,quote=q?`<div class="quoteBox"><div class="quoteName">${esc(q.name||"")}</div><div class="quoteText">${esc(q.text||"")}</div></div>`:"",hit=chatSearchTerm&&messagePlain(m).toLowerCase().includes(chatSearchTerm.toLowerCase()),classes=`msg ${isUser?"user":""} ${isUser&&i>=h.length-pending?"pending":""} ${["sticker","image"].includes(m.type)?"stickerMsg richMedia":""} ${m.type==="transfer"?"transferMsg":""} ${showAvatar?"charWithAvatar":""} ${hit?"searchHit":""}`;return `<div class="${classes}" data-msg-index="${i}">${avatarHtml}<div class="${showAvatar?"chatContent":""}"><div class="bubble ${m.type==="transfer"?"transferBubble":""}">${quote}${body}</div><div class="tiny">${esc(m.time||"")}</div>${isUser?`<div class="msgState">${m.readByChar?"已读":"已送达"}</div>`:""}</div></div>`}).join(""):'<div class="empty">这个面具下还没有对话。</div>';let p=presence[currentContact]||{};if(p.typing)$("#chatBody").insertAdjacentHTML("beforeend",`<div class="typingRow"><span class="typingDots"><i></i><i></i><i></i></span><span>${esc(c?.name||"对方")} 正在输入…</span></div>`);$("#chatBody").scrollTop=$("#chatBody").scrollHeight;fillChatMaskSelect();$("#pendingHint").classList.toggle("show",pending>0);$("#replyBtn").disabled=pending===0;bindMessageMenus();renderPresence()}
+function renderChat(){let h=convos[convoKey(currentContact)]||[],pending=pendingUserCount(h),c=contacts.find(x=>x.id===currentContact),theme=effectiveChatBeauty(),mask=activeMask();applyChatBeauty(theme);let listenAvatar=(obj,cls)=>`<div class="listenTogetherAvatar ${cls}">${obj?.avatar?`<img src="${esc(obj.avatar)}" alt="">`:esc((obj?.userName||obj?.name||"?").trim().charAt(0)||"?")}</div>`,listenTogether=`<div class="listenTogetherAvatars">${listenAvatar(mask,"listenAvatarUser")}${listenAvatar(c,"listenAvatarChar")}</div>`;$("#chatBody").innerHTML=listenTogether+(h.length?h.map((m,i)=>{let body=m.type==="sticker"?`<img src="${esc(m.url)}" alt="${esc(m.mood||"表情包")}">`:m.type==="image"?`<img src="${esc(m.url)}" alt="图片消息">`:m.type==="voice"?`<div class="voiceBubble"><span>🎙</span><audio controls src="${esc(m.url)}"></audio></div>`:m.type==="transfer"?`<div class="transferAmount">¥ ${Number(m.amount||0).toFixed(2)}</div><div class="transferNote">${esc(m.note||"转账")}</div>`:esc(m.content),isUser=m.role==="user",showAvatar=theme.showAvatar&&!isUser&&c,avatarHtml=showAvatar?av(c,"chatAvatar"):"",q=m.replyTo,quote=q?`<div class="quoteBox"><div class="quoteName">${esc(q.name||"")}</div><div class="quoteText">${esc(q.text||"")}</div></div>`:"",hit=chatSearchTerm&&messagePlain(m).toLowerCase().includes(chatSearchTerm.toLowerCase()),classes=`msg ${isUser?"user":""} ${isUser&&i>=h.length-pending?"pending":""} ${["sticker","image"].includes(m.type)?"stickerMsg richMedia":""} ${m.type==="transfer"?"transferMsg":""} ${showAvatar?"charWithAvatar":""} ${hit?"searchHit":""}`;return `<div class="${classes}" data-msg-index="${i}">${avatarHtml}<div class="${showAvatar?"chatContent":""}"><div class="bubble ${m.type==="transfer"?"transferBubble":""}">${quote}${body}</div><div class="tiny">${esc(m.time||"")}</div>${isUser?`<div class="msgState">${m.readByChar?"已读":"已送达"}</div>`:""}</div></div>`}).join(""):'<div class="empty">这个面具下还没有对话。</div>');let p=presence[currentContact]||{};if(p.typing)$("#chatBody").insertAdjacentHTML("beforeend",`<div class="typingRow"><span class="typingDots"><i></i><i></i><i></i></span><span>${esc(c?.name||"对方")} 正在输入…</span></div>`);$("#chatBody").scrollTop=$("#chatBody").scrollHeight;fillChatMaskSelect();$("#pendingHint").classList.toggle("show",pending>0);$("#replyBtn").disabled=pending===0;bindMessageMenus();renderPresence()}
 function clearReplyTarget(){replyTarget=null;$("#replyDraft").classList.remove("show")}
 function setReplyTarget(i){let h=convos[convoKey(currentContact)]||[],m=h[i],c=contacts.find(x=>x.id===currentContact),mask=activeMask();if(!m)return;replyTarget={index:i,name:m.role==="user"?(mask?.userName||mask?.name||"user"):(c?.name||"Char"),text:messagePlain(m).slice(0,180)};$("#replyDraftName").textContent=replyTarget.name;$("#replyDraftText").textContent=replyTarget.text;$("#replyDraft").classList.add("show");$("#chatInput").focus()}
 function closeMsgMenu(){document.querySelectorAll(".msgMenu").forEach(x=>x.remove())}
 function bindMessageMenus(){$$("[data-msg-index]").forEach(el=>{let timer=null,start=e=>{timer=setTimeout(()=>openMsgMenu(el,Number(el.dataset.msgIndex)),430)},cancel=()=>{if(timer)clearTimeout(timer)};el.onpointerdown=start;el.onpointerup=cancel;el.onpointercancel=cancel;el.onpointermove=cancel;el.oncontextmenu=e=>{e.preventDefault();openMsgMenu(el,Number(el.dataset.msgIndex))}})}
 function openMsgMenu(el,i){closeMsgMenu();let h=convos[convoKey(currentContact)]||[],m=h[i];if(!m)return;let menu=document.createElement("div");menu.className="msgMenu";menu.innerHTML='<button data-a="reply">回复</button><button data-a="copy">复制</button><button data-a="delete">删除</button>';document.body.appendChild(menu);let r=el.getBoundingClientRect(),mw=menu.offsetWidth;menu.style.left=Math.max(8,Math.min(innerWidth-mw-8,r.left+r.width/2-mw/2))+"px";menu.style.top=Math.max(8,r.top-44)+"px";menu.onclick=async e=>{let a=e.target.dataset.a;if(!a)return;if(a==="reply")setReplyTarget(i);if(a==="copy"){try{await navigator.clipboard.writeText(messagePlain(m));toast("已复制")}catch{toast("复制失败")}}if(a==="delete"){h.splice(i,1);convos[convoKey(currentContact)]=h;save(K.convos,convos);clearReplyTarget();renderChat()}closeMsgMenu()};setTimeout(()=>document.addEventListener("pointerdown",closeMsgMenu,{once:true}),0)}
 $("#replyDraftClose").onclick=clearReplyTarget;
+
+
+let pendingBackupFile=null;
+$("#exportChatBackup").onclick=()=>{
+  let p=backupPayload(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");
+  downloadJsonFile(`web_phone_chat_backup_${stamp}.json`,p);
+  let c=backupCounts(p.data);
+  $("#chatBackupStatus").textContent=`已导出：${c.contacts} 个联系人 · ${c.chats} 组聊天 · ${c.masks} 个 User 面具 · ${c.summaries} 份长期总结`;
+  toast("聊天备份已导出")
+};
+$("#quickBackupInfo").onclick=()=>{
+  let c=backupCounts(backupPayload().data);
+  $("#chatBackupStatus").textContent=`当前可备份\n联系人：${c.contacts}\n聊天时间线：${c.chats}\nUser 面具：${c.masks}\n长期总结：${c.summaries}\n朋友圈：${c.moments}\n\n不会包含：Chat / Image / Voice API Key`;
+};
+$("#importChatBackupFile").onchange=e=>{
+  pendingBackupFile=e.target.files?.[0]||null;
+  $("#chatBackupStatus").textContent=pendingBackupFile?`已选择：${pendingBackupFile.name}`:"";
+};
+$("#importChatBackup").onclick=async()=>{
+  if(!pendingBackupFile)return toast("先选择备份 JSON");
+  let mode=$("#backupImportMode").value;
+  if(mode==="replace"&&!confirm("覆盖导入会替换当前联系人、聊天记录、User 面具、总结、主题等聊天数据。确定继续？"))return;
+  try{
+    let raw=JSON.parse(await pendingBackupFile.text()),d=normalizeBackupPayload(raw),c=backupCounts(d);
+    importBackupData(d,mode);
+    $("#chatBackupStatus").textContent=`导入完成：${c.contacts} 个联系人 · ${c.chats} 组聊天 · ${c.masks} 个 User 面具 · ${c.summaries} 份长期总结\n模式：${mode==="replace"?"覆盖":"合并"}`;
+    pendingBackupFile=null;$("#importChatBackupFile").value="";
+    toast("聊天备份已导入")
+  }catch(e){$("#chatBackupStatus").textContent="导入失败："+e.message}
+};
+
+
+
+// ===== V3.6 Full Phone Data Backup =====
+const PHONE_DATA_SCHEMA="web-phone-full-data";
+const PHONE_DATA_VERSION=1;
+let pendingPhoneDataFile=null;
+function withoutSecret(obj,fields){let x=cloneJson(obj||{});for(let f of fields)delete x[f];return x}
+function sanitizedMediaApi(){
+  let x=cloneJson(mediaApi||{});
+  if(x.image)delete x.image.key;
+  if(x.voice)delete x.voice.key;
+  return x
+}
+function sanitizedMcp(){return (mcpServers||[]).map(s=>{let x=cloneJson(s);delete x.token;return x})}
+function phoneDataPayload(){
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"3.6",data:{
+    contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
+    worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
+    moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
+    chatSummaries:cloneJson(chatSummaries),summarySettings:cloneJson(summarySettings),presence:cloneJson(presence),unread:cloneJson(unread),
+    settings:withoutSecret(settings,["apiKey"]),mediaApi:sanitizedMediaApi(),mcpServers:sanitizedMcp()
+  }}
+}
+function phoneDataCounts(d){return {contacts:Array.isArray(d.contacts)?d.contacts.length:0,chats:d.convos&&typeof d.convos==="object"?Object.keys(d.convos).length:0,masks:Array.isArray(d.masks)?d.masks.length:0,worldbooks:Array.isArray(d.worldbooks)?d.worldbooks.length:0,moments:Array.isArray(d.moments)?d.moments.length:0,stickers:(d.stickers?.user?.length||0)+Object.values(d.stickers?.chars||{}).reduce((n,a)=>n+(Array.isArray(a)?a.length:0),0)}}
+function normalizePhoneData(raw){
+  if(!raw||raw.schema!==PHONE_DATA_SCHEMA)throw Error("不是 Web Phone 小手机数据备份");
+  if(Number(raw.version)!==PHONE_DATA_VERSION)throw Error("暂不支持这个小手机备份版本");
+  let d=raw.data||{};
+  return {contacts:Array.isArray(d.contacts)?d.contacts:[],convos:d.convos&&typeof d.convos==="object"?d.convos:{},masks:Array.isArray(d.masks)?d.masks:[],activeMaskId:String(d.activeMaskId||""),worldbooks:Array.isArray(d.worldbooks)?d.worldbooks:[],notes:String(d.notes||""),beauty:d.beauty&&typeof d.beauty==="object"?d.beauty:{},chatBeauty:d.chatBeauty&&typeof d.chatBeauty==="object"?d.chatBeauty:{},chatThemes:d.chatThemes&&typeof d.chatThemes==="object"?d.chatThemes:{},moments:Array.isArray(d.moments)?d.moments:[],autonomy:d.autonomy&&typeof d.autonomy==="object"?d.autonomy:{},momentSeen:Number(d.momentSeen||0),stickers:d.stickers&&typeof d.stickers==="object"?d.stickers:{user:[],chars:{},charUseUser:{}},relationNotes:d.relationNotes&&typeof d.relationNotes==="object"?d.relationNotes:{},chatSummaries:d.chatSummaries&&typeof d.chatSummaries==="object"?d.chatSummaries:{},summarySettings:d.summarySettings&&typeof d.summarySettings==="object"?d.summarySettings:{},presence:d.presence&&typeof d.presence==="object"?d.presence:{},unread:d.unread&&typeof d.unread==="object"?d.unread:{},settings:d.settings&&typeof d.settings==="object"?d.settings:{},mediaApi:d.mediaApi&&typeof d.mediaApi==="object"?d.mediaApi:{},mcpServers:Array.isArray(d.mcpServers)?d.mcpServers:[]}
+}
+function mergeNotes(a,b){a=String(a||"").trim();b=String(b||"").trim();if(!a)return b;if(!b||a===b)return a;return a+"\n\n--- 导入备忘录 ---\n"+b}
+function mergeStickers(a,b){
+  let out={user:[...((a&&a.user)||[])],chars:Object.assign({},a?.chars||{}),charUseUser:Object.assign({},a?.charUseUser||{},b?.charUseUser||{})};
+  let um=new Map(out.user.map(x=>[x.id||x.url,x]));for(let x of b?.user||[])um.set(x.id||x.url,x);out.user=[...um.values()];
+  for(let [cid,list] of Object.entries(b?.chars||{})){let sm=new Map((out.chars[cid]||[]).map(x=>[x.id||x.url,x]));for(let x of list||[])sm.set(x.id||x.url,x);out.chars[cid]=[...sm.values()]}
+  return out
+}
+function applyPhoneData(d,mode){
+  if(mode==="replace"){
+    contacts=d.contacts;convos=d.convos;masks=d.masks;activeMaskId=d.activeMaskId;worldbooks=d.worldbooks;beauty=Object.assign({},beauty,d.beauty);chatBeauty=Object.assign({},chatBeauty,d.chatBeauty);chatThemes=d.chatThemes;moments=d.moments;autonomy=d.autonomy;momentSeen=d.momentSeen;stickers=d.stickers;relationNotes=d.relationNotes;chatSummaries=d.chatSummaries;summarySettings=Object.assign({},summarySettings,d.summarySettings);presence=d.presence;unread=d.unread;settings=Object.assign({},settings,d.settings);mediaApi=Object.assign({},mediaApi,d.mediaApi);mcpServers=d.mcpServers;
+    localStorage.setItem(K.notes,d.notes||"")
+  }else{
+    contacts=mergeById(contacts,d.contacts);convos=mergeConvos(convos,d.convos);masks=mergeById(masks,d.masks);worldbooks=mergeById(worldbooks,d.worldbooks);beauty=Object.assign({},beauty,d.beauty);chatBeauty=Object.assign({},chatBeauty,d.chatBeauty);chatThemes=mergeObjectShallow(chatThemes,d.chatThemes);moments=mergeById(moments,d.moments);autonomy=mergeObjectShallow(autonomy,d.autonomy);momentSeen=Math.max(Number(momentSeen||0),Number(d.momentSeen||0));stickers=mergeStickers(stickers,d.stickers);relationNotes=mergeObjectShallow(relationNotes,d.relationNotes);chatSummaries=mergeObjectShallow(chatSummaries,d.chatSummaries);summarySettings=Object.assign({},summarySettings,d.summarySettings);presence=mergeObjectShallow(presence,d.presence);unread=mergeObjectShallow(unread,d.unread);settings=Object.assign({},settings,d.settings);mediaApi=Object.assign({},mediaApi,d.mediaApi);mcpServers=mergeById(mcpServers,d.mcpServers);localStorage.setItem(K.notes,mergeNotes(localStorage.getItem(K.notes)||"",d.notes));if(!activeMaskId&&d.activeMaskId)activeMaskId=d.activeMaskId
+  }
+  if(!masks.length)masks=[{id:"mask_default",name:"默认 user",userName:"user",avatar:"",prompt:"",note:""}];
+  if(!masks.some(x=>x.id===activeMaskId))activeMaskId=masks[0].id;
+  delete settings.apiKey;if(mediaApi.image)delete mediaApi.image.key;if(mediaApi.voice)delete mediaApi.voice.key;for(let srv of mcpServers)delete srv.token;
+  save(K.contacts,contacts);save(K.convos,convos);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId);save(K.worldbooks,worldbooks);save(K.beauty,beauty);save(K.chatBeauty,chatBeauty);save(K.chatThemes,chatThemes);save(K.moments,moments);save(K.autonomy,autonomy);localStorage.setItem(K.momentSeen,String(momentSeen));save(K.stickers,stickers);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.summarySettings,summarySettings);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.settings,settings);save(K.mediaApi,mediaApi);save(K.mcp,mcpServers)
+}
+$("#exportPhoneData").onclick=()=>{let p=phoneDataPayload(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");downloadJsonFile(`web_phone_full_data_${stamp}.json`,p);let c=phoneDataCounts(p.data);$("#phoneDataStatus").textContent=`已导出：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.masks} 面具 · ${c.worldbooks} 世界书 · ${c.moments} 朋友圈`;toast("小手机数据已导出")};
+$("#phoneDataInfo").onclick=()=>{let c=phoneDataCounts(phoneDataPayload().data);$("#phoneDataStatus").textContent=`当前整机备份\n联系人：${c.contacts}\n聊天时间线：${c.chats}\nUser 面具：${c.masks}\n世界书：${c.worldbooks}\n朋友圈：${c.moments}\n表情包：${c.stickers}\n\n还包括：备忘录、美化、聊天主题、自主消息、关系便签、长期总结、上下文设置、未读/在线状态、API 地址与模型配置、MCP 地址和工具列表\n\n绝不包含：Chat / Image / Voice API Key、MCP Token`};
+$("#importPhoneDataFile").onchange=e=>{pendingPhoneDataFile=e.target.files?.[0]||null;$("#phoneDataStatus").textContent=pendingPhoneDataFile?`已选择：${pendingPhoneDataFile.name}`:""};
+$("#importPhoneData").onclick=async()=>{if(!pendingPhoneDataFile)return toast("先选择小手机数据 JSON");let mode=$("#phoneImportMode").value;if(mode==="replace"&&!confirm("完整覆盖会替换当前小手机的联系人、聊天、世界书、美化、备忘录等本地数据。API Key 和 MCP Token 不会从备份恢复。确定继续？"))return;try{let raw=JSON.parse(await pendingPhoneDataFile.text()),d=normalizePhoneData(raw),c=phoneDataCounts(d);applyPhoneData(d,mode);$("#phoneDataStatus").textContent=`导入完成：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.worldbooks} 世界书\n模式：${mode==="replace"?"完整覆盖":"合并"}\n即将刷新以重新载入全部数据…`;toast("小手机数据已导入");pendingPhoneDataFile=null;$("#importPhoneDataFile").value="";setTimeout(()=>location.reload(),700)}catch(e){$("#phoneDataStatus").textContent="导入失败："+e.message}};
 
 $("#chatSummaryBtn").onclick=openSummaryPage;
 $("#saveChatSummary").onclick=()=>{let r=summaryRecord(currentContact);r.text=$("#chatSummaryText").value.trim();r.updatedAt=Date.now();chatSummaries[summaryKey(currentContact)]=r;saveSummaries();renderSummaryPage();toast("总结已保存")};
@@ -929,6 +1063,123 @@ $("#generateChatSummary").onclick=async()=>{if(summaryBusy)return;$("#summaryPro
 $("#chatSearchBtn").onclick=()=>{$("#chatSearchBar").classList.toggle("show");if($("#chatSearchBar").classList.contains("show"))$("#chatSearchInput").focus()};
 $("#chatSearchClose").onclick=()=>{chatSearchTerm="";$("#chatSearchInput").value="";$("#chatSearchBar").classList.remove("show");renderChat()};
 $("#chatSearchInput").oninput=e=>{chatSearchTerm=e.target.value.trim();renderChat();if(chatSearchTerm){let hit=$(".searchHit");if(hit)hit.scrollIntoView({block:"center"})}};
+
+
+const CHAT_BACKUP_SCHEMA="web-phone-chat-backup";
+const CHAT_BACKUP_VERSION=1;
+
+function cloneJson(v){return JSON.parse(JSON.stringify(v))}
+function backupPayload(){
+  return {
+    schema:CHAT_BACKUP_SCHEMA,
+    version:CHAT_BACKUP_VERSION,
+    exportedAt:new Date().toISOString(),
+    appVersion:"3.6",
+    data:{
+      contacts:cloneJson(contacts),
+      convos:cloneJson(convos),
+      masks:cloneJson(masks),
+      activeMaskId:activeMaskId||"",
+      chatSummaries:cloneJson(chatSummaries),
+      relationNotes:cloneJson(relationNotes),
+      unread:cloneJson(unread),
+      chatThemes:cloneJson(chatThemes),
+      stickers:cloneJson(stickers),
+      moments:cloneJson(moments)
+    }
+  }
+}
+function downloadJsonFile(filename,obj){
+  let blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json;charset=utf-8"});
+  let url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1200)
+}
+function backupCounts(data){
+  return {
+    contacts:Array.isArray(data.contacts)?data.contacts.length:0,
+    chats:data.convos&&typeof data.convos==="object"?Object.keys(data.convos).length:0,
+    masks:Array.isArray(data.masks)?data.masks.length:0,
+    summaries:data.chatSummaries&&typeof data.chatSummaries==="object"?Object.keys(data.chatSummaries).filter(k=>data.chatSummaries[k]?.text).length:0,
+    moments:Array.isArray(data.moments)?data.moments.length:0
+  }
+}
+function normalizeBackupPayload(raw){
+  if(!raw||raw.schema!==CHAT_BACKUP_SCHEMA)throw Error("不是 Web Phone 聊天备份文件");
+  if(Number(raw.version)!==1)throw Error("暂不支持这个备份版本");
+  let d=raw.data||{};
+  return {
+    contacts:Array.isArray(d.contacts)?d.contacts:[],
+    convos:d.convos&&typeof d.convos==="object"?d.convos:{},
+    masks:Array.isArray(d.masks)?d.masks:[],
+    activeMaskId:String(d.activeMaskId||""),
+    chatSummaries:d.chatSummaries&&typeof d.chatSummaries==="object"?d.chatSummaries:{},
+    relationNotes:d.relationNotes&&typeof d.relationNotes==="object"?d.relationNotes:{},
+    unread:d.unread&&typeof d.unread==="object"?d.unread:{},
+    chatThemes:d.chatThemes&&typeof d.chatThemes==="object"?d.chatThemes:{},
+    stickers:d.stickers&&typeof d.stickers==="object"?d.stickers:{user:[],chars:{},charUseUser:{}},
+    moments:Array.isArray(d.moments)?d.moments:[]
+  }
+}
+function mergeById(current,incoming){
+  let map=new Map((current||[]).map(x=>[x.id,x]));
+  for(let x of incoming||[]){if(x&&x.id)map.set(x.id,Object.assign({},map.get(x.id)||{},x))}
+  return [...map.values()]
+}
+function mergeObjectShallow(a,b){return Object.assign({},a||{},b||{})}
+function messageSignature(m){return [m?.role||"",m?.type||"text",m?.time||"",m?.createdAt||"",m?.content||"",m?.url||"",m?.amount||"",m?.note||""].join("¦")}
+function mergeTimeline(a,b){
+  let out=[],seen=new Set();
+  for(let m of [...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])]){let sig=messageSignature(m);if(seen.has(sig))continue;seen.add(sig);out.push(m)}
+  return out
+}
+function mergeConvos(a,b){let out=Object.assign({},a||{});for(let [k,list] of Object.entries(b||{}))out[k]=mergeTimeline(out[k],list);return out}
+function importBackupData(d,mode="merge"){
+  if(mode==="replace"){
+    contacts=d.contacts;
+    convos=d.convos;
+    masks=d.masks;
+    activeMaskId=d.activeMaskId||masks[0]?.id||"";
+    chatSummaries=d.chatSummaries;
+    relationNotes=d.relationNotes;
+    unread=d.unread;
+    chatThemes=d.chatThemes;
+    stickers=d.stickers;
+    moments=d.moments;
+  }else{
+    contacts=mergeById(contacts,d.contacts);
+    convos=mergeConvos(convos,d.convos);
+    masks=mergeById(masks,d.masks);
+    if(!activeMaskId&&d.activeMaskId)activeMaskId=d.activeMaskId;
+    chatSummaries=mergeObjectShallow(chatSummaries,d.chatSummaries);
+    relationNotes=mergeObjectShallow(relationNotes,d.relationNotes);
+    unread=mergeObjectShallow(unread,d.unread);
+    chatThemes=mergeObjectShallow(chatThemes,d.chatThemes);
+    moments=mergeById(moments,d.moments);
+    stickers={
+      user:[...(stickers.user||[])],
+      chars:Object.assign({},stickers.chars||{}),
+      charUseUser:Object.assign({},stickers.charUseUser||{})
+    };
+    if(Array.isArray(d.stickers?.user)){
+      let sm=new Map(stickers.user.map(x=>[x.id||x.url,x]));
+      for(let x of d.stickers.user)sm.set(x.id||x.url,x);
+      stickers.user=[...sm.values()]
+    }
+    for(let [cid,list] of Object.entries(d.stickers?.chars||{})){
+      let sm=new Map((stickers.chars[cid]||[]).map(x=>[x.id||x.url,x]));
+      for(let x of list||[])sm.set(x.id||x.url,x);
+      stickers.chars[cid]=[...sm.values()]
+    }
+    stickers.charUseUser=Object.assign(stickers.charUseUser,d.stickers?.charUseUser||{})
+  }
+  if(!masks.length)masks=[{id:"mask_default",name:"默认 user",userName:"user",avatar:"",prompt:"",note:""}];
+  if(!masks.some(x=>x.id===activeMaskId))activeMaskId=masks[0]?.id||"mask_default";
+  save(K.contacts,contacts);save(K.convos,convos);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId);
+  save(K.chatSummaries,chatSummaries);save(K.relationNotes,relationNotes);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);
+  save(K.chatThemes,chatThemes);save(K.stickers,stickers);save(K.moments,moments);
+  renderContacts();renderConvos();updateMessageBadge();updateMomentBadge();renderHomeIcons?.();renderStickerLibraries?.();
+}
 
 function summaryKey(contactId=currentContact,maskId=activeMaskId){return `${contactId||"none"}::${maskId||"mask_default"}`}
 function summaryRecord(contactId=currentContact,maskId=activeMaskId){
