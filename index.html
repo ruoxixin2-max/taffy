@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V3.9.4 · 表情包添加修复</title>
+<title>咖喱小手机 V3.9.7 · 图片转账按钮重做</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -726,6 +726,84 @@ body.phoneActive .page{
   overflow-x:hidden!important;
 }
 
+
+/* ===== V3.9.6 表情包库紧凑显示 ===== */
+.stickerGrid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+.stickerCard{
+  min-width:0!important;
+  padding:6px!important;
+  border-radius:11px!important;
+  overflow:hidden!important;
+}
+.stickerCard img{
+  width:100%!important;
+  aspect-ratio:1/1!important;
+  object-fit:contain!important;
+  border-radius:8px!important;
+  background:#f7f7f5!important;
+}
+.stickerMood{
+  margin-top:5px!important;
+  font-size:8px!important;
+  line-height:1.25!important;
+}
+.stickerUrl{
+  display:none!important;
+}
+.stickerActions{
+  margin-top:5px!important;
+}
+.stickerActions .btn{
+  padding:5px 4px!important;
+  font-size:7px!important;
+}
+.stickerLibraryHead{
+  margin:14px 0 8px!important;
+}
+@media (max-width:420px){
+  .stickerGrid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+
+
+/* ===== V3.9.7 仅重做“发图片 / 转账”两个通用功能按钮 ===== */
+.curryMediaAction{
+  position:relative!important;
+  min-width:0!important;
+  min-height:42px!important;
+  padding:8px 14px 8px 36px!important;
+  border:1px solid rgba(120,120,116,.20)!important;
+  border-radius:13px!important;
+  background:rgba(246,245,241,.10)!important;
+  box-shadow:none!important;
+  color:inherit!important;
+  font-size:13px!important;
+  font-weight:500!important;
+  letter-spacing:.01em!important;
+}
+.curryMediaAction::before{
+  position:absolute;
+  left:13px;
+  top:50%;
+  transform:translateY(-50%);
+  width:16px;
+  height:16px;
+  display:grid;
+  place-items:center;
+  font-size:15px;
+  line-height:1;
+  opacity:.72;
+}
+.curryMediaImage::before{content:"▧"}
+.curryMediaTransfer::before{content:"⇄"}
+.curryMediaAction:active{
+  transform:scale(.98)!important;
+  background:rgba(246,245,241,.16)!important;
+}
+
 </style>
 <style id="customThemeStyle"></style>
 <style id="chatCustomThemeStyle"></style>
@@ -1091,7 +1169,7 @@ body.phoneActive{
 <div class="field"><label>图片 URL</label><input class="input" id="stickerUrl" placeholder="https://..."></div>
 <div class="field"><label>表达的情绪 / 含义</label><input class="input" id="stickerMood" placeholder="开心 / 无语 / 阴阳怪气 / ..."></div>
 <div class="field"><label>本地图片</label><input class="input" id="stickerFile" type="file" accept="image/*"><div class="help">本地图片会在保存时处理，不需要再填写图片 URL。</div><div id="stickerLocalStatus" class="statusText"></div><div id="stickerPreview" style="display:none;margin-top:8px"><img alt="表情包预览" style="display:block;max-width:120px;max-height:120px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff"></div></div>
-<div class="field"><label>批量导入 TXT / DOCX</label><input class="input" id="stickerDoc" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="help">每行一个 URL。也支持 URL | 情绪。DOCX 会按行读取。</div></div>
+<div class="field"><label>批量导入 TXT / DOCX</label><input class="input" id="stickerDoc" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="help">每行一个 URL，也支持 URL | 情绪。DOCX 同时识别普通文字 URL 和 Word 可点击超链接。</div></div>
 </div></div></section>
 <section class="page" data-page="moments">
 <header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">朋友圈</div><button class="headAction" id="refreshMoments">刷新</button></header>
@@ -1741,7 +1819,7 @@ function ensureStickerShape(){if(!stickers||typeof stickers!=="object")stickers=
 ensureStickerShape();
 function charStickerLib(id){ensureStickerShape();if(!Array.isArray(stickers.chars[id]))stickers.chars[id]=[];return stickers.chars[id]}
 function stickerOwnerOptions(){return `<option value="user">User</option>`+contacts.map(c=>`<option value="char:${c.id}">${esc(c.name)}</option>`).join("")}
-function stickerCards(list,owner){if(!list.length)return"";return `<div class="stickerGrid">`+list.map(s=>`<div class="stickerCard"><img src="${esc(s.url)}" alt="${esc(s.mood||"表情包")}"><div class="stickerMood">${esc(s.mood||"未标注情绪")}</div><div class="stickerUrl">${esc(s.url)}</div><div class="stickerActions"><button class="btn danger" data-sticker-owner="${owner}" data-sticker-delete="${s.id}">删除</button></div></div>`).join("")+`</div>`}
+function stickerCards(list,owner){if(!list.length)return"";return `<div class="stickerGrid">`+list.map(s=>`<div class="stickerCard"><img src="${esc(s.url)}" alt="${esc(s.mood||"表情包")}">${s.mood?`<div class="stickerMood">${esc(s.mood)}</div>`:""}<div class="stickerUrl">${esc(s.url)}</div><div class="stickerActions"><button class="btn danger" data-sticker-owner="${owner}" data-sticker-delete="${s.id}">删除</button></div></div>`).join("")+`</div>`}
 function renderStickerLibraries(){ensureStickerShape();let box=$("#stickerLibraries"),out=`<div class="stickerLibraryHead"><div class="stickerLibraryTitle">User 表情包库</div><div class="tiny">${stickers.user.length} 张</div></div>${stickerCards(stickers.user,"user")||'<div class="empty" style="padding:22px 10px">还没有 User 表情包</div>'}`;for(const c of contacts){let lib=charStickerLib(c.id),use=!!stickers.charUseUser[c.id];out+=`<div class="stickerLibraryHead"><div class="stickerLibraryTitle">${esc(c.name)} 的表情包库</div><label class="tiny"><input type="checkbox" data-char-use-user="${c.id}" ${use?"checked":""}> 可使用 User 表情包库</label></div>${stickerCards(lib,"char:"+c.id)||'<div class="empty" style="padding:22px 10px">这个 Char 还没有自己的表情包</div>'}`}box.innerHTML=out;$$("[data-char-use-user]").forEach(x=>x.onchange=()=>{stickers.charUseUser[x.dataset.charUseUser]=x.checked;save(K.stickers,stickers)});$$("[data-sticker-delete]").forEach(x=>x.onclick=()=>{let owner=x.dataset.stickerOwner,id=x.dataset.stickerDelete;if(owner==="user")stickers.user=stickers.user.filter(s=>s.id!==id);else{let cid=owner.replace("char:","");stickers.chars[cid]=charStickerLib(cid).filter(s=>s.id!==id)}save(K.stickers,stickers);renderStickerLibraries()})}
 let pendingStickerLocalUrl="",pendingStickerFileToken=0;
 
@@ -1818,8 +1896,88 @@ $("#stickerFile").onchange=async e=>{
   }
 };
 
-async function readStickerDocx(file){if(!window.JSZip)await script("https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js");let z=await JSZip.loadAsync(await file.arrayBuffer()),xml=await z.file("word/document.xml").async("text"),d=new DOMParser().parseFromString(xml,"application/xml");return [...d.getElementsByTagNameNS("*","p")].map(p=>[...p.getElementsByTagNameNS("*","t")].map(n=>n.textContent).join("")).join("\n")}
-function parseStickerLines(text){return String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>{let p=line.split(/\s*\|\s*/);return{url:p[0].trim(),mood:(p.slice(1).join(" | ")||"").trim()}}).filter(x=>/^https?:\/\//i.test(x.url))}
+async function readStickerDocx(file){
+  if(!window.JSZip)await script("https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js");
+  let z=await JSZip.loadAsync(await file.arrayBuffer());
+  let docFile=z.file("word/document.xml");
+  if(!docFile)throw new Error("DOCX 中缺少 word/document.xml");
+  let xml=await docFile.async("text");
+
+  /* 1) Extract visible paragraph text as before. */
+  let d=new DOMParser().parseFromString(xml,"application/xml");
+  let lines=[...d.getElementsByTagNameNS("*","p")]
+    .map(p=>[...p.getElementsByTagNameNS("*","t")].map(n=>n.textContent).join("").trim())
+    .filter(Boolean);
+
+  /* 2) Word often stores clickable URLs in document.xml.rels instead of w:t.
+        Read hyperlink relationship Targets and append them as real URLs. */
+  let relMap={};
+  let relFile=z.file("word/_rels/document.xml.rels");
+  if(relFile){
+    let relXml=await relFile.async("text");
+    let relDoc=new DOMParser().parseFromString(relXml,"application/xml");
+    for(let r of [...relDoc.getElementsByTagNameNS("*","Relationship")]){
+      let id=r.getAttribute("Id")||"";
+      let target=r.getAttribute("Target")||"";
+      let type=r.getAttribute("Type")||"";
+      if(id && target && /hyperlink/i.test(type)){
+        try{ target=decodeURIComponent(target) }catch{}
+        relMap[id]=target;
+      }
+    }
+
+    /* Preserve document order where possible by reading r:id on w:hyperlink. */
+    for(let h of [...d.getElementsByTagNameNS("*","hyperlink")]){
+      let rid=h.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id")
+             ||h.getAttribute("r:id")||"";
+      let target=relMap[rid];
+      if(target)lines.push(target);
+    }
+
+    /* Also include any hyperlink relationship not referenced above. */
+    lines.push(...Object.values(relMap));
+  }
+
+  /* 3) Some DOCX generators leave raw URLs in XML attributes/text.
+        Extract those too, including XML-escaped ampersands. */
+  let raw=(xml+"\n"+Object.values(relMap).join("\n"))
+    .replace(/&amp;/g,"&")
+    .replace(/&quot;/g,'"');
+  let rawUrls=raw.match(/https?:\/\/[^\s<>"']+/gi)||[];
+  lines.push(...rawUrls);
+
+  /* De-duplicate while preserving order. */
+  let seen=new Set(),out=[];
+  for(let x of lines){
+    x=String(x||"").trim();
+    if(!x||seen.has(x))continue;
+    seen.add(x);out.push(x);
+  }
+  return out.join("\n")
+}
+
+function parseStickerLines(text){
+  let items=[],seen=new Set();
+  for(let rawLine of String(text||"").split(/\r?\n/)){
+    let line=rawLine.trim();
+    if(!line)continue;
+
+    /* Normal format: URL | 情绪 */
+    let m=line.match(/(https?:\/\/[^\s|<>"']+)/i);
+    if(!m)continue;
+
+    let url=m[1].replace(/[),.;，。；]+$/,"");
+    let mood="";
+    let pipe=line.indexOf("|");
+    if(pipe>=0)mood=line.slice(pipe+1).trim();
+
+    if(!seen.has(url)){
+      seen.add(url);
+      items.push({url,mood});
+    }
+  }
+  return items
+}
 
 $("#saveSticker").onclick=async()=>{
   let owner=$("#stickerOwner").value,doc=$("#stickerDoc").files[0],localFile=$("#stickerFile").files?.[0],items=[];
@@ -1870,7 +2028,7 @@ $("#saveSticker").onclick=async()=>{
 };
 function mergedStickerLibForChar(charId){let own=[...charStickerLib(charId)];if(stickers.charUseUser[charId])own.push(...stickers.user);return own}
 function stickerPromptForChar(charId){let lib=mergedStickerLibForChar(charId);if(!lib.length)return"";return "STICKER LIBRARY:\\n"+lib.map((s,i)=>`${i+1}. mood=${s.mood||"unspecified"} url=${s.url}`).join("\\n")+'\\nYou may send a sticker when natural. To send one, output exactly: <sticker><url>EXACT_URL_FROM_LIBRARY</url><mood>MOOD</mood></sticker>. Never invent a sticker URL. Normal text still uses <message>...</message>.'}
-function renderStickerPicker(){let box=$("#stickerPickerGrid"),list=stickers.user||[];box.innerHTML=list.length?list.map(s=>`<button type="button" class="stickerPick" data-pick-sticker="${s.id}"><img src="${esc(s.url)}" alt=""><span>${esc(s.mood||"表情包")}</span></button>`).join(""):'<div class="empty" style="grid-column:1/-1;padding:25px 5px">User 表情包库还是空的</div>';$$("[data-pick-sticker]").forEach(b=>b.onclick=()=>{let s=stickers.user.find(x=>x.id===b.dataset.pickSticker);if(!s||!currentContact)return;let k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",type:"sticker",url:s.url,mood:s.mood||"",time:now(),createdAt:Date.now()});convos[k]=h;save(K.convos,convos);$("#stickerPicker").classList.remove("show");renderChat()})}
+function renderStickerPicker(){let box=$("#stickerPickerGrid"),list=stickers.user||[];box.innerHTML=list.length?list.map(s=>`<button type="button" class="stickerPick" data-pick-sticker="${s.id}"><img src="${esc(s.url)}" alt="">${s.mood?`<span>${esc(s.mood)}</span>`:""}</button>`).join(""):'<div class="empty" style="grid-column:1/-1;padding:25px 5px">User 表情包库还是空的</div>';$$("[data-pick-sticker]").forEach(b=>b.onclick=()=>{let s=stickers.user.find(x=>x.id===b.dataset.pickSticker);if(!s||!currentContact)return;let k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",type:"sticker",url:s.url,mood:s.mood||"",time:now(),createdAt:Date.now()});convos[k]=h;save(K.convos,convos);$("#stickerPicker").classList.remove("show");renderChat()})}
 $("#stickerBtn").onclick=()=>{renderStickerPicker();$("#stickerPicker").classList.toggle("show")};
 
 const IMAGE_PRESETS={
@@ -2288,4 +2446,25 @@ document.addEventListener("fullscreenchange",()=>{
 applyBeauty();renderIconCustomizer();
 
 })();
+
+/* ===== V3.9.7 generic media-action button styling hook =====
+   Only marks buttons whose visible text is exactly 发图片 / 图片 / 转账.
+   It never marks 取消, 回复, composer, or listen-together containers. */
+function markCurryMediaButtons(root=document){
+  root.querySelectorAll("button").forEach(btn=>{
+    let t=(btn.textContent||"").trim().replace(/\s+/g,"");
+    if(t==="发图片"||t==="图片"){
+      btn.classList.add("curryMediaAction","curryMediaImage");
+    }else if(t==="转账"){
+      btn.classList.add("curryMediaAction","curryMediaTransfer");
+    }
+  });
+}
+markCurryMediaButtons();
+new MutationObserver(muts=>{
+  for(let m of muts){
+    if(m.addedNodes?.length){markCurryMediaButtons();break}
+  }
+}).observe(document.body,{childList:true,subtree:true});
+
 </script></body></html>
