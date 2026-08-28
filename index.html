@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V3.9.7 · 图片转账按钮重做</title>
+<title>咖喱小手机 V3.9.9 · 备份导出修复</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -804,6 +804,43 @@ body.phoneActive .page{
   background:rgba(246,245,241,.16)!important;
 }
 
+
+/* ===== V3.9.8 图片 / 转账：真正缩成小按钮 ===== */
+.curryMediaAction{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:34px!important;
+  height:34px!important;
+  padding:0 12px 0 31px!important;
+  border-radius:17px!important;
+  font-size:12px!important;
+  line-height:34px!important;
+}
+.curryMediaAction::before{
+  left:11px!important;
+  font-size:12px!important;
+}
+
+/* 只要操作栏里出现这两个标记按钮，就不再让它们吃 1fr。
+   取消按钮保持原有视觉，只占剩余空间。 */
+*:has(> .curryMediaAction){
+  column-gap:8px!important;
+}
+*:has(> .curryMediaAction) > .curryMediaAction{
+  flex-grow:0!important;
+  flex-shrink:0!important;
+}
+
+/* 常见 grid 三等分容器：改成两个 auto + 原第三格。
+   仅命中“直接子元素包含 curryMediaAction”的容器。 */
+@supports selector(:has(*)){
+  *:has(> .curryMediaAction){
+    grid-template-columns:auto auto minmax(0,1fr)!important;
+  }
+}
+
 </style>
 <style id="customThemeStyle"></style>
 <style id="chatCustomThemeStyle"></style>
@@ -1486,12 +1523,13 @@ $("#replyDraftClose").onclick=clearReplyTarget;
 
 
 let pendingBackupFile=null;
-$("#exportChatBackup").onclick=()=>{
+$("#exportChatBackup").onclick=async()=>{
   let p=backupPayload(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");
-  downloadJsonFile(`web_phone_chat_backup_${stamp}.json`,p);
+  let r=await downloadJsonFile(`curry_phone_chat_backup_${stamp}.json`,p);
+  if(!r?.ok){if(!r?.cancelled)toast("导出失败，请重试");return}
   let c=backupCounts(p.data);
-  $("#chatBackupStatus").textContent=`已导出：${c.contacts} 个联系人 · ${c.chats} 组聊天 · ${c.masks} 个 User 面具 · ${c.summaries} 份长期总结`;
-  toast("聊天备份已导出")
+  $("#chatBackupStatus").textContent=`已导出：${c.contacts} 个联系人 · ${c.chats} 组聊天 · ${c.masks} 个 User 面具 · ${c.summaries} 份长期总结\n${r.method==="share"?"iPhone：请在系统面板选择「存储到文件」":"备份文件已交给浏览器下载"}`;
+  toast(r.method==="share"?"请选择「存储到文件」":"聊天备份已导出")
 };
 $("#quickBackupInfo").onclick=()=>{
   let c=backupCounts(backupPayload().data);
@@ -1563,7 +1601,7 @@ function applyPhoneData(d,mode){
   delete settings.apiKey;if(mediaApi.image)delete mediaApi.image.key;if(mediaApi.voice)delete mediaApi.voice.key;for(let srv of mcpServers)delete srv.token;
   save(K.contacts,contacts);save(K.convos,convos);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId);save(K.worldbooks,worldbooks);save(K.beauty,beauty);save(K.chatBeauty,chatBeauty);save(K.chatThemes,chatThemes);save(K.moments,moments);save(K.autonomy,autonomy);localStorage.setItem(K.momentSeen,String(momentSeen));save(K.stickers,stickers);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.summarySettings,summarySettings);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.settings,settings);save(K.mediaApi,mediaApi);save(K.mcp,mcpServers)
 }
-$("#exportPhoneData").onclick=()=>{let p=phoneDataPayload(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");downloadJsonFile(`web_phone_full_data_${stamp}.json`,p);let c=phoneDataCounts(p.data);$("#phoneDataStatus").textContent=`已导出：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.masks} 面具 · ${c.worldbooks} 世界书 · ${c.moments} 朋友圈`;toast("小手机数据已导出")};
+$("#exportPhoneData").onclick=async()=>{let p=phoneDataPayload(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");let r=await downloadJsonFile(`curry_phone_full_data_${stamp}.json`,p);if(!r?.ok){if(!r?.cancelled)toast("导出失败，请重试");return}let c=phoneDataCounts(p.data);$("#phoneDataStatus").textContent=`已导出：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.masks} 面具 · ${c.worldbooks} 世界书 · ${c.moments} 朋友圈\n${r.method==="share"?"iPhone：请在系统面板选择「存储到文件」":"备份文件已交给浏览器下载"}`;toast(r.method==="share"?"请选择「存储到文件」":"小手机数据已导出")};
 $("#phoneDataInfo").onclick=()=>{let c=phoneDataCounts(phoneDataPayload().data);$("#phoneDataStatus").textContent=`当前整机备份\n联系人：${c.contacts}\n聊天时间线：${c.chats}\nUser 面具：${c.masks}\n世界书：${c.worldbooks}\n朋友圈：${c.moments}\n表情包：${c.stickers}\n\n还包括：备忘录、美化、聊天主题、自主消息、关系便签、长期总结、上下文设置、未读/在线状态、API 地址与模型配置、MCP 地址和工具列表\n\n绝不包含：Chat / Image / Voice API Key、MCP Token`};
 $("#importPhoneDataFile").onchange=e=>{pendingPhoneDataFile=e.target.files?.[0]||null;$("#phoneDataStatus").textContent=pendingPhoneDataFile?`已选择：${pendingPhoneDataFile.name}`:""};
 $("#importPhoneData").onclick=async()=>{if(!pendingPhoneDataFile)return toast("先选择小手机数据 JSON");let mode=$("#phoneImportMode").value;if(mode==="replace"&&!confirm("完整覆盖会替换当前小手机的联系人、聊天、世界书、美化、备忘录等本地数据。API Key 和 MCP Token 不会从备份恢复。确定继续？"))return;try{let raw=JSON.parse(await pendingPhoneDataFile.text()),d=normalizePhoneData(raw),c=phoneDataCounts(d);applyPhoneData(d,mode);$("#phoneDataStatus").textContent=`导入完成：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.worldbooks} 世界书\n模式：${mode==="replace"?"完整覆盖":"合并"}\n即将刷新以重新载入全部数据…`;toast("小手机数据已导入");pendingPhoneDataFile=null;$("#importPhoneDataFile").value="";setTimeout(()=>location.reload(),700)}catch(e){$("#phoneDataStatus").textContent="导入失败："+e.message}};
@@ -1602,11 +1640,38 @@ function backupPayload(){
     }
   }
 }
-function downloadJsonFile(filename,obj){
-  let blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json;charset=utf-8"});
-  let url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1200)
+async function downloadJsonFile(filename,obj){
+  const text=JSON.stringify(obj,null,2);
+  const blob=new Blob([text],{type:"application/json;charset=utf-8"});
+  const file=new File([blob],filename,{type:"application/json"});
+  const ua=navigator.userAgent||"";
+  const isIOS=/iPad|iPhone|iPod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+
+  // iOS / App 内置浏览器对 blob + a.download 经常“提示成功但没有文件”。
+  // 能分享文件时直接调用系统文件分享面板，用户可“存储到文件”。
+  if(isIOS && navigator.share && navigator.canShare){
+    try{
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:filename});
+        return {ok:true,method:"share"};
+      }
+    }catch(err){
+      if(err && err.name==="AbortError")return {ok:false,cancelled:true};
+      console.warn("iOS file share failed, fallback to download",err);
+    }
+  }
+
+  // 标准浏览器下载。延迟释放 blob，避免移动端还没接管文件 URL 就被 revoke。
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=filename;
+  a.rel="noopener";
+  a.style.display="none";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{try{a.remove()}catch{};try{URL.revokeObjectURL(url)}catch{}},30000);
+  return {ok:true,method:"download"};
 }
 function backupCounts(data){
   return {
