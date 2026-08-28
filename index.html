@@ -2397,18 +2397,27 @@ $("#testVoiceApi").onclick=async()=>{
 };
 fillMediaApi();
 
-function modelListEndpoint(raw){
+function modelListCandidates(raw){
   let v=String(raw||"").trim();
   if(!v)throw Error("请先填写 API 地址");
   let u;try{u=new URL(v)}catch{throw Error("API 地址格式不正确")}
+  let out=[];
+  const add=x=>{if(x&&!out.includes(x))out.push(x)};
   let p=u.pathname.replace(/\/+$/,"");
+  let standard=new URL(u.toString());
   if(/\/chat\/completions$/i.test(p))p=p.replace(/\/chat\/completions$/i,"/models");
   else if(/\/responses$/i.test(p))p=p.replace(/\/responses$/i,"/models");
   else if(/\/completions$/i.test(p))p=p.replace(/\/completions$/i,"/models");
   else if(/\/models$/i.test(p)){}
   else if(/\/v\d+$/i.test(p))p+="/models";
   else p+="/models";
-  u.pathname=p;u.search="";u.hash="";return u.toString();
+  standard.pathname=p;standard.search="";standard.hash="";add(standard.toString());
+  // 部分中转站把模型接口放在固定根路径，自动补几个常见候选。
+  let m=v.match(/\/v(\d+)(?:\/|$)/i),ver=m?m[1]:"1";
+  add(new URL(`/v${ver}/models`,u.origin).toString());
+  add(new URL('/v1/models',u.origin).toString());
+  add(new URL('/models',u.origin).toString());
+  return out;
 }
 function parsePulledModels(d){
   let arr=Array.isArray(d)?d:(Array.isArray(d?.data)?d.data:(Array.isArray(d?.models)?d.models:(Array.isArray(d?.result)?d.result:[])));
@@ -2420,20 +2429,39 @@ function renderPulledModels(models){
   sel.innerHTML='<option value="">选择已拉取模型（'+models.length+'）</option>'+models.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");
   sel.classList.toggle("hidden",!models.length);
 }
+function shortResponsePreview(t){
+  return String(t||"").replace(/\s+/g," ").trim().slice(0,120)||"（空响应）";
+}
 $("#fetchedModelSelect").onchange=e=>{if(e.target.value){$("#model").value=e.target.value;$("#apiStatus").textContent="已选择模型："+e.target.value}};
 $("#pullModels").onclick=async()=>{
   let endpoint=$("#endpoint").value.trim(),key=$("#key").value.trim(),btn=$("#pullModels");
   $("#apiStatus").textContent="正在拉取模型列表…";btn.disabled=true;
+  let diagnostics=[];
   try{
-    let url=modelListEndpoint(endpoint),headers={Accept:"application/json"};if(key)headers.Authorization="Bearer "+key;
-    let r=await fetch(url,{method:"GET",headers}),d;try{d=await r.json()}catch{throw Error("模型接口返回的不是 JSON")}
-    if(!r.ok)throw Error(d?.error?.message||d?.message||"HTTP "+r.status);
-    let models=parsePulledModels(d);if(!models.length)throw Error("接口已响应，但没有识别到模型列表");
-    renderPulledModels(models);
-    $("#apiStatus").textContent="已拉取 "+models.length+" 个模型 · "+url;
-    if(!$("#model").value.trim()&&models[0]){$("#model").value=models[0];$("#fetchedModelSelect").value=models[0]}
-  }catch(e){renderPulledModels([]);$("#apiStatus").textContent="拉取失败："+e.message}
-  finally{btn.disabled=false}
+    let urls=modelListCandidates(endpoint),headers={Accept:"application/json"};if(key)headers.Authorization="Bearer "+key;
+    for(let url of urls){
+      try{
+        let r=await fetch(url,{method:"GET",headers}),text=await r.text(),actual=r.url||url,ct=r.headers.get("content-type")||"";
+        let d=null;try{d=text?JSON.parse(text):null}catch{}
+        if(r.ok&&d){
+          let models=parsePulledModels(d);
+          if(models.length){
+            renderPulledModels(models);
+            $("#apiStatus").textContent=`已拉取 ${models.length} 个模型 · ${actual}`;
+            if(!$("#model").value.trim()&&models[0]){$("#model").value=models[0];$("#fetchedModelSelect").value=models[0]}
+            return;
+          }
+        }
+        let reason=d?(d?.error?.message||d?.message||"JSON 中没有识别到模型列表"):("非 JSON："+shortResponsePreview(text));
+        diagnostics.push(`${r.status} ${actual} · ${ct||"未知类型"} · ${reason}`);
+      }catch(err){diagnostics.push(`请求失败 ${url} · ${err.message}`)}
+    }
+    throw Error(diagnostics.join("\n"));
+  }catch(e){
+    renderPulledModels([]);
+    $("#apiStatus").style.whiteSpace="pre-wrap";
+    $("#apiStatus").textContent="拉取失败，已自动尝试常见模型接口：\n"+e.message;
+  }finally{btn.disabled=false}
 };
 
 function fill(){ $("#endpoint").value=settings.endpoint||"";$("#model").value=settings.model||"";$("#temperature").value=settings.temperature??.8;$("#maxTokens").value=settings.maxTokens??800;$("#rememberKey").checked=!!settings.rememberKey;$("#key").value=sessionKey||""}fill();
