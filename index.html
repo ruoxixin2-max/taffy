@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V4.3 · 拉取模型</title>
+<title>咖喱小手机 V4.6 · 多媒体模型拉取</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -1324,7 +1324,7 @@ body.phoneActive{
 
 <section class="page" data-page="notes"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">备忘录</div><div></div></header><textarea class="note" id="notes" placeholder="写点什么。"></textarea></section>
 <section class="page" data-page="settings"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">设置</div><div></div></header><div class="body">
-<div class="settingGroup"><h3>API CONNECTION</h3><div class="settingBox form"><div class="field"><label>Chat Completions 地址</label><input class="input" id="endpoint" placeholder="https://example.com/v1/chat/completions"></div><div class="field"><label>API Key</label><input class="input" id="key" type="password" autocomplete="off"></div><div class="field"><label>模型</label><div class="modelPullRow"><input class="input" id="model" placeholder="model-name"><button class="btn modelPullBtn" id="pullModels" type="button">拉取模型</button></div><select class="input modelFetchedSelect hidden" id="fetchedModelSelect"><option value="">选择已拉取模型</option></select><div class="help" id="modelPullHint">兼容常见 OpenAI-compatible /v1/models 接口；也可以继续手动填写模型名。</div></div><div class="field"><label><input id="rememberKey" type="checkbox"> 在此浏览器记住 Key</label><div class="help">关闭时 Key 只保留到本页刷新前。公开部署网页时不要把正式密钥写进源码。</div></div><div class="actions"><button class="btn primary" id="saveSettings">保存</button><button class="btn" id="testApi">测试 API</button></div><div class="statusText" id="apiStatus"></div></div></div>
+<div class="settingGroup"><h3>API CONNECTION</h3><div class="settingBox form"><div class="field"><label>Chat Completions 地址</label><input class="input" id="endpoint" placeholder="https://example.com/v1（也支持完整 /chat/completions）"></div><div class="field"><label>API Key</label><input class="input" id="key" type="password" autocomplete="off"></div><div class="field"><label>模型</label><div class="modelPullRow"><input class="input" id="model" placeholder="model-name"><button class="btn modelPullBtn" id="pullModels" type="button">拉取模型</button></div><select class="input modelFetchedSelect hidden" id="fetchedModelSelect"><option value="">选择已拉取模型</option></select><div class="help" id="modelPullHint">地址可直接填写 Base URL（如 /v1）；聊天会自动补 /chat/completions，拉模型自动走 /models。也支持填写完整接口。</div></div><div class="field"><label><input id="rememberKey" type="checkbox"> 在此浏览器记住 Key</label><div class="help">关闭时 Key 只保留到本页刷新前。公开部署网页时不要把正式密钥写进源码。</div></div><div class="actions"><button class="btn primary" id="saveSettings">保存</button><button class="btn" id="testApi">测试 API</button></div><div class="statusText" id="apiStatus"></div></div></div>
 
 <div class="settingGroup"><h3>IMAGE GENERATION API</h3><div class="settingBox form">
 <div class="field"><label>服务商</label><select class="input" id="imageProvider">
@@ -1332,7 +1332,7 @@ body.phoneActive{
 </select></div>
 <div class="field"><label>Endpoint</label><input class="input" id="imageEndpoint"></div>
 <div class="field"><label>API Key</label><input class="input" id="imageKey" type="password"></div>
-<div class="field"><label>模型</label><input class="input" id="imageModel"></div>
+<div class="field"><label>模型</label><div class="modelPullRow"><input class="input" id="imageModel"><button class="btn modelPullBtn" id="pullImageModels" type="button">拉取模型</button></div><select class="input modelFetchedSelect hidden" id="fetchedImageModelSelect"><option value="">选择已拉取模型</option></select><div class="help">会根据当前生图 Endpoint 自动尝试常见 /models 接口；不支持模型枚举的服务仍可手动填写。</div></div>
 <div class="field"><label>默认比例 / Size</label><input class="input" id="imageSize" placeholder="1:1"></div>
 <div class="field"><label><input type="checkbox" id="rememberImageKey"> 在此浏览器记住生图 Key</label></div>
 <div class="actions"><button class="btn primary" id="saveImageApi">保存</button><button class="btn" id="testImageApi">测试生图</button></div>
@@ -1345,7 +1345,7 @@ body.phoneActive{
 </select></div>
 <div class="field"><label>Endpoint</label><input class="input" id="voiceEndpoint"></div>
 <div class="field"><label>API Key</label><input class="input" id="voiceKey" type="password"></div>
-<div class="field"><label>模型</label><input class="input" id="voiceModel"></div>
+<div class="field"><label>模型</label><div class="modelPullRow"><input class="input" id="voiceModel"><button class="btn modelPullBtn" id="pullVoiceModels" type="button">拉取模型</button></div><select class="input modelFetchedSelect hidden" id="fetchedVoiceModelSelect"><option value="">选择已拉取模型</option></select><div class="help">会根据当前语音 Endpoint 自动尝试常见 /models 接口；ElevenLabs 会自动使用 xi-api-key。</div></div>
 <div class="field"><label>Voice ID / Voice</label><input class="input" id="voiceId"></div>
 <div class="field"><label><input type="checkbox" id="rememberVoiceKey"> 在此浏览器记住语音 Key</label></div>
 <div class="actions"><button class="btn primary" id="saveVoiceApi">保存</button><button class="btn" id="testVoiceApi">测试语音</button></div>
@@ -2091,7 +2091,8 @@ function prompt(c,userText=""){let x=c.character,m=activeMask(),wb=matchedWorldb
 "CHAT MODE: ONLINE TEXT CHAT ONLY. This is the permanent default mode and cannot be changed. The character and user are communicating through an online messaging app. Never switch to face-to-face roleplay, scene narration, or prose action description.",
 "OUTPUT FORMAT: Text uses <message>...</message>. You may also naturally send rich messages: <voice>TEXT_TO_SPEAK</voice>, <image>PROMPT_FOR_IMAGE_GENERATOR</image>, or <transfer><amount>12.34</amount><note>NOTE</note></transfer>. Use rich messages only when natural. Multiple blocks may be mixed in order.",
 x.systemPrompt,`You are ${c.name}.`,contextSummaryText(c.id)&&"A compressed long-term chat memory may be supplied as a separate system message. Treat it as established shared history.",x.description&&`Description:\n${x.description}`,x.personality&&`Personality:\n${x.personality}`,x.scenario&&`Scenario:\n${x.scenario}`,x.mesExample&&`Example dialogue:\n${x.mesExample}`,x.rawText&&`Additional character material:\n${x.rawText}`,m&&`Current user persona (${m.name}):\nUser name: ${m.userName||"user"}\n${m.prompt||""}`,wb&&`Worldbook information:\n${wb}`,sticker,mcp].filter(Boolean).join("\n\n")}
-async function api(messages,o=null){let s=o||settings,key=o?.apiKey??sessionKey;if(!s.endpoint)throw Error("请先填写 API 地址");if(!s.model)throw Error("请填写模型");let headers={"Content-Type":"application/json"};if(key)headers.Authorization="Bearer "+key;let r=await fetch(s.endpoint,{method:"POST",headers,body:JSON.stringify({model:s.model,messages,temperature:Number(s.temperature??.8),max_tokens:Number(s.maxTokens??800)})}),d;try{d=await r.json()}catch{throw Error("API 返回的不是 JSON")}if(!r.ok)throw Error(d?.error?.message||d?.message||"HTTP "+r.status);let out=d?.choices?.[0]?.message?.content;if(typeof out!=="string")throw Error("未找到 choices[0].message.content");return out.trim()}
+function chatCompletionsUrl(endpoint){let raw=String(endpoint||"").trim();if(!raw)return "";try{let u=new URL(raw),p=u.pathname.replace(/\/+$/g,"");if(/\/chat\/completions$/i.test(p)){}else if(/\/responses$/i.test(p))p=p.replace(/\/responses$/i,"/chat/completions");else if(/\/models$/i.test(p))p=p.replace(/\/models$/i,"/chat/completions");else if(/\/completions$/i.test(p))p=p.replace(/\/completions$/i,"/chat/completions");else if(/\/v\d+$/i.test(p))p+="/chat/completions";else p+="/chat/completions";u.pathname=p;return u.toString()}catch{return raw}}
+async function api(messages,o=null){let s=o||settings,key=o?.apiKey??sessionKey;if(!s.endpoint)throw Error("请先填写 API 地址");if(!s.model)throw Error("请填写模型");let headers={"Content-Type":"application/json"};if(key)headers.Authorization="Bearer "+key;let url=chatCompletionsUrl(s.endpoint);let r=await fetch(url,{method:"POST",headers,body:JSON.stringify({model:s.model,messages,temperature:Number(s.temperature??.8),max_tokens:Number(s.maxTokens??800)})}),d;try{d=await r.json()}catch{throw Error("API 返回的不是 JSON · "+r.status+" · "+(r.url||url))}if(!r.ok)throw Error(d?.error?.message||d?.message||"HTTP "+r.status);let out=d?.choices?.[0]?.message?.content;if(typeof out!=="string")throw Error("未找到 choices[0].message.content");return out.trim()}
 $("#chatForm").onsubmit=e=>{e.preventDefault();let text=$("#chatInput").value.trim();if(!text)return;let k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",content:text,time:now(),sentAt:Date.now(),createdAt:Date.now(),replyTo:replyTarget?{name:replyTarget.name,text:replyTarget.text}:undefined});convos[k]=h;save(K.convos,convos);$("#chatInput").value="";clearReplyTarget();renderChat()};
 
 function splitAssistantMessages(raw){let src=String(raw||"").trim(),out=[],re=/<message>([\s\S]*?)<\/message>|<sticker>\s*<url>([\s\S]*?)<\/url>\s*<mood>([\s\S]*?)<\/mood>\s*<\/sticker>|<voice>([\s\S]*?)<\/voice>|<image>([\s\S]*?)<\/image>|<transfer>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/transfer>/gi,m;while((m=re.exec(src))!==null){if(m[1]!=null)out.push({type:"text",content:m[1].trim()});else if(m[2]!=null)out.push({type:"sticker",url:m[2].trim(),mood:m[3].trim()});else if(m[4]!=null)out.push({type:"voice_request",text:m[4].trim()});else if(m[5]!=null)out.push({type:"image_request",prompt:m[5].trim()});else out.push({type:"transfer",amount:Number(m[6])||0,note:m[7].trim()})}if(out.length)return out.slice(0,12);let cleaned=src.replace(/<\/?message>/gi,"").trim();return cleaned?[{type:"text",content:cleaned}]:[]}
@@ -2352,8 +2353,8 @@ function fillMediaApi(){
  $("#imageProvider").value=i.provider||"minimax_cn";$("#imageEndpoint").value=i.endpoint||"";$("#imageModel").value=i.model||"";$("#imageSize").value=i.size||"1:1";$("#imageKey").value=imageSessionKey||"";$("#rememberImageKey").checked=!!i.rememberKey;
  $("#voiceProvider").value=v.provider||"minimax_cn";$("#voiceEndpoint").value=v.endpoint||"";$("#voiceModel").value=v.model||"";$("#voiceId").value=v.voiceId||"";$("#voiceKey").value=voiceSessionKey||"";$("#rememberVoiceKey").checked=!!v.rememberKey
 }
-$("#imageProvider").onchange=e=>{let p=IMAGE_PRESETS[e.target.value];$("#imageEndpoint").value=p.endpoint;$("#imageModel").value=p.model;$("#imageSize").value=p.size};
-$("#voiceProvider").onchange=e=>{let p=VOICE_PRESETS[e.target.value];$("#voiceEndpoint").value=p.endpoint;$("#voiceModel").value=p.model;$("#voiceId").value=p.voiceId};
+$("#imageProvider").onchange=e=>{let p=IMAGE_PRESETS[e.target.value];$("#imageEndpoint").value=p.endpoint;$("#imageModel").value=p.model;$("#imageSize").value=p.size;renderPulledModelsInto("fetchedImageModelSelect",[],"选择生图模型")};
+$("#voiceProvider").onchange=e=>{let p=VOICE_PRESETS[e.target.value];$("#voiceEndpoint").value=p.endpoint;$("#voiceModel").value=p.model;$("#voiceId").value=p.voiceId;renderPulledModelsInto("fetchedVoiceModelSelect",[],"选择语音模型")};
 $("#voiceId").oninput=()=>{if($("#voiceProvider").value==="elevenlabs")$("#voiceEndpoint").value="https://api.elevenlabs.io/v1/text-to-speech/"+$("#voiceId").value.trim()};
 $("#saveImageApi").onclick=()=>{
  let remember=$("#rememberImageKey").checked;imageSessionKey=$("#imageKey").value.trim();
@@ -2432,7 +2433,51 @@ function renderPulledModels(models){
 function shortResponsePreview(t){
   return String(t||"").replace(/\s+/g," ").trim().slice(0,120)||"（空响应）";
 }
+function renderPulledModelsInto(selectId,models,label="选择已拉取模型"){
+  let sel=$("#"+selectId);if(!sel)return;
+  sel.innerHTML=`<option value="">${label}（${models.length}）</option>`+models.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");
+  sel.classList.toggle("hidden",!models.length);
+}
+function mediaModelHeaders(provider,key){
+  let headers={Accept:"application/json"};
+  if(!key)return headers;
+  if(provider==="elevenlabs")headers["xi-api-key"]=key;
+  else headers.Authorization="Bearer "+key;
+  return headers;
+}
+async function pullMediaModels({endpoint,key,provider,selectId,inputId,statusId,buttonId,label}){
+  let status=$("#"+statusId),btn=$("#"+buttonId),diagnostics=[];
+  status.style.whiteSpace="pre-wrap";status.textContent=`正在拉取${label}模型列表…`;btn.disabled=true;
+  try{
+    let urls=modelListCandidates(endpoint),headers=mediaModelHeaders(provider,key);
+    for(let url of urls){
+      try{
+        let r=await fetch(url,{method:"GET",headers}),text=await r.text(),actual=r.url||url,ct=r.headers.get("content-type")||"";
+        let d=null;try{d=text?JSON.parse(text):null}catch{}
+        if(r.ok&&d){
+          let models=parsePulledModels(d);
+          if(models.length){
+            renderPulledModelsInto(selectId,models,`选择${label}模型`);
+            status.textContent=`已拉取 ${models.length} 个${label}模型 · ${actual}`;
+            if(!$("#"+inputId).value.trim()&&models[0]){$("#"+inputId).value=models[0];$("#"+selectId).value=models[0]}
+            return;
+          }
+        }
+        let reason=d?(d?.error?.message||d?.message||"JSON 中没有识别到模型列表"):("非 JSON："+shortResponsePreview(text));
+        diagnostics.push(`${r.status} ${actual} · ${ct||"未知类型"} · ${reason}`);
+      }catch(err){diagnostics.push(`请求失败 ${url} · ${err.message}`)}
+    }
+    throw Error(diagnostics.join("\n"));
+  }catch(e){
+    renderPulledModelsInto(selectId,[],`选择${label}模型`);
+    status.textContent=`${label}模型拉取失败，已自动尝试常见模型接口：\n`+e.message;
+  }finally{btn.disabled=false}
+}
 $("#fetchedModelSelect").onchange=e=>{if(e.target.value){$("#model").value=e.target.value;$("#apiStatus").textContent="已选择模型："+e.target.value}};
+$("#fetchedImageModelSelect").onchange=e=>{if(e.target.value){$("#imageModel").value=e.target.value;$("#imageApiStatus").textContent="已选择生图模型："+e.target.value}};
+$("#fetchedVoiceModelSelect").onchange=e=>{if(e.target.value){$("#voiceModel").value=e.target.value;$("#voiceApiStatus").textContent="已选择语音模型："+e.target.value}};
+$("#pullImageModels").onclick=()=>pullMediaModels({endpoint:$("#imageEndpoint").value.trim(),key:$("#imageKey").value.trim(),provider:$("#imageProvider").value,selectId:"fetchedImageModelSelect",inputId:"imageModel",statusId:"imageApiStatus",buttonId:"pullImageModels",label:"生图"});
+$("#pullVoiceModels").onclick=()=>pullMediaModels({endpoint:$("#voiceEndpoint").value.trim(),key:$("#voiceKey").value.trim(),provider:$("#voiceProvider").value,selectId:"fetchedVoiceModelSelect",inputId:"voiceModel",statusId:"voiceApiStatus",buttonId:"pullVoiceModels",label:"语音"});
 $("#pullModels").onclick=async()=>{
   let endpoint=$("#endpoint").value.trim(),key=$("#key").value.trim(),btn=$("#pullModels");
   $("#apiStatus").textContent="正在拉取模型列表…";btn.disabled=true;
