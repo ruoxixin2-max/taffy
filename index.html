@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V3.9.3 · 禁用缩放防漂移</title>
+<title>咖喱小手机 V3.9.4 · 表情包添加修复</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -1090,7 +1090,7 @@ body.phoneActive{
 <div class="field"><label>归属</label><select class="input" id="stickerOwner"></select></div>
 <div class="field"><label>图片 URL</label><input class="input" id="stickerUrl" placeholder="https://..."></div>
 <div class="field"><label>表达的情绪 / 含义</label><input class="input" id="stickerMood" placeholder="开心 / 无语 / 阴阳怪气 / ..."></div>
-<div class="field"><label>本地图片</label><input class="input" id="stickerFile" type="file" accept="image/*"></div>
+<div class="field"><label>本地图片</label><input class="input" id="stickerFile" type="file" accept="image/*"><div class="help">本地图片会在保存时处理，不需要再填写图片 URL。</div><div id="stickerLocalStatus" class="statusText"></div><div id="stickerPreview" style="display:none;margin-top:8px"><img alt="表情包预览" style="display:block;max-width:120px;max-height:120px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff"></div></div>
 <div class="field"><label>批量导入 TXT / DOCX</label><input class="input" id="stickerDoc" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="help">每行一个 URL。也支持 URL | 情绪。DOCX 会按行读取。</div></div>
 </div></div></section>
 <section class="page" data-page="moments">
@@ -1743,11 +1743,131 @@ function charStickerLib(id){ensureStickerShape();if(!Array.isArray(stickers.char
 function stickerOwnerOptions(){return `<option value="user">User</option>`+contacts.map(c=>`<option value="char:${c.id}">${esc(c.name)}</option>`).join("")}
 function stickerCards(list,owner){if(!list.length)return"";return `<div class="stickerGrid">`+list.map(s=>`<div class="stickerCard"><img src="${esc(s.url)}" alt="${esc(s.mood||"表情包")}"><div class="stickerMood">${esc(s.mood||"未标注情绪")}</div><div class="stickerUrl">${esc(s.url)}</div><div class="stickerActions"><button class="btn danger" data-sticker-owner="${owner}" data-sticker-delete="${s.id}">删除</button></div></div>`).join("")+`</div>`}
 function renderStickerLibraries(){ensureStickerShape();let box=$("#stickerLibraries"),out=`<div class="stickerLibraryHead"><div class="stickerLibraryTitle">User 表情包库</div><div class="tiny">${stickers.user.length} 张</div></div>${stickerCards(stickers.user,"user")||'<div class="empty" style="padding:22px 10px">还没有 User 表情包</div>'}`;for(const c of contacts){let lib=charStickerLib(c.id),use=!!stickers.charUseUser[c.id];out+=`<div class="stickerLibraryHead"><div class="stickerLibraryTitle">${esc(c.name)} 的表情包库</div><label class="tiny"><input type="checkbox" data-char-use-user="${c.id}" ${use?"checked":""}> 可使用 User 表情包库</label></div>${stickerCards(lib,"char:"+c.id)||'<div class="empty" style="padding:22px 10px">这个 Char 还没有自己的表情包</div>'}`}box.innerHTML=out;$$("[data-char-use-user]").forEach(x=>x.onchange=()=>{stickers.charUseUser[x.dataset.charUseUser]=x.checked;save(K.stickers,stickers)});$$("[data-sticker-delete]").forEach(x=>x.onclick=()=>{let owner=x.dataset.stickerOwner,id=x.dataset.stickerDelete;if(owner==="user")stickers.user=stickers.user.filter(s=>s.id!==id);else{let cid=owner.replace("char:","");stickers.chars[cid]=charStickerLib(cid).filter(s=>s.id!==id)}save(K.stickers,stickers);renderStickerLibraries()})}
-$("#addSticker").onclick=()=>{$("#stickerOwner").innerHTML=stickerOwnerOptions();$("#stickerUrl").value="";$("#stickerMood").value="";$("#stickerFile").value="";$("#stickerDoc").value="";page("stickerEditor")};
-$("#stickerFile").onchange=async e=>{let f=e.target.files[0];if(f)$("#stickerUrl").value=await dataURL(f)};
+let pendingStickerLocalUrl="",pendingStickerFileToken=0;
+
+function resetStickerLocalPreview(){
+  pendingStickerLocalUrl="";
+  pendingStickerFileToken++;
+  let box=$("#stickerPreview"),img=box?.querySelector("img");
+  if(box)box.style.display="none";
+  if(img)img.removeAttribute("src");
+  if($("#stickerLocalStatus"))$("#stickerLocalStatus").textContent="";
+}
+
+function fileToStickerDataUrl(file,maxSide=720){
+  return new Promise((resolve,reject)=>{
+    if(!file)return resolve("");
+    /* Preserve animated GIFs; canvas would flatten them. */
+    if(/image\/gif/i.test(file.type||"")){
+      let r=new FileReader();
+      r.onload=()=>resolve(String(r.result||""));
+      r.onerror=()=>reject(r.error||new Error("读取图片失败"));
+      r.readAsDataURL(file);
+      return;
+    }
+    let r=new FileReader();
+    r.onerror=()=>reject(r.error||new Error("读取图片失败"));
+    r.onload=()=>{
+      let raw=String(r.result||""),img=new Image();
+      img.onerror=()=>resolve(raw); /* fallback: keep original */
+      img.onload=()=>{
+        try{
+          let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+          if(!w||!h||Math.max(w,h)<=maxSide)return resolve(raw);
+          let scale=maxSide/Math.max(w,h),cw=Math.max(1,Math.round(w*scale)),ch=Math.max(1,Math.round(h*scale));
+          let canvas=document.createElement("canvas");canvas.width=cw;canvas.height=ch;
+          let ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,cw,ch);
+          /* WebP keeps storage smaller on mobile. */
+          resolve(canvas.toDataURL("image/webp",.86));
+        }catch(_){resolve(raw)}
+      };
+      img.src=raw;
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+$("#addSticker").onclick=()=>{
+  $("#stickerOwner").innerHTML=stickerOwnerOptions();
+  $("#stickerUrl").value="";
+  $("#stickerMood").value="";
+  $("#stickerFile").value="";
+  $("#stickerDoc").value="";
+  resetStickerLocalPreview();
+  page("stickerEditor")
+};
+
+$("#stickerFile").onchange=async e=>{
+  let f=e.target.files?.[0];
+  resetStickerLocalPreview();
+  if(!f)return;
+  let myToken=++pendingStickerFileToken;
+  $("#stickerLocalStatus").textContent="正在读取本地图片…";
+  try{
+    let url=await fileToStickerDataUrl(f);
+    if(myToken!==pendingStickerFileToken)return;
+    pendingStickerLocalUrl=url;
+    let box=$("#stickerPreview"),img=box.querySelector("img");
+    img.src=url;box.style.display="block";
+    let kb=Math.round((url.length*3/4)/1024);
+    $("#stickerLocalStatus").textContent=`已读取：${f.name} · 约 ${kb} KB`;
+  }catch(err){
+    if(myToken!==pendingStickerFileToken)return;
+    pendingStickerLocalUrl="";
+    $("#stickerLocalStatus").textContent="读取失败："+(err?.message||err);
+  }
+};
+
 async function readStickerDocx(file){if(!window.JSZip)await script("https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js");let z=await JSZip.loadAsync(await file.arrayBuffer()),xml=await z.file("word/document.xml").async("text"),d=new DOMParser().parseFromString(xml,"application/xml");return [...d.getElementsByTagNameNS("*","p")].map(p=>[...p.getElementsByTagNameNS("*","t")].map(n=>n.textContent).join("")).join("\n")}
 function parseStickerLines(text){return String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>{let p=line.split(/\s*\|\s*/);return{url:p[0].trim(),mood:(p.slice(1).join(" | ")||"").trim()}}).filter(x=>/^https?:\/\//i.test(x.url))}
-$("#saveSticker").onclick=async()=>{let owner=$("#stickerOwner").value,doc=$("#stickerDoc").files[0],items=[];if(doc){let text=doc.name.toLowerCase().endsWith(".docx")?await readStickerDocx(doc):await doc.text();items=parseStickerLines(text)}else{let url=$("#stickerUrl").value.trim(),mood=$("#stickerMood").value.trim();if(!url)return toast("请填写 URL 或导入文件");items=[{url,mood}]}items=items.map(s=>({id:uuid(),url:s.url,mood:s.mood||""}));if(owner==="user")stickers.user.push(...items);else charStickerLib(owner.replace("char:","")).push(...items);save(K.stickers,stickers);renderStickerLibraries();page("stickers");toast(`已导入 ${items.length} 张表情包`)};
+
+$("#saveSticker").onclick=async()=>{
+  let owner=$("#stickerOwner").value,doc=$("#stickerDoc").files[0],localFile=$("#stickerFile").files?.[0],items=[];
+  let btn=$("#saveSticker");btn.disabled=true;
+  try{
+    if(doc){
+      let text=doc.name.toLowerCase().endsWith(".docx")?await readStickerDocx(doc):await doc.text();
+      items=parseStickerLines(text);
+      if(!items.length)return toast("文件里没有读到有效的 http(s) 图片 URL");
+    }else{
+      let mood=$("#stickerMood").value.trim();
+      let url=$("#stickerUrl").value.trim();
+      if(localFile){
+        if(!pendingStickerLocalUrl){
+          $("#stickerLocalStatus").textContent="正在处理图片，请稍候…";
+          pendingStickerLocalUrl=await fileToStickerDataUrl(localFile);
+        }
+        url=pendingStickerLocalUrl;
+      }
+      if(!url)return toast("请选择本地图片，或填写图片 URL");
+      items=[{url,mood}];
+    }
+    items=items.map(x=>({id:uuid(),url:x.url,mood:x.mood||""}));
+    if(owner==="user")stickers.user.push(...items);
+    else charStickerLib(owner.replace("char:","")).push(...items);
+    try{
+      save(K.stickers,stickers);
+    }catch(err){
+      /* Undo the push if localStorage quota is exceeded. */
+      let ids=new Set(items.map(x=>x.id));
+      if(owner==="user")stickers.user=stickers.user.filter(x=>!ids.has(x.id));
+      else{
+        let cid=owner.replace("char:","");
+        stickers.chars[cid]=charStickerLib(cid).filter(x=>!ids.has(x.id));
+      }
+      throw err;
+    }
+    renderStickerLibraries();
+    page("stickers");
+    toast(`已导入 ${items.length} 张表情包`);
+  }catch(err){
+    let msg=String(err?.message||err||"保存失败");
+    if(/quota|storage|exceed/i.test(msg))msg="本地存储空间不够了；请删除一些大图表情包后再试";
+    toast("表情包保存失败："+msg);
+  }finally{
+    btn.disabled=false;
+  }
+};
 function mergedStickerLibForChar(charId){let own=[...charStickerLib(charId)];if(stickers.charUseUser[charId])own.push(...stickers.user);return own}
 function stickerPromptForChar(charId){let lib=mergedStickerLibForChar(charId);if(!lib.length)return"";return "STICKER LIBRARY:\\n"+lib.map((s,i)=>`${i+1}. mood=${s.mood||"unspecified"} url=${s.url}`).join("\\n")+'\\nYou may send a sticker when natural. To send one, output exactly: <sticker><url>EXACT_URL_FROM_LIBRARY</url><mood>MOOD</mood></sticker>. Never invent a sticker URL. Normal text still uses <message>...</message>.'}
 function renderStickerPicker(){let box=$("#stickerPickerGrid"),list=stickers.user||[];box.innerHTML=list.length?list.map(s=>`<button type="button" class="stickerPick" data-pick-sticker="${s.id}"><img src="${esc(s.url)}" alt=""><span>${esc(s.mood||"表情包")}</span></button>`).join(""):'<div class="empty" style="grid-column:1/-1;padding:25px 5px">User 表情包库还是空的</div>';$$("[data-pick-sticker]").forEach(b=>b.onclick=()=>{let s=stickers.user.find(x=>x.id===b.dataset.pickSticker);if(!s||!currentContact)return;let k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",type:"sticker",url:s.url,mood:s.mood||"",time:now(),createdAt:Date.now()});convos[k]=h;save(K.convos,convos);$("#stickerPicker").classList.remove("show");renderChat()})}
