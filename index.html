@@ -1519,7 +1519,7 @@ body.phoneActive{
     </div>
 
     <div class="liveToolSection">
-      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div><div id="liveSafariError" style="display:none;margin:0 0 8px;padding:8px 9px;border-radius:10px;background:#281b20;color:#f2bac8;font-size:7px;line-height:1.5;word-break:break-all"></div><div id="liveSafariLoaderNote" style="display:none;margin:0 0 8px;padding:7px 9px;border-radius:10px;background:#17211b;color:#a9d9b4;font-size:7px;line-height:1.5">Safari 直读模式：模型资源由本机存储直接内联，不经过 blob 网络请求。</div>
+      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div><div id="liveSafariError" style="display:none;margin:0 0 8px;padding:8px 9px;border-radius:10px;background:#281b20;color:#f2bac8;font-size:7px;line-height:1.5;word-break:break-all"></div><div id="liveSafariLoaderNote" style="display:none;margin:0 0 8px;padding:7px 9px;border-radius:10px;background:#17211b;color:#a9d9b4;font-size:7px;line-height:1.5">Safari 低内存模式：直读模型资源；30FPS 渲染，面捕降频，退出直播主动释放 WebGL。</div>
       <div class="liveModelControls">
         <button type="button" id="liveMotionBtn">随机动作</button>
         <button type="button" id="liveExpressionBtn">换表情</button>
@@ -2123,7 +2123,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.4",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.6",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2197,7 +2197,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.4",
+    appVersion:"8.6",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3530,7 +3530,7 @@ const networkStyle=document.createElement("style");networkStyle.textContent=`
 .networkBody{padding:13px 12px 90px!important}.networkMasterCard{display:flex;align-items:center;justify-content:space-between;border-radius:19px;background:#17181d;color:#fff;padding:16px 15px}.networkMasterCard b{display:block;font-size:14px}.networkMasterCard span{display:block;color:#aaa;font-size:8px;margin-top:5px;max-width:220px;line-height:1.5}.networkSwitch input{display:none}.networkSwitch i{display:block;width:43px;height:25px;border-radius:999px;background:#555;position:relative;transition:.2s}.networkSwitch i:after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.2s}.networkSwitch input:checked+i{background:#30322f}.networkSwitch input:checked+i:after{left:21px}.networkSafety{font-size:9px;line-height:1.6;padding:10px 12px;border-radius:12px;background:#f3f3ef;color:#777;margin:9px 0 13px}.networkSafety.on{background:#eee8e4;color:#715f55}.networkPerms{display:grid;gap:7px}.networkPerms label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.networkPerms input{width:18px;height:18px;margin-top:1px}.networkPerms b{display:block;font-size:10px}.networkPerms span{display:block;font-size:8px;color:#999;line-height:1.5;margin-top:3px}.networkPerms.disabled{opacity:.42;pointer-events:none}.networkSection{margin:18px 2px 8px}.networkSection b{font-size:11px}.networkSection span{font-size:8px;color:#999;margin-left:6px}.networkEditor{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.networkArrow{text-align:center;color:#aaa;font-size:12px;padding:3px}.networkEditor .input,.networkEditor .textarea{margin-bottom:7px}.networkEditor .primary{width:100%;border:0;border-radius:12px;background:#30322f;color:#fff;padding:10px;font-size:9px}.networkRelation{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;margin-bottom:7px}.networkRelationTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.networkRelationNames{font-size:10px;font-weight:800}.networkRelationType{font-size:8px;border-radius:999px;background:#eee;padding:4px 7px;color:#666}.networkRelationNote{font-size:8px;color:#999;line-height:1.5;margin-top:6px}.networkRelationActions{margin-top:7px;text-align:right}.networkRelationActions button{border:0;background:transparent;color:#999;font-size:8px}
 `;document.head.appendChild(networkStyle);
 
-let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1};
+let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1,loadGen:0};
 const LIVE2D_DB_NAME="curry_phone_live2d_v64",LIVE2D_DB_VERSION=1,LIVE2D_ASSET_STORE="assets";
 let live2dDbPromise=null;
 function openLive2dDb(){
@@ -3575,13 +3575,24 @@ setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("Live2D �
 function live2dBindingKey(type,id){return type==="user"?"user":"char:"+id}
 function boundLive2dModelId(type,id){return live2dStore.bindings?.[live2dBindingKey(type,id)]||""}
 function cleanupLive2dRuntime(){
+ let old=live2dRuntime;live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1,loadGen:(old.loadGen||0)+1};
  try{stopLiveFaceCapture()}catch{}
- try{if(live2dRuntime.raf)cancelAnimationFrame(live2dRuntime.raf)}catch{}
- try{if(live2dRuntime.audio){live2dRuntime.audio.pause();live2dRuntime.audio.src=""}}catch{}
- try{if(live2dRuntime.audioCtx)live2dRuntime.audioCtx.close()}catch{}
- try{if(live2dRuntime.model?.destroy)live2dRuntime.model.destroy({children:true})}catch{}
- try{if(live2dRuntime.app?.destroy)live2dRuntime.app.destroy(true,{children:true,texture:true,baseTexture:true})}catch{}
- (live2dRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1}
+ try{if(old.raf)cancelAnimationFrame(old.raf)}catch{}
+ try{if(old.audio){old.audio.pause();old.audio.removeAttribute?.("src");old.audio.load?.()}}catch{}
+ try{if(old.audioCtx&&old.audioCtx.state!=="closed")old.audioCtx.close()}catch{}
+ try{old.model?.off?.()}catch{}
+ try{old.model?.destroy?.({children:true,texture:true,baseTexture:true})}catch{}
+ try{
+   let view=old.app?.view,gl=old.app?.renderer?.gl;
+   old.app?.stage?.removeChildren?.();
+   old.app?.destroy?.(true,{children:true,texture:true,baseTexture:true});
+   if(view?.parentNode)view.parentNode.removeChild(view);
+   // iOS Safari tends to retain old WebGL contexts. Explicitly lose the dead context.
+   let lose=gl?.getExtension?.("WEBGL_lose_context");lose?.loseContext?.()
+ }catch{}
+ (old.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+ let host=$("#liveStage");host?.classList?.remove("hasLive2d");
+ if(isSafariLive2d()||isIOSWebKitLive2d())setTimeout(()=>{try{window.gc?.()}catch{}},0)
 }
 function dataUrlToBlobSync(dataUrl){
  let [head,b64]=String(dataUrl).split(","),mime=(head.match(/data:([^;]+)/)||[])[1]||"application/octet-stream",bin=atob(b64||""),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:mime})
@@ -3739,27 +3750,23 @@ async function ensureLive2dLibs(){
 function getLive2DModelClass(){return window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel||null}
 async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  let assets=await idbGetLive2dAssets(modelRec.id);if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
- let urlMap={},safari=isSafariLive2d()||isIOSWebKitLive2d();
- for(let a of assets){
-   if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
+ let urlMap={},safari=isSafariLive2d()||isIOSWebKitLive2d(),entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));
+ let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
+ if(!cfg){if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
+ for(let n=0;n<assets.length;n++){
+   let a=assets[n];if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
    let safe=await safariSafeBlob(a.blob,a.rel),u;
    if(safari){
-     // WebKit 的 XHR 对 IndexedDB -> blob: 子资源会偶发 Network error。
-     // Safari 路径完全绕开 blob 网络请求，把 moc3/纹理/动作/表情直接内联。
-     u=await blobToDataUrl(safe)
-   }else{
-     u=URL.createObjectURL(safe);urlSink.push(u)
-   }
+     u=await blobToDataUrl(safe);
+     // Yield between large texture conversions so WebKit can release FileReader buffers.
+     if(n%2===1)await new Promise(r=>setTimeout(r,0))
+   }else{u=URL.createObjectURL(safe);urlSink.push(u)}
    urlMap[normalizeRel(a.rel)]=u
  }
- let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
- if(!cfg){let entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
- cfg=rewriteModelRefs(cfg,urlMap);
- let json=JSON.stringify(cfg);
- if(safari){
-   // model3.json 本身也不经过 WebKit 的 blob/XHR 网络层。
-   return "data:application/json;charset=utf-8,"+encodeURIComponent(json)
- }
+ assets=null;entry=null;
+ cfg=rewriteModelRefs(cfg,urlMap);urlMap=null;
+ let json=JSON.stringify(cfg);cfg=null;
+ if(safari)return "data:application/json;charset=utf-8,"+encodeURIComponent(json);
  let u=URL.createObjectURL(new Blob([json],{type:"application/json;charset=utf-8"}));urlSink.push(u);return u
 }
 async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
@@ -3871,7 +3878,8 @@ async function startLiveFaceCapture(){
    mesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
    mesh.onResults(res=>{let lm=res.multiFaceLandmarks?.[0];if(lm){applyFaceLandmarks(lm);$("#liveFaceState").textContent="面捕追踪中"}else $("#liveFaceState").textContent="未检测到脸"});
    faceCaptureRuntime.running=true;faceCaptureRuntime.stream=stream;faceCaptureRuntime.mesh=mesh;$("#liveFacePanel").classList.add("show");$("#liveFaceBtn").textContent="关闭面捕";$("#liveFaceState").textContent="正在启动";
-   let loop=async()=>{if(!faceCaptureRuntime.running)return;if(!faceCaptureRuntime.busy&&video.readyState>=2){faceCaptureRuntime.busy=true;try{await mesh.send({image:video})}catch(e){console.warn("face mesh frame",e)}finally{faceCaptureRuntime.busy=false}}faceCaptureRuntime.raf=requestAnimationFrame(loop)};loop();
+   let lastFrame=0,minGap=(isSafariLive2d()||isIOSWebKitLive2d())?66:33;
+   let loop=async now=>{if(!faceCaptureRuntime.running)return;if(now-lastFrame>=minGap&&!faceCaptureRuntime.busy&&video.readyState>=2){lastFrame=now;faceCaptureRuntime.busy=true;try{await mesh.send({image:video})}catch(e){console.warn("face mesh frame",e)}finally{faceCaptureRuntime.busy=false}}faceCaptureRuntime.raf=requestAnimationFrame(loop)};faceCaptureRuntime.raf=requestAnimationFrame(loop);
  }catch(e){console.warn("face capture failed",e);stopLiveFaceCapture();toast("面捕启动失败："+(e.message||"摄像头不可用"))}
 }
 function stopLiveFaceCapture(){
@@ -3882,6 +3890,16 @@ function stopLiveFaceCapture(){
  faceCaptureRuntime={running:false,stream:null,mesh:null,raf:0,busy:false,last:{},smooth:.42};
  if($("#liveFacePanel"))$("#liveFacePanel").classList.remove("show");if($("#liveFaceBtn"))$("#liveFaceBtn").textContent="启动面捕"
 }
+
+
+document.addEventListener("visibilitychange",()=>{
+ try{
+   let app=live2dRuntime.app;
+   if(!app)return;
+   if(document.hidden){app.ticker?.stop?.();if(faceCaptureRuntime.running)$("#liveFaceState").textContent="后台暂停"}
+   else{app.ticker?.start?.()}
+ }catch(e){console.warn("Live2D visibility",e)}
+});
 
 function inferLiveEmotion(text){
  let s=String(text||"");
@@ -3925,7 +3943,7 @@ function bindLive2dPointer(model){
 }
 
 async function mountLive2d(modelId,retryMode=false){
- cleanupLive2dRuntime();let host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
+ cleanupLive2dRuntime();let myGen=live2dRuntime.loadGen,host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
  let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint"),errBox=$("#liveSafariError");
  if(errBox){errBox.style.display="none";errBox.textContent=""}
@@ -3938,6 +3956,8 @@ async function mountLive2d(modelId,retryMode=false){
      ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}
      : {resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)};
    let app=new PIXI.Application(appOpts);
+   if(safari){app.ticker.maxFPS=30;app.ticker.minFPS=15}
+   if(myGen!==live2dRuntime.loadGen){app.destroy(true);return false}
    canvasHost.innerHTML="";canvasHost.appendChild(app.view);
    if(safari){
      app.view.style.width="100%";app.view.style.height="100%";
@@ -3948,6 +3968,9 @@ async function mountLive2d(modelId,retryMode=false){
    // Safari 给 blob URL 注册/IndexedDB 解包留一个事件循环，避免纹理请求抢跑。
    if(safari)await new Promise(r=>setTimeout(r,retryMode?120:40));
    let model=await Model.from(url,{autoInteract:false});
+   // Drop the giant model3 data URL string as soon as parsing is finished.
+   url=null;
+   if(myGen!==live2dRuntime.loadGen){try{model.destroy?.({children:true,texture:true,baseTexture:true})}catch{};try{app.destroy(true,{children:true,texture:true,baseTexture:true})}catch{};return false}
    app.stage.addChild(model);live2dRuntime.modelRec=rec;bindLive2dPointer(model);
    model.scale.set(1);
    let b0=model.getLocalBounds?.()||model.getBounds(),w0=canvasHost.clientWidth||300,h0=canvasHost.clientHeight||300;
@@ -3961,11 +3984,7 @@ async function mountLive2d(modelId,retryMode=false){
  }catch(e){
    console.warn("Live2D mount failed",e);
    cleanupLive2dRuntime();host.classList.remove("hasLive2d");
-   if(safari&&!retryMode){
-     if(hint)hint.textContent="Safari 首次加载失败，正在兼容重试";
-     await new Promise(r=>setTimeout(r,220));
-     return mountLive2d(modelId,true)
-   }
+   // Low-memory mode does not auto-retry on Safari: a second full data-URL build can double peak memory.
    let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+(e?.stack?"\n"+e.stack:"");
    if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
    if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
@@ -4276,6 +4295,10 @@ const gameHallStyle=document.createElement("style");gameHallStyle.textContent=`
 .gameChat{margin-top:12px}.gameChatLine{display:flex;gap:8px;margin:8px 0;align-items:flex-start}.gameChatAvatar{width:28px;height:28px;border-radius:9px;overflow:hidden;background:#eee;display:grid;place-items:center;font-size:8px;flex:0 0 auto}.gameChatAvatar img{width:100%;height:100%;object-fit:cover}.gameChatBubble{background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px 10px;font-size:9px;line-height:1.5}.gameChatName{font-size:8px;color:#999;margin-bottom:3px}
 `;document.head.appendChild(gameHallStyle);
 gameHallStyle.textContent+=`
+.gameTile{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.gameTile:active{transform:scale(.98);filter:brightness(.96)}
+`;
+
+gameHallStyle.textContent+=`
 .mahjongTable{width:100%}.mahjongInfo{font-size:9px;color:#888;margin-bottom:8px}.mahjongWall{font-size:9px;color:#888;margin-top:8px}.mahjongHand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:14px}.mjTile{border:1px solid #d7d7d3;background:#fff;border-radius:6px;padding:8px 6px;min-width:34px;font-size:13px;box-shadow:0 2px 5px #0001}.mjTile.drawn{box-shadow:0 0 0 2px #d6a64d}.mjTile:hover{transform:translateY(-1px)}.mahjongDiscards{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:10px}.mjDiscard{padding:4px 5px;border-radius:4px;background:#f4f4f1;font-size:10px}.mahjongMelds{font-size:8px;color:#777;margin-top:6px}.mahjongNotice{font-size:11px;font-weight:700;margin:8px 0}.mahjongClaim{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:12px}.mahjongClaim button{border:0;border-radius:999px;padding:8px 13px;background:#30322f;color:#fff;font-size:9px}.mahjongClaim button.alt{background:#eee;color:#555}
 `;
 
@@ -4307,7 +4330,7 @@ function gamePlayerObjects(){
  return [user,...gameParticipants.map(id=>contacts.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,name:c.name,avatar:c.avatar||"",isUser:false,contact:c}))]
 }
 function renderGameHall(){
- let h=(gameHall.history||[]).slice(-8).reverse(),host=$("#gameRecent");
+ let h=(gameHall.history||[]).slice(-8).reverse(),host=$("#gameRecent");if(!host)return;
  host.innerHTML=h.length?h.map(x=>`<div class="gameHistory"><b>${esc(gameName(x.type))} · ${esc(x.summary||"")}</b><div>${esc(x.time||"")}</div></div>`).join(""):'<div class="empty">还没有战绩。<br>先开一局。</div>'
 }
 function openGameSetup(type){
@@ -4692,6 +4715,16 @@ $("#liveMuteBtn").onclick=()=>{if(!currentLive)return;currentLive.ttsEnabled=!cu
 
 $("#liveGiftBtn").onclick=()=>$("#liveGiftMenu").classList.toggle("show");
 $("#liveGiftMenu").onclick=async e=>{let b=e.target.closest("button[data-gift]");if(!b||!currentLive)return;let gift=b.dataset.gift,u=liveMaskObj();currentLive.gifts++;liveAddLine(u,`${gift==="舰长"||gift==="提督"?"开通":"送出"} ${gift}${gift==="舰长"||gift==="提督"?"":" ×1"}`,"gift");$("#liveGiftMenu").classList.remove("show");if(currentLive.streamerType==="char"){triggerLiveExpression("happy");triggerLiveMotion();setTimeout(()=>liveCharStreamerReply(`User interacted with the livestream by ${gift==="舰长"||gift==="提督"?"opening "+gift:"sending "+gift}.`),250)}};
+
+document.addEventListener("click",e=>{
+ let tile=e.target.closest?.("[data-game-open]");
+ if(!tile)return;
+ e.preventDefault();e.stopPropagation();
+ let type=tile.dataset.gameOpen;
+ if(!["truth","dice","rps","joker","mahjong"].includes(type))return;
+ openGameSetup(type)
+});
+
 $("#gameSetupBack").onclick=()=>{page("gameHall");renderGameHall()};
 $("#gameStartBtn").onclick=()=>{
  gameParticipants=$$("#gameContactPicker input:checked").map(x=>x.value);if(currentGameType==="mahjong"&&gameParticipants.length!==3)return toast("麻将需要正好选择 3 个 Char");if(!gameParticipants.length)return toast("至少选一个 Char");
