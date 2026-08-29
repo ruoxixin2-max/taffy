@@ -1519,7 +1519,7 @@ body.phoneActive{
     </div>
 
     <div class="liveToolSection">
-      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div><div id="liveSafariError" style="display:none;margin:0 0 8px;padding:8px 9px;border-radius:10px;background:#281b20;color:#f2bac8;font-size:7px;line-height:1.5;word-break:break-all"></div>
+      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div><div id="liveSafariError" style="display:none;margin:0 0 8px;padding:8px 9px;border-radius:10px;background:#281b20;color:#f2bac8;font-size:7px;line-height:1.5;word-break:break-all"></div><div id="liveSafariLoaderNote" style="display:none;margin:0 0 8px;padding:7px 9px;border-radius:10px;background:#17211b;color:#a9d9b4;font-size:7px;line-height:1.5">Safari 直读模式：模型资源由本机存储直接内联，不经过 blob 网络请求。</div>
       <div class="liveModelControls">
         <button type="button" id="liveMotionBtn">随机动作</button>
         <button type="button" id="liveExpressionBtn">换表情</button>
@@ -2123,7 +2123,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.3",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.4",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2197,7 +2197,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.3",
+    appVersion:"8.4",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3664,6 +3664,16 @@ function live2dAssetMime(rel){
  if(rel.endsWith(".mp3"))return "audio/mpeg";
  return "application/octet-stream"
 }
+
+function blobToDataUrl(blob){
+ return new Promise((resolve,reject)=>{
+   let fr=new FileReader();
+   fr.onload=()=>resolve(String(fr.result||""));
+   fr.onerror=()=>reject(fr.error||Error("读取 Live2D 资源失败"));
+   fr.readAsDataURL(blob)
+ })
+}
+
 async function safariSafeBlob(blob,rel){
  if(!isSafariLive2d()&&!isIOSWebKitLive2d())return blob;
  // Safari 对 IndexedDB 取出的无 MIME Blob + blob: URL 组合比较挑。
@@ -3732,19 +3742,25 @@ async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  let urlMap={},safari=isSafariLive2d()||isIOSWebKitLive2d();
  for(let a of assets){
    if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
-   let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);urlSink.push(u);urlMap[normalizeRel(a.rel)]=u
+   let safe=await safariSafeBlob(a.blob,a.rel),u;
+   if(safari){
+     // WebKit 的 XHR 对 IndexedDB -> blob: 子资源会偶发 Network error。
+     // Safari 路径完全绕开 blob 网络请求，把 moc3/纹理/动作/表情直接内联。
+     u=await blobToDataUrl(safe)
+   }else{
+     u=URL.createObjectURL(safe);urlSink.push(u)
+   }
+   urlMap[normalizeRel(a.rel)]=u
  }
- if(safari)await new Promise(r=>setTimeout(r,80));
  let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
  if(!cfg){let entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
  cfg=rewriteModelRefs(cfg,urlMap);
  let json=JSON.stringify(cfg);
- // Safari 不能让 model3.json 使用 data: URL 再去引用页面创建的 blob: 资源：
- // data: 拥有不透明 origin，WebKit 会出现 NetworkError / Not allowed to load。
- // 所有资源统一使用同一页面创建的 blob: URL。
- let u=URL.createObjectURL(new Blob([json],{type:"application/json;charset=utf-8"}));urlSink.push(u);
- if(safari)await new Promise(r=>setTimeout(r,60));
- return u
+ if(safari){
+   // model3.json 本身也不经过 WebKit 的 blob/XHR 网络层。
+   return "data:application/json;charset=utf-8,"+encodeURIComponent(json)
+ }
+ let u=URL.createObjectURL(new Blob([json],{type:"application/json;charset=utf-8"}));urlSink.push(u);return u
 }
 async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
 
@@ -3914,7 +3930,7 @@ async function mountLive2d(modelId,retryMode=false){
  let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint"),errBox=$("#liveSafariError");
  if(errBox){errBox.style.display="none";errBox.textContent=""}
  try{
-   if(safari&&hint)hint.textContent=retryMode?"Safari 兼容模式重试中":"Safari 兼容模式加载中";
+   if(safari&&hint)hint.textContent=retryMode?"Safari 直读模式重试中":"Safari 正在直读模型资源";
    if(safari&&!live2dWebglPreflight())throw Error("Safari 当前没有可用的 WebGL");
    await ensureLive2dLibs();
    if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");
@@ -3939,7 +3955,7 @@ async function mountLive2d(modelId,retryMode=false){
    let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
    fit();setTimeout(fit,safari?180:80);
    live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");
-   if(hint){hint.textContent=safari?"Live2D 已加载 · Safari 兼容模式":"Live2D 已加载";hint.classList.add("ok")}
+   if(hint){hint.textContent=safari?"Live2D 已加载 · Safari 直读模式":"Live2D 已加载";hint.classList.add("ok")}
    if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),350);
    return true
  }catch(e){
@@ -4193,7 +4209,7 @@ function renderLiveBgPreview(){
 function renderLiveStage(){
  let st=liveStreamerObj();if(!st)return;
  $("#liveStudioTitle").textContent=currentLive.title||"直播中";
- if($("#liveSafariCompatBadge"))$("#liveSafariCompatBadge").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"inline":"none";
+ if($("#liveSafariCompatBadge"))$("#liveSafariCompatBadge").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"inline":"none";if($("#liveSafariLoaderNote"))$("#liveSafariLoaderNote").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"block":"none";
  setLiveProgram(currentLive.programMode||"chat",false);
  if($("#liveNowScale")){$("#liveNowScale").value=Math.round((currentLive.live2dScale??.55)*100);$("#liveNowScaleValue").textContent=$("#liveNowScale").value+"%"}if($("#liveNowY")){$("#liveNowY").value=Math.round((currentLive.live2dY??.92)*100);$("#liveNowYValue").textContent=$("#liveNowY").value+"%"}if($("#liveNowX")){$("#liveNowX").value=Math.round((currentLive.live2dX??.5)*100);$("#liveNowXValue").textContent=$("#liveNowX").value+"%"}
  renderLiveRank();renderLivePk();
