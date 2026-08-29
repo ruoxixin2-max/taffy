@@ -1519,7 +1519,7 @@ body.phoneActive{
     </div>
 
     <div class="liveToolSection">
-      <div class="liveToolSectionTitle">Live2D</div>
+      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div>
       <div class="liveModelControls">
         <button type="button" id="liveMotionBtn">随机动作</button>
         <button type="button" id="liveExpressionBtn">换表情</button>
@@ -2123,7 +2123,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.0",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.1",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2197,7 +2197,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.0",
+    appVersion:"8.1",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3429,7 +3429,7 @@ async function mountCallLive2d(){
  cleanupCallVideoOnly();let c=callContact(currentCall?.contactId),mid=c?callBoundModelId(c):"";if(!mid){$("#callStatusText").textContent="未绑定 Live2D，使用头像模式";return false}
  let rec=(live2dStore.models||[]).find(x=>x.id===mid),host=$("#callVideoStage"),canvasHost=host?.querySelector(".callLive2dCanvas");if(!rec||!canvasHost)return false;
  try{await ensureLive2dLibs();if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");let urls=[],mu=await buildLive2dModelUrlFor(rec,urls);
- let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);let model=await getLive2DModelClass().from(mu);app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
+ let safari=isSafariLive2d()||isIOSWebKitLive2d(),app=new PIXI.Application(safari?{resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}:{resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);if(safari)await new Promise(r=>setTimeout(r,50));let model=await getLive2DModelClass().from(mu,{autoInteract:false});app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
 }
 function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
 async function renderCallMode(){let video=currentCall?.mode==="video";$("#callVideoStage").className="callVideoStage "+(video?"videoMode":"voiceMode");if(video)await mountCallLive2d();else{cleanupCallVideoOnly();$("#callStatusText").textContent="语音通话"}}
@@ -3644,6 +3644,38 @@ function refreshLive2dBindingHint(){
  if($("#liveModelBindHint"))$("#liveModelBindHint").textContent=m?`当前主播已绑定：${m.name}`:"当前主播没有绑定 Live2D";
  if(mid&&$("#liveModelSelect"))$("#liveModelSelect").value=mid
 }
+
+function isSafariLive2d(){
+ let ua=navigator.userAgent||"";
+ return /Safari/i.test(ua)&&!/Chrome|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua)
+}
+function isIOSWebKitLive2d(){
+ return /iPad|iPhone|iPod/i.test(navigator.userAgent||"") ||
+   (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)
+}
+function live2dAssetMime(rel){
+ rel=String(rel||"").toLowerCase();
+ if(rel.endsWith(".json"))return "application/json";
+ if(rel.endsWith(".png"))return "image/png";
+ if(rel.endsWith(".jpg")||rel.endsWith(".jpeg"))return "image/jpeg";
+ if(rel.endsWith(".webp"))return "image/webp";
+ if(rel.endsWith(".wav"))return "audio/wav";
+ if(rel.endsWith(".mp3"))return "audio/mpeg";
+ return "application/octet-stream"
+}
+async function safariSafeBlob(blob,rel){
+ if(!isSafariLive2d()&&!isIOSWebKitLive2d())return blob;
+ // Safari 对 IndexedDB 取出的无 MIME Blob + blob: URL 组合比较挑。
+ // 重新包装一次，并给纹理/JSON正确 MIME。
+ let buf=await blob.arrayBuffer();
+ return new Blob([buf],{type:live2dAssetMime(rel)})
+}
+function live2dWebglPreflight(){
+ let c=document.createElement("canvas"),gl=null;
+ try{gl=c.getContext("webgl2",{alpha:true})||c.getContext("webgl",{alpha:true})||c.getContext("experimental-webgl",{alpha:true})}catch{}
+ return !!gl
+}
+
 function rewriteModelRefs(obj,urlMap){
  if(Array.isArray(obj))return obj.map(v=>rewriteModelRefs(v,urlMap));
  if(obj&&typeof obj==="object"){let o={};for(let [k,v] of Object.entries(obj))o[k]=rewriteModelRefs(v,urlMap);return o}
@@ -3691,15 +3723,20 @@ async function ensureLive2dLibs(){
 function getLive2DModelClass(){return window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel||null}
 async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  let assets=await idbGetLive2dAssets(modelRec.id);if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
- let urlMap={};
+ let urlMap={},safari=isSafariLive2d()||isIOSWebKitLive2d();
  for(let a of assets){
    if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
-   let u=URL.createObjectURL(a.blob);urlSink.push(u);urlMap[normalizeRel(a.rel)]=u
+   let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);urlSink.push(u);urlMap[normalizeRel(a.rel)]=u
  }
  let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
  if(!cfg){let entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
  cfg=rewriteModelRefs(cfg,urlMap);
- let u=URL.createObjectURL(new Blob([JSON.stringify(cfg)],{type:"application/json"}));urlSink.push(u);return u
+ let json=JSON.stringify(cfg);
+ if(safari){
+   // 避开 Safari 偶发无法再次 fetch model3.json 的 blob: URL 问题。
+   return "data:application/json;charset=utf-8,"+encodeURIComponent(json)
+ }
+ let u=URL.createObjectURL(new Blob([json],{type:"application/json"}));urlSink.push(u);return u
 }
 async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
 
@@ -3863,15 +3900,50 @@ function bindLive2dPointer(model){
  }catch(e){console.warn("live2d pointer bind failed",e)}
 }
 
-async function mountLive2d(modelId){
+async function mountLive2d(modelId,retryMode=false){
  cleanupLive2dRuntime();let host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
+ let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint");
  try{
-   await ensureLive2dLibs();if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);
-   let url=await buildLive2dModelUrl(rec),model=await getLive2DModelClass().from(url);app.stage.addChild(model);live2dRuntime.modelRec=rec;bindLive2dPointer(model);
-   model.scale.set(1);let b0=model.getLocalBounds?.()||model.getBounds(),w0=canvasHost.clientWidth||300,h0=canvasHost.clientHeight||300;live2dRuntime.baseScale=Math.min(w0/Math.max(1,b0.width||1),h0/Math.max(1,b0.height||1));let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
-   fit();setTimeout(fit,80);live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");let hint=host.querySelector(".liveStageHint");if(hint){hint.textContent="Live2D 已加载";hint.classList.add("ok")}if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),350);return true
- }catch(e){console.warn("Live2D mount failed",e);cleanupLive2dRuntime();host.classList.remove("hasLive2d");let hint=host.querySelector(".liveStageHint");if(hint)hint.textContent="Live2D 加载失败："+e.message;return false}
+   if(safari&&hint)hint.textContent=retryMode?"Safari 兼容模式重试中":"Safari 兼容模式加载中";
+   if(safari&&!live2dWebglPreflight())throw Error("Safari 当前没有可用的 WebGL");
+   await ensureLive2dLibs();
+   if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");
+   let appOpts=safari
+     ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}
+     : {resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)};
+   let app=new PIXI.Application(appOpts);
+   canvasHost.innerHTML="";canvasHost.appendChild(app.view);
+   if(safari){
+     app.view.style.width="100%";app.view.style.height="100%";
+     app.view.addEventListener("webglcontextlost",ev=>{ev.preventDefault();if(hint)hint.textContent="Safari WebGL 中断，正在恢复";},false);
+     app.view.addEventListener("webglcontextrestored",()=>{if(currentLive?.live2dModelId)setTimeout(()=>mountLive2d(currentLive.live2dModelId,true),180)},false)
+   }
+   let url=await buildLive2dModelUrl(rec),Model=getLive2DModelClass();
+   // Safari 给 blob URL 注册/IndexedDB 解包留一个事件循环，避免纹理请求抢跑。
+   if(safari)await new Promise(r=>setTimeout(r,retryMode?120:40));
+   let model=await Model.from(url,{autoInteract:false});
+   app.stage.addChild(model);live2dRuntime.modelRec=rec;bindLive2dPointer(model);
+   model.scale.set(1);
+   let b0=model.getLocalBounds?.()||model.getBounds(),w0=canvasHost.clientWidth||300,h0=canvasHost.clientHeight||300;
+   live2dRuntime.baseScale=Math.min(w0/Math.max(1,b0.width||1),h0/Math.max(1,b0.height||1));
+   let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
+   fit();setTimeout(fit,safari?180:80);
+   live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");
+   if(hint){hint.textContent=safari?"Live2D 已加载 · Safari 兼容模式":"Live2D 已加载";hint.classList.add("ok")}
+   if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),350);
+   return true
+ }catch(e){
+   console.warn("Live2D mount failed",e);
+   cleanupLive2dRuntime();host.classList.remove("hasLive2d");
+   if(safari&&!retryMode){
+     if(hint)hint.textContent="Safari 首次加载失败，正在兼容重试";
+     await new Promise(r=>setTimeout(r,220));
+     return mountLive2d(modelId,true)
+   }
+   if(hint)hint.textContent="Live2D 加载失败："+(e?.message||"Safari/WebGL 错误");
+   return false
+ }
 }
 
 let liveRoom=load(K.liveRoom,{history:[]}),currentLive=null,pendingLiveBg="",livePk=null,livePkRuntime={timer:null,tick:null};
@@ -4110,6 +4182,7 @@ function renderLiveBgPreview(){
 function renderLiveStage(){
  let st=liveStreamerObj();if(!st)return;
  $("#liveStudioTitle").textContent=currentLive.title||"直播中";
+ if($("#liveSafariCompatBadge"))$("#liveSafariCompatBadge").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"inline":"none";
  setLiveProgram(currentLive.programMode||"chat",false);
  if($("#liveNowScale")){$("#liveNowScale").value=Math.round((currentLive.live2dScale??.55)*100);$("#liveNowScaleValue").textContent=$("#liveNowScale").value+"%"}if($("#liveNowY")){$("#liveNowY").value=Math.round((currentLive.live2dY??.92)*100);$("#liveNowYValue").textContent=$("#liveNowY").value+"%"}if($("#liveNowX")){$("#liveNowX").value=Math.round((currentLive.live2dX??.5)*100);$("#liveNowXValue").textContent=$("#liveNowX").value+"%"}
  renderLiveRank();renderLivePk();
