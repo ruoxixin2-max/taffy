@@ -877,6 +877,12 @@ body.phoneActive .page{
 .xhsAuthorRow{display:flex;align-items:center;gap:9px}.xhsAuthorAvatar{width:36px;height:36px;border-radius:50%;background:#e6e5e2;display:grid;place-items:center;overflow:hidden;font-size:11px;flex:0 0 auto}.xhsAuthorAvatar img{width:100%;height:100%;object-fit:cover}
 .xhsAuthorName{font-size:10px;font-weight:720}.xhsDetailTitle{font-size:16px;font-weight:800;line-height:1.4;margin-top:13px}.xhsDetailText{font-size:11px;line-height:1.75;white-space:pre-wrap;margin-top:8px;color:#3d3d3d}
 .xhsDetailActions{display:flex;gap:8px;margin-top:12px}.xhsDetailActions button{border:1px solid #ededed;border-radius:999px;background:#fff;padding:7px 12px;font-size:8px}
+.xhsImageTools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid #f1f1f1}
+.xhsImageTools button{border:1px solid #e7e7e7;border-radius:999px;background:#fff;padding:7px 11px;font-size:8px}
+.xhsImageTools button.primary{background:#30322f;color:#fff;border-color:#30322f}
+.xhsImageTools button.danger{color:#a55}
+.xhsImageToolStatus{width:100%;font-size:8px;color:#999;line-height:1.45}
+
 .xhsCommentsHead{padding:12px 14px 5px;font-size:9px;color:#777}.xhsCommentList{padding:0 14px}
 .xhsComment{padding:10px 0;border-bottom:1px solid #f1f1f1}.xhsComment.isReply{margin-left:34px;padding-top:8px}
 .xhsCommentHead{display:flex;align-items:center;gap:7px}.xhsCommentAvatar{width:26px;height:26px;border-radius:50%;overflow:hidden;background:#e8e7e4;display:grid;place-items:center;font-size:8px;flex:0 0 auto}.xhsCommentAvatar img{width:100%;height:100%;object-fit:cover}.xhsCommentName{font-size:8px;color:#8b8b8b;min-width:0}.xhsCommentTime{margin-left:auto;font-size:7px;color:#b2b2b2}
@@ -1273,7 +1279,7 @@ body.phoneActive{
   <header class="xhsHeader"><button class="back" data-back="home">返回</button><div class="xhsTitle">小红书</div><button class="headAction" id="xhsNewBtn">发布</button></header>
   <div class="xhsTabs"><button class="xhsTab" data-xhs-tab="following">关注</button><button class="xhsTab active" data-xhs-tab="discover">发现</button></div>
   <div class="xhsCats" id="xhsCats"></div>
-  <div class="xhsToolbar"><button class="btn" id="xhsAiPostBtn">Char 发一篇</button><button class="btn" id="xhsAiFeedBtn">热闹一下</button><button class="btn" id="xhsRepairImagesBtn">补全配图</button></div>
+  <div class="xhsToolbar"><button class="btn" id="xhsAiPostBtn">Char 发一篇</button><button class="btn" id="xhsAiFeedBtn">热闹一下</button></div>
   <div class="xhsStatus" id="xhsStatus">角色、网友和 User 共用同一条世界观时间线</div>
   <div class="body xhsFeed" id="xhsFeed"></div>
 </section>
@@ -2655,12 +2661,54 @@ function xhsCommentHtml(p,c){
   let depth=xhsCommentDepth(p,c);
   return `<div class="xhsComment ${depth?"isReply":""}" data-xhs-comment="${c.id}"><div class="xhsCommentHead">${xhsAvatarHtml(a,"xhsCommentAvatar")}<span class="xhsCommentName">${esc(a.name)}</span><span class="xhsCommentTime">${esc(c.time||"")}</span></div><div class="xhsCommentText">${parent?`<span class="xhsReplyWho">回复 @${esc(xhsAuthor(parent.authorType,parent.authorId,parent.authorName,parent.authorAvatar).name)}</span>`:""}${esc(c.content||"")}</div><div class="xhsCommentActions"><button type="button" data-xhs-reply="${c.id}">回复</button><button type="button" data-xhs-comment-like="${c.id}">${c.liked?"已赞":"赞"} ${Number(c.likes||0)||""}</button></div></div>`
 }
+
+async function xhsGenerateImageForPost(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);
+  if(!p)return;
+  let status=$("#xhsImageToolStatus"),btn=$("#xhsGenerateThisImage");
+  if(btn)btn.disabled=true;
+  try{
+    if(!xhsImageConfigured())throw Error("请先到设置里配置生图 API");
+    if(status)status.textContent="正在为这一篇生成配图…";
+    p.imagePrompt=xhsEnsureImagePrompt(p);
+    let prompt=p.authorType==="char"?imagePromptForContact(p.imagePrompt,p.authorId):p.imagePrompt;
+    let url=await generateImage(prompt);
+    p.imageUrl=url;p.imageError="";
+    saveXhs();renderXhs();renderXhsDetail();
+    toast("这篇配图好了");
+  }catch(e){
+    p.imageError=String(e?.message||e||"生图失败");
+    saveXhs();
+    if(status)status.textContent="配图失败："+p.imageError;
+    toast("这篇配图没生成");
+  }finally{if(btn)btn.disabled=false}
+}
+function xhsPickLocalImage(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  let input=document.createElement("input");input.type="file";input.accept="image/*";
+  input.onchange=async()=>{let f=input.files?.[0];if(!f)return;try{p.imageUrl=await dataURL(f);p.imageError="";saveXhs();renderXhs();renderXhsDetail();toast("已换成你选的图片")}catch(e){toast("读取图片失败")}};
+  input.click();
+}
+function xhsSetImageUrl(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  let url=prompt("粘贴图片 URL",/^https?:/i.test(p.imageUrl||"")?p.imageUrl:"");
+  if(url===null)return;url=url.trim();if(!url)return;
+  p.imageUrl=url;p.imageError="";saveXhs();renderXhs();renderXhsDetail();toast("图片已更新");
+}
+function xhsRemovePostImage(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  p.imageUrl="";saveXhs();renderXhs();renderXhsDetail();toast("这篇图片已移除");
+}
 function renderXhsDetail(){
   let p=(xhs.posts||[]).find(x=>x.id===currentXhsPostId),host=$("#xhsDetailBody");if(!p){host.innerHTML='<div class="empty">笔记不存在。</div>';return}
   let a=xhsAuthor(p.authorType,p.authorId,p.authorName,p.authorAvatar),comments=p.comments||[];
-  host.innerHTML=`${p.imageUrl?`<img class="xhsHero" src="${esc(p.imageUrl)}" alt="">`:""}<div class="xhsDetailMain"><div class="xhsAuthorRow">${xhsAvatarHtml(a,"xhsAuthorAvatar")}<div><div class="xhsAuthorName">${esc(a.name)}${p.generated?'<span class="xhsGeneratedBadge">AI 图文</span>':""}</div><div class="tiny">${esc(p.time||"")}</div></div></div><div class="xhsDetailTitle">${esc(p.title||"无标题")}</div><div class="xhsDetailText">${esc(p.content||"")}</div><div class="xhsDetailActions"><button type="button" id="xhsLikePost">${p.liked?"♥ 已赞":"♡ 点赞"} ${Number(p.likes||0)}</button><button type="button" id="xhsRefreshComments">让评论区热闹</button></div></div><div class="xhsCommentsHead">共 ${comments.length} 条评论</div><div class="xhsCommentList">${comments.map(c=>xhsCommentHtml(p,c)).join("")||'<div class="empty" style="padding:24px 10px">还没人评论</div>'}</div>`;
+  host.innerHTML=`${p.imageUrl?`<img class="xhsHero" src="${esc(p.imageUrl)}" alt="">`:""}<div class="xhsDetailMain"><div class="xhsAuthorRow">${xhsAvatarHtml(a,"xhsAuthorAvatar")}<div><div class="xhsAuthorName">${esc(a.name)}${p.generated?'<span class="xhsGeneratedBadge">AI 图文</span>':""}</div><div class="tiny">${esc(p.time||"")}</div></div></div><div class="xhsDetailTitle">${esc(p.title||"无标题")}</div><div class="xhsDetailText">${esc(p.content||"")}</div><div class="xhsDetailActions"><button type="button" id="xhsLikePost">${p.liked?"♥ 已赞":"♡ 点赞"} ${Number(p.likes||0)}</button><button type="button" id="xhsRefreshComments">让评论区热闹</button></div><div class="xhsImageTools"><button type="button" class="primary" id="xhsGenerateThisImage">${p.imageUrl?"AI重生成":"AI补配图"}</button><button type="button" id="xhsPickThisImage">相册选图</button><button type="button" id="xhsUrlThisImage">图片URL</button>${p.imageUrl?'<button type="button" class="danger" id="xhsRemoveThisImage">移除图片</button>':""}<div class="xhsImageToolStatus" id="xhsImageToolStatus">${p.imageError?"上次失败："+esc(p.imageError):p.imageUrl?"当前已有配图，可重生成或自己替换":"这篇还没有配图，你可以单独生成或自己选。"}</div></div></div><div class="xhsCommentsHead">共 ${comments.length} 条评论</div><div class="xhsCommentList">${comments.map(c=>xhsCommentHtml(p,c)).join("")||'<div class="empty" style="padding:24px 10px">还没人评论</div>'}</div>`;
   $("#xhsLikePost").onclick=()=>{p.liked=!p.liked;p.likes=Math.max(0,Number(p.likes||0)+(p.liked?1:-1));saveXhs();renderXhsDetail();renderXhs()};
   $("#xhsRefreshComments").onclick=()=>aiXhsComments(p.id,4);
+  $("#xhsGenerateThisImage").onclick=()=>xhsGenerateImageForPost(p.id);
+  $("#xhsPickThisImage").onclick=()=>xhsPickLocalImage(p.id);
+  $("#xhsUrlThisImage").onclick=()=>xhsSetImageUrl(p.id);
+  if($("#xhsRemoveThisImage"))$("#xhsRemoveThisImage").onclick=()=>xhsRemovePostImage(p.id);
   $$("[data-xhs-reply]").forEach(b=>b.onclick=()=>{xhsReplyToId=b.dataset.xhsReply;let c=xhsFindComment(p,xhsReplyToId),a=xhsAuthor(c.authorType,c.authorId,c.authorName,c.authorAvatar);$("#xhsReplyHintText").textContent="回复 @"+a.name;$("#xhsReplyHint").classList.add("show");$("#xhsCommentInput").focus()});
   $$("[data-xhs-comment-like]").forEach(b=>b.onclick=()=>{let c=xhsFindComment(p,b.dataset.xhsCommentLike);c.liked=!c.liked;c.likes=Math.max(0,Number(c.likes||0)+(c.liked?1:-1));saveXhs();renderXhsDetail()})
 }
@@ -2841,7 +2889,7 @@ async function aiXhsFeedBurst(){
 }
 $("#xhsAiPostBtn").onclick=aiXhsPost;
 $("#xhsAiFeedBtn").onclick=aiXhsFeedBurst;
-$("#xhsRepairImagesBtn").onclick=xhsRepairMissingImages;
+
 $("#xhsAiCommentsBtn").onclick=()=>aiXhsComments(currentXhsPostId,4);
 
 
