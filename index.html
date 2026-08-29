@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.7 · IndexedDB 媒体迁移</title>
+<title>咖喱小手机 V8.7.1 · IndexedDB 媒体迁移</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -1659,7 +1659,7 @@ body.phoneActive{
 
 <div class="settingGroup"><h3>STORAGE</h3><div class="settingBox backupBox">
   <div class="backupMeta">图片媒体改用 IndexedDB 保存，localStorage 只保留轻量文字与引用。旧 Base64 图片可一键迁移；不会删除仍被使用的图片。</div>
-  <div class="actions"><button class="btn primary" id="migrateMediaBtn" type="button">迁移旧媒体</button><button class="btn" id="storageInfoBtn" type="button">查看占用</button></div>
+  <div class="actions"><button class="btn primary" id="migrateMediaBtn" type="button">迁移旧媒体</button><button class="btn" id="storageInfoBtn" type="button" onclick="window.showCurryStorageInfo?.()">查看占用</button></div>
   <div class="actions"><button class="btn" id="cleanupMediaBtn" type="button">清理无引用媒体</button></div>
   <div class="backupStatus" id="mediaStorageStatus"></div>
 </div></div>
@@ -4811,4 +4811,69 @@ setInterval(()=>{migrateForwards()},1800);
 const _groupSystemPrompt48=groupSystemPrompt;groupSystemPrompt=function(g){return _groupSystemPrompt48(g)+`\n若某个角色自然地想把自己和好友/NPC的私聊给群里看，可把该条 content 写为 <forward_chat>{"title":"聊天记录","messages":[{"name":"A","content":"..."}]}</forward_chat>。不要滥用。`}
 const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48();let h=groupConvos[currentGroup]||[],changed=false;for(let i=0;i<h.length;i++){let m=h[i];if(m.role==='assistant'&&m.type!=='forward'&&String(m.content||'').includes('<forward_chat>')){let f=maybeParseForward(m.content,m.contactId);if(f){m.content=f.clean||'给你们看个东西。';h.splice(i+1,0,{msgId:uuid(),role:'assistant',contactId:m.contactId,type:'forward',forwardId:f.id,content:'[聊天记录]',time:now(),createdAt:Date.now()});i++;changed=true}}}if(changed){save(K.groupConvos,groupConvos);renderGroupChat();renderConvos()}};$('#groupReplyBtn').onclick=replyGroup;
 </script>
+
+<script>
+/* ===== V8.7.1 STORAGE button independent fallback =====
+   Kept separate from the giant legacy bootstrap so one unrelated null/handler
+   error cannot make "查看占用" silently stop working. */
+(function(){
+  const MB=n=>(Number(n||0)/1048576).toFixed(2)+" MB";
+  function localBytes(){
+    let n=0;
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i),v=localStorage.getItem(k)||"";
+        n+=(String(k||"").length+v.length)*2;
+      }
+    }catch(e){}
+    return n;
+  }
+  async function mediaStats(){
+    try{
+      if(typeof mediaAllRecords==="function"){
+        const rows=await mediaAllRecords();
+        return {count:rows.length,bytes:rows.reduce((n,r)=>n+(r?.blob?.size||0),0)};
+      }
+    }catch(e){ console.warn("media stats",e); }
+    return {count:0,bytes:0};
+  }
+  window.showCurryStorageInfo=async function(){
+    const s=document.getElementById("mediaStorageStatus");
+    const b=document.getElementById("storageInfoBtn");
+    try{
+      if(b){b.disabled=true;b.textContent="读取中…"}
+      if(s)s.textContent="正在读取浏览器存储占用…";
+      let est={usage:0,quota:0};
+      try{
+        if(navigator.storage?.estimate) est=await navigator.storage.estimate()||est;
+      }catch(e){console.warn("storage estimate",e)}
+      const m=await mediaStats();
+      const text=[
+        `localStorage：${MB(localBytes())}`,
+        `IndexedDB 媒体：${m.count} 个 / ${MB(m.bytes)}`,
+        `站点总占用：${est.usage?MB(est.usage):"浏览器未提供"}`,
+        `站点配额：${est.quota?MB(est.quota):"浏览器未提供"}`
+      ].join("\n");
+      if(s)s.textContent=text;
+      else alert(text);
+      return text;
+    }catch(e){
+      const msg="读取占用失败："+(e?.message||e);
+      if(s)s.textContent=msg; else alert(msg);
+      console.error(e);
+    }finally{
+      if(b){b.disabled=false;b.textContent="查看占用"}
+    }
+  };
+  function bind(){
+    const b=document.getElementById("storageInfoBtn");
+    if(!b)return;
+    // Replace any broken/half-bound handler with the independent one.
+    b.onclick=window.showCurryStorageInfo;
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});
+  else bind();
+})();
+</script>
+
 </body></html>
