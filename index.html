@@ -1305,7 +1305,7 @@ body.phoneActive{
 <section class="page" data-page="relationTrace"><header class="head"><button class="back" data-back="contactDetail">返回</button><div class="headTitle">关系痕迹</div><div></div></header><div class="body" id="relationTraceBody"></div></section>
 
 <section class="page" data-page="editor"><header class="head"><button class="back" id="editorCancel">取消</button><div class="headTitle" id="editorTitle">新建联系人</div><button class="headAction" id="editorSave">保存</button></header><div class="body"><div class="form">
-<div class="field"><label>姓名</label><input class="input" id="edName"></div><div class="field"><label>头像</label><input class="input" id="edAvatar" type="file" accept="image/*"></div><div class="field"><label>角色设定 / Description</label><textarea class="textarea" id="edDescription"></textarea></div><div class="field"><label>Personality</label><textarea class="textarea smallarea" id="edPersonality"></textarea></div><div class="field"><label>Scenario</label><textarea class="textarea smallarea" id="edScenario"></textarea></div><div class="field"><label>First Message</label><textarea class="textarea smallarea" id="edFirst"></textarea></div><div class="field"><label>Message Example</label><textarea class="textarea smallarea" id="edExample"></textarea></div><div class="field"><label>System Prompt</label><textarea class="textarea smallarea" id="edSystem"></textarea></div><div class="field"><label>原始/补充文本</label><textarea class="textarea" id="edRaw"></textarea></div></div></div></section>
+<div class="field"><label>姓名</label><input class="input" id="edName"></div><div class="field"><label>头像</label><input class="input" id="edAvatar" type="file" accept="image/*"></div><div class="field"><label>角色设定 / Description</label><textarea class="textarea" id="edDescription"></textarea></div><div class="field"><label>人物生图提示词 / Character Image Prompt</label><textarea class="textarea smallarea" id="edImagePrompt" placeholder="可选。填写人物固定外貌、发型、服装等；留空则自动从角色设定中提取。"></textarea><div class="help">只作为该联系人的人物视觉设定；不会替代全局正面 / 负面提示词。</div></div><div class="field"><label>人物参考图 / 锁脸图</label><input class="input" id="edReferenceImage" type="file" accept="image/*"><div class="help">上传一张最满意的角色脸。支持参考图的生图接口会优先用它保持人物一致；不支持时自动退回纯文字生图。</div><div id="edReferencePreview" style="display:none;margin-top:8px"><img alt="人物参考图" style="width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line)"><button class="btn danger" id="removeReferenceImage" type="button" style="margin-top:7px;width:96px">移除参考图</button></div></div><div class="field"><label>锁脸强度</label><select class="input" id="edFaceLockStrength"><option value="off">关闭</option><option value="weak">弱</option><option value="medium">中</option><option value="strong">强</option></select><div class="help">弱：只参考五官气质；中：优先保持脸和发型；强：尽量保持身份一致。参考图接口不支持强度参数时，会通过提示词近似控制。</div></div><div class="field"><label>Personality</label><textarea class="textarea smallarea" id="edPersonality"></textarea></div><div class="field"><label>Scenario</label><textarea class="textarea smallarea" id="edScenario"></textarea></div><div class="field"><label>First Message</label><textarea class="textarea smallarea" id="edFirst"></textarea></div><div class="field"><label>Message Example</label><textarea class="textarea smallarea" id="edExample"></textarea></div><div class="field"><label>System Prompt</label><textarea class="textarea smallarea" id="edSystem"></textarea></div><div class="field"><label>原始/补充文本</label><textarea class="textarea" id="edRaw"></textarea></div></div></div></section>
 
 <section class="page callPage" data-page="callIncoming">
   <div class="callIncomingWrap">
@@ -1519,7 +1519,7 @@ body.phoneActive{
     </div>
 
     <div class="liveToolSection">
-      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div><div id="liveSafariError" style="display:none;margin:0 0 8px;padding:8px 9px;border-radius:10px;background:#281b20;color:#f2bac8;font-size:7px;line-height:1.5;word-break:break-all"></div><div id="liveSafariLoaderNote" style="display:none;margin:0 0 8px;padding:7px 9px;border-radius:10px;background:#17211b;color:#a9d9b4;font-size:7px;line-height:1.5">Safari 低内存模式：直读模型资源；30FPS 渲染，面捕降频，退出直播主动释放 WebGL。</div>
+      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div>
       <div class="liveModelControls">
         <button type="button" id="liveMotionBtn">随机动作</button>
         <button type="button" id="liveExpressionBtn">换表情</button>
@@ -1840,7 +1840,7 @@ function notifyFromChar(contactId,msg){let c=contacts.find(x=>x.id===contactId);
 function markChatRead(id){if(unreadFor(id))setUnread(id,0);let k=convoKey(id),h=convos[k]||[];let changed=false;for(let m of h){if(m.role==="assistant"&&!m.readAt){m.readAt=Date.now();changed=true}}if(changed){convos[k]=h;save(K.convos,convos)}}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
-let contacts=load(K.contacts,[]),convos=load(K.convos,{}),settings=Object.assign({endpoint:"",model:"",temperature:.8,maxTokens:800,rememberKey:false},load(K.settings,{})),sessionKey=settings.rememberKey?(settings.apiKey||""):"",currentContact=null,editingId=null,pendingAvatar=null,importType=null,pendingSource="手动创建",pendingRaw=null;
+let contacts=load(K.contacts,[]),convos=load(K.convos,{}),settings=Object.assign({endpoint:"",model:"",temperature:.8,maxTokens:800,rememberKey:false},load(K.settings,{})),sessionKey=settings.rememberKey?(settings.apiKey||""):"",currentContact=null,editingId=null,pendingAvatar=null,pendingReferenceImage="",importType=null,pendingSource="手动创建",pendingRaw=null;
 let beauty=Object.assign({
   wallpaper:"",
   wallpaperOpacity:1,
@@ -1989,12 +1989,19 @@ function openRelationTrace(id=currentContact){
   page("relationTrace");
 }
 
-$("#editContact").onclick=()=>currentContact&&openEditor(contacts.find(c=>c.id===currentContact));const blank=()=>({description:"",personality:"",scenario:"",firstMes:"",mesExample:"",systemPrompt:"",rawText:""});
-function openEditor(c=null){editingId=c?.id||null;pendingAvatar=c?.avatar||null;$("#editorTitle").textContent=c?"编辑联系人":"新建联系人";let x=c?.character||blank();$("#edName").value=c?.name||"";$("#edDescription").value=x.description||"";$("#edPersonality").value=x.personality||"";$("#edScenario").value=x.scenario||"";$("#edFirst").value=x.firstMes||"";$("#edExample").value=x.mesExample||"";$("#edSystem").value=x.systemPrompt||"";$("#edRaw").value=x.rawText||"";page("editor")}
+$("#editContact").onclick=()=>currentContact&&openEditor(contacts.find(c=>c.id===currentContact));const blank=()=>({description:"",imagePrompt:"",referenceImage:"",faceLockStrength:"off",personality:"",scenario:"",firstMes:"",mesExample:"",systemPrompt:"",rawText:""});
+function renderReferencePreview(){
+ let box=$("#edReferencePreview"),img=box?.querySelector("img");
+ if(!box||!img)return;
+ if(pendingReferenceImage){img.src=pendingReferenceImage;box.style.display="block"}else{img.removeAttribute("src");box.style.display="none"}
+}
+function openEditor(c=null){editingId=c?.id||null;pendingAvatar=c?.avatar||null;$("#editorTitle").textContent=c?"编辑联系人":"新建联系人";let x=c?.character||blank();pendingReferenceImage=x.referenceImage||"";$("#edName").value=c?.name||"";$("#edDescription").value=x.description||"";$("#edImagePrompt").value=x.imagePrompt||"";$("#edFaceLockStrength").value=x.faceLockStrength||"off";$("#edPersonality").value=x.personality||"";$("#edScenario").value=x.scenario||"";$("#edFirst").value=x.firstMes||"";$("#edExample").value=x.mesExample||"";$("#edSystem").value=x.systemPrompt||"";$("#edRaw").value=x.rawText||"";renderReferencePreview();page("editor")}
 $("#editorCancel").onclick=()=>page(editingId?"contactDetail":"contacts");$("#edAvatar").onchange=async e=>{if(e.target.files[0])pendingAvatar=await dataURL(e.target.files[0])};
-$("#editorSave").onclick=()=>{let name=$("#edName").value.trim();if(!name)return toast("请填写姓名");let old=contacts.find(c=>c.id===editingId),c={id:editingId||uuid(),name,avatar:pendingAvatar||"",sourceLabel:old?.sourceLabel||pendingSource,rawCard:old?.rawCard||pendingRaw,character:{description:$("#edDescription").value.trim(),personality:$("#edPersonality").value.trim(),scenario:$("#edScenario").value.trim(),firstMes:$("#edFirst").value.trim(),mesExample:$("#edExample").value.trim(),systemPrompt:$("#edSystem").value.trim(),rawText:$("#edRaw").value.trim()}};if(editingId)contacts=contacts.map(x=>x.id===editingId?c:x);else contacts.push(c);save(K.contacts,contacts);if(!editingId&&pendingRaw)importEmbeddedWorldbook(pendingRaw,c.name,c.id);currentContact=c.id;pendingSource="手动创建";pendingRaw=null;openContact(c.id);toast("联系人已保存")};
+$("#edReferenceImage").onchange=async e=>{let f=e.target.files?.[0];if(!f)return;pendingReferenceImage=await dataURL(f);renderReferencePreview();e.target.value=""};
+$("#removeReferenceImage").onclick=()=>{pendingReferenceImage="";renderReferencePreview()};
+$("#editorSave").onclick=()=>{let name=$("#edName").value.trim();if(!name)return toast("请填写姓名");let old=contacts.find(c=>c.id===editingId),c={id:editingId||uuid(),name,avatar:pendingAvatar||"",sourceLabel:old?.sourceLabel||pendingSource,rawCard:old?.rawCard||pendingRaw,character:{description:$("#edDescription").value.trim(),imagePrompt:$("#edImagePrompt").value.trim(),referenceImage:pendingReferenceImage||"",faceLockStrength:$("#edFaceLockStrength").value||"off",personality:$("#edPersonality").value.trim(),scenario:$("#edScenario").value.trim(),firstMes:$("#edFirst").value.trim(),mesExample:$("#edExample").value.trim(),systemPrompt:$("#edSystem").value.trim(),rawText:$("#edRaw").value.trim()}};if(editingId)contacts=contacts.map(x=>x.id===editingId?c:x);else contacts.push(c);save(K.contacts,contacts);if(!editingId&&pendingRaw)importEmbeddedWorldbook(pendingRaw,c.name,c.id);currentContact=c.id;pendingSource="手动创建";pendingRaw=null;openContact(c.id);toast("联系人已保存")};
 $("#addContact").onclick=()=>$("#importSheet").classList.add("show");$("#closeSheet").onclick=()=>$("#importSheet").classList.remove("show");$$("[data-import]").forEach(b=>b.onclick=()=>{let t=b.dataset.import;$("#importSheet").classList.remove("show");if(t==="manual"){pendingSource="手动创建";pendingRaw=null;openEditor();return}importType=t;let f=$("#importFile");f.value="";f.accept=t==="png"?".png":t==="json"?".json":t==="txt"?".txt":".docx";f.click()});
-$("#importFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x;if(importType==="png")x=await pngCard(f);else if(importType==="json")x=jsonCard(JSON.parse(await f.text()));else if(importType==="txt")x={name:f.name.replace(/\.txt$/i,""),character:{...blank(),rawText:await f.text()},source:"TXT · "+f.name};else x=await docx(f);pendingSource=x.source;pendingRaw=x.rawCard||null;openEditor();$("#edName").value=x.name||"";let c=x.character||blank();$("#edDescription").value=c.description||"";$("#edPersonality").value=c.personality||"";$("#edScenario").value=c.scenario||"";$("#edFirst").value=c.firstMes||"";$("#edExample").value=c.mesExample||"";$("#edSystem").value=c.systemPrompt||"";$("#edRaw").value=c.rawText||"";if(x.avatar)pendingAvatar=x.avatar}catch(err){console.error(err);toast("导入失败："+err.message)}};
+$("#importFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x;if(importType==="png")x=await pngCard(f);else if(importType==="json")x=jsonCard(JSON.parse(await f.text()));else if(importType==="txt")x={name:f.name.replace(/\.txt$/i,""),character:{...blank(),rawText:await f.text()},source:"TXT · "+f.name};else x=await docx(f);pendingSource=x.source;pendingRaw=x.rawCard||null;openEditor();$("#edName").value=x.name||"";let c=x.character||blank();$("#edDescription").value=c.description||"";$("#edImagePrompt").value=c.imagePrompt||"";pendingReferenceImage=c.referenceImage||"";$("#edFaceLockStrength").value=c.faceLockStrength||"off";renderReferencePreview();$("#edPersonality").value=c.personality||"";$("#edScenario").value=c.scenario||"";$("#edFirst").value=c.firstMes||"";$("#edExample").value=c.mesExample||"";$("#edSystem").value=c.systemPrompt||"";$("#edRaw").value=c.rawText||"";if(x.avatar)pendingAvatar=x.avatar}catch(err){console.error(err);toast("导入失败："+err.message)}};
 function norm(o){let d=o?.spec==="chara_card_v2"&&o.data?o.data:(o?.data?.name?o.data:o||{});return{name:d.name||o?.name||"",character:{description:d.description||"",personality:d.personality||"",scenario:d.scenario||"",firstMes:d.first_mes||"",mesExample:d.mes_example||"",systemPrompt:d.system_prompt||"",rawText:""},rawCard:o}}
 function jsonCard(o){let x=norm(o);x.source="JSON Character Card";return x}
 async function pngCard(f){let buf=await f.arrayBuffer(),b=new Uint8Array(buf),p=8,card=null,dec=new TextDecoder("latin1");while(p+12<=b.length){let len=new DataView(buf).getUint32(p),type=dec.decode(b.slice(p+4,p+8)),data=b.slice(p+8,p+8+len);p+=12+len;if(type==="tEXt"){let z=data.indexOf(0);if(z>0&&dec.decode(data.slice(0,z))==="chara"){let v=dec.decode(data.slice(z+1));try{card=JSON.parse(decodeURIComponent(escape(atob(v))))}catch{try{card=JSON.parse(atob(v))}catch{}}}}}if(!card)throw Error("PNG 中未检测到 chara metadata");let x=norm(card);x.source="PNG Tavern Card · "+f.name;x.avatar=await dataURL(f);return x}
@@ -2123,7 +2130,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.6",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.1",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2197,7 +2204,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.6",
+    appVersion:"8.1",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -2478,8 +2485,28 @@ function naturalBurstFallback(pieces,userText=""){
 }
 
 
+function characterImagePrompt(c){
+ let x=c?.character||{},manual=String(x.imagePrompt||"").trim();
+ if(manual)return manual;
+ let desc=String(x.description||"").trim(),raw=String(x.rawText||"").trim();
+ if(desc)return desc;
+ return raw.slice(0,1800);
+}
+function contactImageContext(contactId=currentContact){
+ let c=contacts.find(x=>x.id===contactId),x=c?.character||{};
+ return {contactId:c?.id||"",referenceImage:String(x.referenceImage||""),faceLockStrength:String(x.faceLockStrength||"off")};
+}
+function imagePromptForContact(scenePrompt,contactId=currentContact){
+ let c=contacts.find(x=>x.id===contactId),visual=characterImagePrompt(c),ctx=contactImageContext(contactId);
+ let scene=String(scenePrompt||"").trim(),lock=ctx.faceLockStrength||"off";
+ let lockText=lock==="strong"?"Preserve the same person's facial identity, facial proportions, hairline and recognizable features very strongly while allowing pose, clothing and environment to change."
+   :lock==="medium"?"Keep the same recognizable facial identity and hairstyle while allowing natural variation in pose, expression, clothing and environment."
+   :lock==="weak"?"Use the reference only as a loose identity and facial-feature guide; keep the result natural and not copied pose-for-pose."
+   :"";
+ return [visual&&`CHARACTER VISUAL REFERENCE:\n${visual}`,lockText&&`IDENTITY CONSISTENCY:\n${lockText}`,`CURRENT IMAGE / SCENE REQUEST:\n${scene}`].filter(Boolean).join("\n\n");
+}
 function historyContent(m){if(m.recalled)return "";let prefix=m.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";if(m.type==="sticker")return prefix+`[STICKER: ${m.mood||""} | ${m.url}]`;if(m.type==="image")return prefix+`[IMAGE MESSAGE: ${m.caption||""}]`;if(m.type==="voice")return prefix+`[VOICE MESSAGE: ${m.transcript||""}]`;if(m.type==="transfer")return prefix+`[TRANSFER: ¥${Number(m.amount||0).toFixed(2)} ${m.note||""}]`;if(m.type==="takeout")return prefix+`[TAKEOUT: ${m.shop||""}; ${String(m.items||"").replace(/\n/g," / ")}; ¥${Number(m.amount||0).toFixed(2)}; ${m.note||""}]`;return prefix+(m.content||"")}
-async function materializeAssistantPiece(part){if(part.type==="takeout_request"){let o={id:uuid(),direction:"charToUser",contactId:currentContact,shop:part.shop||"外卖",items:part.items||"",amount:Number(part.amount)||0,note:part.note||"",status:"ordered",createdAt:Date.now(),updatedAt:Date.now(),time:takeoutTime()};takeout.orders=takeout.orders||[];takeout.orders.push(o);saveTakeout();return{role:"assistant",type:"takeout",orderId:o.id,shop:o.shop,items:o.items,amount:o.amount,note:o.note,status:o.status,direction:o.direction,time:now(),createdAt:Date.now()}}if(part.type==="voice_request"){let url=await generateVoice(part.text);return{role:"assistant",type:"voice",url,transcript:part.text,time:now(),createdAt:Date.now()}}if(part.type==="image_request"){let url=await generateImage(part.prompt);return{role:"assistant",type:"image",url,caption:part.prompt,time:now(),createdAt:Date.now()}}if(part.type==="transfer")return{role:"assistant",type:"transfer",amount:part.amount,note:part.note,time:now(),createdAt:Date.now()};if(part.type==="sticker")return{role:"assistant",type:"sticker",url:part.url,mood:part.mood,time:now(),createdAt:Date.now()};return{role:"assistant",content:part.content,time:now(),createdAt:Date.now()}}
+async function materializeAssistantPiece(part){if(part.type==="takeout_request"){let o={id:uuid(),direction:"charToUser",contactId:currentContact,shop:part.shop||"外卖",items:part.items||"",amount:Number(part.amount)||0,note:part.note||"",status:"ordered",createdAt:Date.now(),updatedAt:Date.now(),time:takeoutTime()};takeout.orders=takeout.orders||[];takeout.orders.push(o);saveTakeout();return{role:"assistant",type:"takeout",orderId:o.id,shop:o.shop,items:o.items,amount:o.amount,note:o.note,status:o.status,direction:o.direction,time:now(),createdAt:Date.now()}}if(part.type==="voice_request"){let url=await generateVoice(part.text);return{role:"assistant",type:"voice",url,transcript:part.text,time:now(),createdAt:Date.now()}}if(part.type==="image_request"){let finalPrompt=imagePromptForContact(part.prompt,currentContact),url=await generateImage(finalPrompt,null,contactImageContext(currentContact));return{role:"assistant",type:"image",url,caption:part.prompt,time:now(),createdAt:Date.now()}}if(part.type==="transfer")return{role:"assistant",type:"transfer",amount:part.amount,note:part.note,time:now(),createdAt:Date.now()};if(part.type==="sticker")return{role:"assistant",type:"sticker",url:part.url,mood:part.mood,time:now(),createdAt:Date.now()};return{role:"assistant",content:part.content,time:now(),createdAt:Date.now()}}
 $("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>x.content).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let raw=await apiWithMcp([{role:"system",content:prompt(c,userText)},...contextMessagesForChat(currentContact)]),pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
 
 $("#mediaBtn").onclick=()=>{$("#stickerPicker").classList.remove("show");$("#mediaPicker").classList.toggle("show")};
@@ -2746,11 +2773,68 @@ $("#saveVoiceApi").onclick=()=>{
  mediaApi.voice={provider:$("#voiceProvider").value,endpoint:$("#voiceEndpoint").value.trim(),model:$("#voiceModel").value.trim(),voiceId:$("#voiceId").value.trim(),rememberKey:remember};
  if(remember)mediaApi.voice.key=voiceSessionKey;save(K.mediaApi,mediaApi);$("#voiceApiStatus").textContent="语音 API 已保存";toast("语音 API 已保存")
 };
-async function generateImage(promptText,override=null){
+function imageGenerationUrl(endpoint){
+ let raw=String(endpoint||"").trim();if(!raw)return "";
+ try{
+   let u=new URL(raw),p=u.pathname.replace(/\/+$/,"");
+   if(/\/images\/generations$/i.test(p)){}
+   else if(/\/images\/edits$/i.test(p))p=p.replace(/\/images\/edits$/i,"/images/generations");
+   else if(/\/v\d+$/i.test(p))p+="/images/generations";
+   else p+="/images/generations";
+   u.pathname=p;return u.toString()
+ }catch{return raw}
+}
+function imageEditUrl(endpoint){
+ let raw=String(endpoint||"").trim();if(!raw)return "";
+ try{
+   let u=new URL(raw),p=u.pathname.replace(/\/+$/,"");
+   if(/\/images\/edits$/i.test(p)){}
+   else if(/\/images\/generations$/i.test(p))p=p.replace(/\/images\/generations$/i,"/images/edits");
+   else if(/\/v\d+$/i.test(p))p+="/images/edits";
+   else p+="/images/edits";
+   u.pathname=p;return u.toString()
+ }catch{return raw}
+}
+async function dataUrlToBlob(dataUrl){
+ let r=await fetch(dataUrl);return await r.blob()
+}
+function parseImageResult(d){
+ let url=d?.data?.image_urls?.[0]||d?.data?.[0]?.url;
+ let b64=d?.data?.image_base64?.[0]||d?.data?.[0]?.b64_json;
+ if(url)return url;if(b64)return"data:image/png;base64,"+b64;throw Error("未找到图片结果")
+}
+async function generateImage(promptText,override=null,imageCtx=null){
  let s=override||mediaApi.image,key=override?.key??imageSessionKey;if(!s.endpoint||!s.model)throw Error("生图 API 未配置");
- let h={"Content-Type":"application/json"};if(key)h.Authorization="Bearer "+key;
- let body,positive=String(s.positivePrompt||"").trim(),negative=String(s.negativePrompt||"").trim();
+ let positive=String(s.positivePrompt||"").trim(),negative=String(s.negativePrompt||"").trim();
  let finalPrompt=[String(promptText||"").trim(),positive].filter(Boolean).join(", ");
+ let ctx=imageCtx||{},ref=String(ctx.referenceImage||"").trim(),strength=String(ctx.faceLockStrength||"off");
+ let wantsReference=!!ref&&strength!=="off"&&!(s.provider||"").startsWith("minimax");
+
+ // Reference-image path: OpenAI-compatible image edits. If the relay does not support it, fall back to text-only generation.
+ if(wantsReference){
+   try{
+     let form=new FormData(),blob=await dataUrlToBlob(ref);
+     let ext=(blob.type||"image/png").split("/")[1]||"png";
+     let strengthHint=strength==="strong"?"Maintain the person's facial identity with high fidelity."
+       :strength==="medium"?"Maintain the person's recognizable facial identity."
+       :"Use the person's face as a loose visual reference.";
+     let promptWithNegative=[finalPrompt,strengthHint,negative&&"Avoid / Negative prompt: "+negative].filter(Boolean).join("\n\n");
+     form.append("model",s.model);form.append("prompt",promptWithNegative);form.append("image",blob,"reference."+ext);
+     if(s.size)form.append("size",s.size||"1024x1024");
+     if(strength==="strong")form.append("input_fidelity","high");
+     else if(strength==="weak")form.append("input_fidelity","low");
+     let h={};if(key)h.Authorization="Bearer "+key;
+     let r=await fetch(imageEditUrl(s.endpoint),{method:"POST",headers:h,body:form});
+     let d;try{d=await r.json()}catch{throw Error("参考图接口返回的不是 JSON · HTTP "+r.status)}
+     if(!r.ok)throw Error(d?.error?.message||d?.message||"HTTP "+r.status);
+     return parseImageResult(d)
+   }catch(e){
+     console.warn("参考图锁脸接口不可用，退回纯文字生图",e);
+   }
+ }
+
+ let h={"Content-Type":"application/json"};if(key)h.Authorization="Bearer "+key;
+ let body,url=imageGenerationUrl(s.endpoint);
  if((s.provider||"").startsWith("minimax")){
    body={model:s.model,prompt:finalPrompt,response_format:"url",n:1,prompt_optimizer:false,aspect_ratio:s.size||"1:1"};
    if(negative)body.negative_prompt=negative;
@@ -2759,10 +2843,9 @@ async function generateImage(promptText,override=null){
    body={model:s.model,prompt:compatiblePrompt,n:1,size:s.size||"1024x1024"};
    if(negative&&s.provider==="custom")body.negative_prompt=negative;
  }
- let r=await fetch(s.endpoint,{method:"POST",headers:h,body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw Error(d?.error?.message||d?.base_resp?.status_msg||"HTTP "+r.status);
- let url=d?.data?.image_urls?.[0]||d?.data?.[0]?.url;
- let b64=d?.data?.image_base64?.[0]||d?.data?.[0]?.b64_json;
- if(url)return url;if(b64)return"data:image/png;base64,"+b64;throw Error("未找到图片结果")
+ let r=await fetch(url,{method:"POST",headers:h,body:JSON.stringify(body)}),d;try{d=await r.json()}catch{throw Error("生图接口返回的不是 JSON · HTTP "+r.status)}
+ if(!r.ok)throw Error(d?.error?.message||d?.base_resp?.status_msg||d?.message||"HTTP "+r.status);
+ return parseImageResult(d)
 }
 function hexToBlobUrl(hex,type="audio/mpeg"){let a=new Uint8Array(hex.length/2);for(let i=0;i<a.length;i++)a[i]=parseInt(hex.substr(i*2,2),16);return URL.createObjectURL(new Blob([a],{type}))}
 async function generateVoice(text,override=null){
@@ -3016,7 +3099,7 @@ Do not invent a contactName.`},{role:"user",content:`${xhsWorldContext()}\n\nExi
     $("#xhsStatus").textContent=`${c.name} 正在生成配图…`;
     let imageUrl="";
     if(o.imagePrompt&&String(o.imagePrompt).trim()){
-      try{imageUrl=await generateImage(String(o.imagePrompt).trim())}
+      try{imageUrl=await generateImage(imagePromptForContact(String(o.imagePrompt).trim(),c.id),null,contactImageContext(c.id))}
       catch(e){console.warn("XHS 生图失败",e);$("#xhsStatus").textContent=`${c.name} 的文案好了，但生图失败：${e.message}`}
     }
     xhs.posts=xhs.posts||[];xhs.posts.push({id:uuid(),category:XHS_CATS.includes(o.category)?o.category:"日常",title:String(o.title||"随手记"),content:String(o.content||""),imageUrl,authorType:"char",authorId:c.id,authorName:c.name,authorAvatar:c.avatar||"",generated:true,imagePrompt:String(o.imagePrompt||""),createdAt:Date.now(),time:xhsTime(),likes:Math.floor(Math.random()*18),liked:false,comments:[]});
@@ -3172,7 +3255,7 @@ async function runAutoMoment(contactId,manual=false){
     let raw=await api([{role:"system",content:sys},{role:"user",content:`Recent private chat context, if relevant:\n${recent||"(none)"}\n\nGenerate one spontaneous Moment now.`}]);
     let m=String(raw).match(/<moment>([\s\S]*?)<\/moment>/i),im=String(raw).match(/<moment_image>([\s\S]*?)<\/moment_image>/i),content=(m?m[1]:raw).replace(/<moment_image>[\s\S]*?<\/moment_image>/i,"").trim(),imageUrl="";
     if(!content)throw Error("没有有效动态");
-    if(im&&im[1].trim()){try{imageUrl=await generateImage(im[1].trim())}catch(e){console.warn("朋友圈生图失败",e)}}
+    if(im&&im[1].trim()){try{imageUrl=await generateImage(imagePromptForContact(im[1].trim(),contactId),null,contactImageContext(contactId))}catch(e){console.warn("朋友圈生图失败",e)}}
     moments.push({id:uuid(),contactId,maskId:maskMomentId(),content,imageUrl,time:new Intl.DateTimeFormat("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date()),createdAt:Date.now(),liked:false,auto:true});
     a.lastMomentAt=Date.now();save(K.moments,moments);save(K.autonomy,autonomy);updateMomentBadge();
     if(document.querySelector('[data-page="moments"]').classList.contains("active"))renderMoments();
@@ -3530,7 +3613,7 @@ const networkStyle=document.createElement("style");networkStyle.textContent=`
 .networkBody{padding:13px 12px 90px!important}.networkMasterCard{display:flex;align-items:center;justify-content:space-between;border-radius:19px;background:#17181d;color:#fff;padding:16px 15px}.networkMasterCard b{display:block;font-size:14px}.networkMasterCard span{display:block;color:#aaa;font-size:8px;margin-top:5px;max-width:220px;line-height:1.5}.networkSwitch input{display:none}.networkSwitch i{display:block;width:43px;height:25px;border-radius:999px;background:#555;position:relative;transition:.2s}.networkSwitch i:after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.2s}.networkSwitch input:checked+i{background:#30322f}.networkSwitch input:checked+i:after{left:21px}.networkSafety{font-size:9px;line-height:1.6;padding:10px 12px;border-radius:12px;background:#f3f3ef;color:#777;margin:9px 0 13px}.networkSafety.on{background:#eee8e4;color:#715f55}.networkPerms{display:grid;gap:7px}.networkPerms label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.networkPerms input{width:18px;height:18px;margin-top:1px}.networkPerms b{display:block;font-size:10px}.networkPerms span{display:block;font-size:8px;color:#999;line-height:1.5;margin-top:3px}.networkPerms.disabled{opacity:.42;pointer-events:none}.networkSection{margin:18px 2px 8px}.networkSection b{font-size:11px}.networkSection span{font-size:8px;color:#999;margin-left:6px}.networkEditor{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.networkArrow{text-align:center;color:#aaa;font-size:12px;padding:3px}.networkEditor .input,.networkEditor .textarea{margin-bottom:7px}.networkEditor .primary{width:100%;border:0;border-radius:12px;background:#30322f;color:#fff;padding:10px;font-size:9px}.networkRelation{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;margin-bottom:7px}.networkRelationTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.networkRelationNames{font-size:10px;font-weight:800}.networkRelationType{font-size:8px;border-radius:999px;background:#eee;padding:4px 7px;color:#666}.networkRelationNote{font-size:8px;color:#999;line-height:1.5;margin-top:6px}.networkRelationActions{margin-top:7px;text-align:right}.networkRelationActions button{border:0;background:transparent;color:#999;font-size:8px}
 `;document.head.appendChild(networkStyle);
 
-let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1,loadGen:0};
+let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1};
 const LIVE2D_DB_NAME="curry_phone_live2d_v64",LIVE2D_DB_VERSION=1,LIVE2D_ASSET_STORE="assets";
 let live2dDbPromise=null;
 function openLive2dDb(){
@@ -3575,24 +3658,13 @@ setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("Live2D �
 function live2dBindingKey(type,id){return type==="user"?"user":"char:"+id}
 function boundLive2dModelId(type,id){return live2dStore.bindings?.[live2dBindingKey(type,id)]||""}
 function cleanupLive2dRuntime(){
- let old=live2dRuntime;live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1,loadGen:(old.loadGen||0)+1};
  try{stopLiveFaceCapture()}catch{}
- try{if(old.raf)cancelAnimationFrame(old.raf)}catch{}
- try{if(old.audio){old.audio.pause();old.audio.removeAttribute?.("src");old.audio.load?.()}}catch{}
- try{if(old.audioCtx&&old.audioCtx.state!=="closed")old.audioCtx.close()}catch{}
- try{old.model?.off?.()}catch{}
- try{old.model?.destroy?.({children:true,texture:true,baseTexture:true})}catch{}
- try{
-   let view=old.app?.view,gl=old.app?.renderer?.gl;
-   old.app?.stage?.removeChildren?.();
-   old.app?.destroy?.(true,{children:true,texture:true,baseTexture:true});
-   if(view?.parentNode)view.parentNode.removeChild(view);
-   // iOS Safari tends to retain old WebGL contexts. Explicitly lose the dead context.
-   let lose=gl?.getExtension?.("WEBGL_lose_context");lose?.loseContext?.()
- }catch{}
- (old.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
- let host=$("#liveStage");host?.classList?.remove("hasLive2d");
- if(isSafariLive2d()||isIOSWebKitLive2d())setTimeout(()=>{try{window.gc?.()}catch{}},0)
+ try{if(live2dRuntime.raf)cancelAnimationFrame(live2dRuntime.raf)}catch{}
+ try{if(live2dRuntime.audio){live2dRuntime.audio.pause();live2dRuntime.audio.src=""}}catch{}
+ try{if(live2dRuntime.audioCtx)live2dRuntime.audioCtx.close()}catch{}
+ try{if(live2dRuntime.model?.destroy)live2dRuntime.model.destroy({children:true})}catch{}
+ try{if(live2dRuntime.app?.destroy)live2dRuntime.app.destroy(true,{children:true,texture:true,baseTexture:true})}catch{}
+ (live2dRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1}
 }
 function dataUrlToBlobSync(dataUrl){
  let [head,b64]=String(dataUrl).split(","),mime=(head.match(/data:([^;]+)/)||[])[1]||"application/octet-stream",bin=atob(b64||""),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:mime})
@@ -3656,7 +3728,6 @@ function refreshLive2dBindingHint(){
  if(mid&&$("#liveModelSelect"))$("#liveModelSelect").value=mid
 }
 
-if(typeof window.process==="undefined")window.process={env:{NODE_ENV:"production"}};
 function isSafariLive2d(){
  let ua=navigator.userAgent||"";
  return /Safari/i.test(ua)&&!/Chrome|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua)
@@ -3675,16 +3746,6 @@ function live2dAssetMime(rel){
  if(rel.endsWith(".mp3"))return "audio/mpeg";
  return "application/octet-stream"
 }
-
-function blobToDataUrl(blob){
- return new Promise((resolve,reject)=>{
-   let fr=new FileReader();
-   fr.onload=()=>resolve(String(fr.result||""));
-   fr.onerror=()=>reject(fr.error||Error("读取 Live2D 资源失败"));
-   fr.readAsDataURL(blob)
- })
-}
-
 async function safariSafeBlob(blob,rel){
  if(!isSafariLive2d()&&!isIOSWebKitLive2d())return blob;
  // Safari 对 IndexedDB 取出的无 MIME Blob + blob: URL 组合比较挑。
@@ -3708,11 +3769,6 @@ async function ensureScript(src,test){
  if(test())return;await new Promise((res,rej)=>{let s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(Error("加载脚本失败："+src));document.head.appendChild(s)})
 }
 async function ensureLive2dLibs(){
- // Safari/WebKit 下 UMD 包可能直接读取 process.env；浏览器并没有 Node 的 process 全局。
- // 提前提供最小 shim，避免 cubism4.min.js 在初始化阶段直接 ReferenceError。
- if(typeof window.process==="undefined")window.process={env:{NODE_ENV:"production"}};
- else if(!window.process.env)window.process.env={NODE_ENV:"production"};
- else if(!("NODE_ENV" in window.process.env))window.process.env.NODE_ENV="production";
  // Cubism 3/4 模型除了 pixi-live2d-display，还必须先加载官方 Cubism Core。
  // v6.5 漏掉的就是这一层，因此插件脚本会在初始化阶段直接失败。
  if(!window.Live2DCubismCore){
@@ -3750,24 +3806,20 @@ async function ensureLive2dLibs(){
 function getLive2DModelClass(){return window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel||null}
 async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  let assets=await idbGetLive2dAssets(modelRec.id);if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
- let urlMap={},safari=isSafariLive2d()||isIOSWebKitLive2d(),entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));
- let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
- if(!cfg){if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
- for(let n=0;n<assets.length;n++){
-   let a=assets[n];if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
-   let safe=await safariSafeBlob(a.blob,a.rel),u;
-   if(safari){
-     u=await blobToDataUrl(safe);
-     // Yield between large texture conversions so WebKit can release FileReader buffers.
-     if(n%2===1)await new Promise(r=>setTimeout(r,0))
-   }else{u=URL.createObjectURL(safe);urlSink.push(u)}
-   urlMap[normalizeRel(a.rel)]=u
+ let urlMap={},safari=isSafariLive2d()||isIOSWebKitLive2d();
+ for(let a of assets){
+   if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
+   let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);urlSink.push(u);urlMap[normalizeRel(a.rel)]=u
  }
- assets=null;entry=null;
- cfg=rewriteModelRefs(cfg,urlMap);urlMap=null;
- let json=JSON.stringify(cfg);cfg=null;
- if(safari)return "data:application/json;charset=utf-8,"+encodeURIComponent(json);
- let u=URL.createObjectURL(new Blob([json],{type:"application/json;charset=utf-8"}));urlSink.push(u);return u
+ let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
+ if(!cfg){let entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
+ cfg=rewriteModelRefs(cfg,urlMap);
+ let json=JSON.stringify(cfg);
+ if(safari){
+   // 避开 Safari 偶发无法再次 fetch model3.json 的 blob: URL 问题。
+   return "data:application/json;charset=utf-8,"+encodeURIComponent(json)
+ }
+ let u=URL.createObjectURL(new Blob([json],{type:"application/json"}));urlSink.push(u);return u
 }
 async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
 
@@ -3878,8 +3930,7 @@ async function startLiveFaceCapture(){
    mesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
    mesh.onResults(res=>{let lm=res.multiFaceLandmarks?.[0];if(lm){applyFaceLandmarks(lm);$("#liveFaceState").textContent="面捕追踪中"}else $("#liveFaceState").textContent="未检测到脸"});
    faceCaptureRuntime.running=true;faceCaptureRuntime.stream=stream;faceCaptureRuntime.mesh=mesh;$("#liveFacePanel").classList.add("show");$("#liveFaceBtn").textContent="关闭面捕";$("#liveFaceState").textContent="正在启动";
-   let lastFrame=0,minGap=(isSafariLive2d()||isIOSWebKitLive2d())?66:33;
-   let loop=async now=>{if(!faceCaptureRuntime.running)return;if(now-lastFrame>=minGap&&!faceCaptureRuntime.busy&&video.readyState>=2){lastFrame=now;faceCaptureRuntime.busy=true;try{await mesh.send({image:video})}catch(e){console.warn("face mesh frame",e)}finally{faceCaptureRuntime.busy=false}}faceCaptureRuntime.raf=requestAnimationFrame(loop)};faceCaptureRuntime.raf=requestAnimationFrame(loop);
+   let loop=async()=>{if(!faceCaptureRuntime.running)return;if(!faceCaptureRuntime.busy&&video.readyState>=2){faceCaptureRuntime.busy=true;try{await mesh.send({image:video})}catch(e){console.warn("face mesh frame",e)}finally{faceCaptureRuntime.busy=false}}faceCaptureRuntime.raf=requestAnimationFrame(loop)};loop();
  }catch(e){console.warn("face capture failed",e);stopLiveFaceCapture();toast("面捕启动失败："+(e.message||"摄像头不可用"))}
 }
 function stopLiveFaceCapture(){
@@ -3890,16 +3941,6 @@ function stopLiveFaceCapture(){
  faceCaptureRuntime={running:false,stream:null,mesh:null,raf:0,busy:false,last:{},smooth:.42};
  if($("#liveFacePanel"))$("#liveFacePanel").classList.remove("show");if($("#liveFaceBtn"))$("#liveFaceBtn").textContent="启动面捕"
 }
-
-
-document.addEventListener("visibilitychange",()=>{
- try{
-   let app=live2dRuntime.app;
-   if(!app)return;
-   if(document.hidden){app.ticker?.stop?.();if(faceCaptureRuntime.running)$("#liveFaceState").textContent="后台暂停"}
-   else{app.ticker?.start?.()}
- }catch(e){console.warn("Live2D visibility",e)}
-});
 
 function inferLiveEmotion(text){
  let s=String(text||"");
@@ -3943,12 +3984,11 @@ function bindLive2dPointer(model){
 }
 
 async function mountLive2d(modelId,retryMode=false){
- cleanupLive2dRuntime();let myGen=live2dRuntime.loadGen,host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
+ cleanupLive2dRuntime();let host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
- let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint"),errBox=$("#liveSafariError");
- if(errBox){errBox.style.display="none";errBox.textContent=""}
+ let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint");
  try{
-   if(safari&&hint)hint.textContent=retryMode?"Safari 直读模式重试中":"Safari 正在直读模型资源";
+   if(safari&&hint)hint.textContent=retryMode?"Safari 兼容模式重试中":"Safari 兼容模式加载中";
    if(safari&&!live2dWebglPreflight())throw Error("Safari 当前没有可用的 WebGL");
    await ensureLive2dLibs();
    if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");
@@ -3956,8 +3996,6 @@ async function mountLive2d(modelId,retryMode=false){
      ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}
      : {resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)};
    let app=new PIXI.Application(appOpts);
-   if(safari){app.ticker.maxFPS=30;app.ticker.minFPS=15}
-   if(myGen!==live2dRuntime.loadGen){app.destroy(true);return false}
    canvasHost.innerHTML="";canvasHost.appendChild(app.view);
    if(safari){
      app.view.style.width="100%";app.view.style.height="100%";
@@ -3968,9 +4006,6 @@ async function mountLive2d(modelId,retryMode=false){
    // Safari 给 blob URL 注册/IndexedDB 解包留一个事件循环，避免纹理请求抢跑。
    if(safari)await new Promise(r=>setTimeout(r,retryMode?120:40));
    let model=await Model.from(url,{autoInteract:false});
-   // Drop the giant model3 data URL string as soon as parsing is finished.
-   url=null;
-   if(myGen!==live2dRuntime.loadGen){try{model.destroy?.({children:true,texture:true,baseTexture:true})}catch{};try{app.destroy(true,{children:true,texture:true,baseTexture:true})}catch{};return false}
    app.stage.addChild(model);live2dRuntime.modelRec=rec;bindLive2dPointer(model);
    model.scale.set(1);
    let b0=model.getLocalBounds?.()||model.getBounds(),w0=canvasHost.clientWidth||300,h0=canvasHost.clientHeight||300;
@@ -3978,16 +4013,18 @@ async function mountLive2d(modelId,retryMode=false){
    let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
    fit();setTimeout(fit,safari?180:80);
    live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");
-   if(hint){hint.textContent=safari?"Live2D 已加载 · Safari 直读模式":"Live2D 已加载";hint.classList.add("ok")}
+   if(hint){hint.textContent=safari?"Live2D 已加载 · Safari 兼容模式":"Live2D 已加载";hint.classList.add("ok")}
    if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),350);
    return true
  }catch(e){
    console.warn("Live2D mount failed",e);
    cleanupLive2dRuntime();host.classList.remove("hasLive2d");
-   // Low-memory mode does not auto-retry on Safari: a second full data-URL build can double peak memory.
-   let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+(e?.stack?"\n"+e.stack:"");
-   if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
-   if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
+   if(safari&&!retryMode){
+     if(hint)hint.textContent="Safari 首次加载失败，正在兼容重试";
+     await new Promise(r=>setTimeout(r,220));
+     return mountLive2d(modelId,true)
+   }
+   if(hint)hint.textContent="Live2D 加载失败："+(e?.message||"Safari/WebGL 错误");
    return false
  }
 }
@@ -4228,7 +4265,7 @@ function renderLiveBgPreview(){
 function renderLiveStage(){
  let st=liveStreamerObj();if(!st)return;
  $("#liveStudioTitle").textContent=currentLive.title||"直播中";
- if($("#liveSafariCompatBadge"))$("#liveSafariCompatBadge").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"inline":"none";if($("#liveSafariLoaderNote"))$("#liveSafariLoaderNote").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"block":"none";
+ if($("#liveSafariCompatBadge"))$("#liveSafariCompatBadge").style.display=(isSafariLive2d()||isIOSWebKitLive2d())?"inline":"none";
  setLiveProgram(currentLive.programMode||"chat",false);
  if($("#liveNowScale")){$("#liveNowScale").value=Math.round((currentLive.live2dScale??.55)*100);$("#liveNowScaleValue").textContent=$("#liveNowScale").value+"%"}if($("#liveNowY")){$("#liveNowY").value=Math.round((currentLive.live2dY??.92)*100);$("#liveNowYValue").textContent=$("#liveNowY").value+"%"}if($("#liveNowX")){$("#liveNowX").value=Math.round((currentLive.live2dX??.5)*100);$("#liveNowXValue").textContent=$("#liveNowX").value+"%"}
  renderLiveRank();renderLivePk();
@@ -4295,10 +4332,6 @@ const gameHallStyle=document.createElement("style");gameHallStyle.textContent=`
 .gameChat{margin-top:12px}.gameChatLine{display:flex;gap:8px;margin:8px 0;align-items:flex-start}.gameChatAvatar{width:28px;height:28px;border-radius:9px;overflow:hidden;background:#eee;display:grid;place-items:center;font-size:8px;flex:0 0 auto}.gameChatAvatar img{width:100%;height:100%;object-fit:cover}.gameChatBubble{background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px 10px;font-size:9px;line-height:1.5}.gameChatName{font-size:8px;color:#999;margin-bottom:3px}
 `;document.head.appendChild(gameHallStyle);
 gameHallStyle.textContent+=`
-.gameTile{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.gameTile:active{transform:scale(.98);filter:brightness(.96)}
-`;
-
-gameHallStyle.textContent+=`
 .mahjongTable{width:100%}.mahjongInfo{font-size:9px;color:#888;margin-bottom:8px}.mahjongWall{font-size:9px;color:#888;margin-top:8px}.mahjongHand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:14px}.mjTile{border:1px solid #d7d7d3;background:#fff;border-radius:6px;padding:8px 6px;min-width:34px;font-size:13px;box-shadow:0 2px 5px #0001}.mjTile.drawn{box-shadow:0 0 0 2px #d6a64d}.mjTile:hover{transform:translateY(-1px)}.mahjongDiscards{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:10px}.mjDiscard{padding:4px 5px;border-radius:4px;background:#f4f4f1;font-size:10px}.mahjongMelds{font-size:8px;color:#777;margin-top:6px}.mahjongNotice{font-size:11px;font-weight:700;margin:8px 0}.mahjongClaim{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:12px}.mahjongClaim button{border:0;border-radius:999px;padding:8px 13px;background:#30322f;color:#fff;font-size:9px}.mahjongClaim button.alt{background:#eee;color:#555}
 `;
 
@@ -4330,7 +4363,7 @@ function gamePlayerObjects(){
  return [user,...gameParticipants.map(id=>contacts.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,name:c.name,avatar:c.avatar||"",isUser:false,contact:c}))]
 }
 function renderGameHall(){
- let h=(gameHall.history||[]).slice(-8).reverse(),host=$("#gameRecent");if(!host)return;
+ let h=(gameHall.history||[]).slice(-8).reverse(),host=$("#gameRecent");
  host.innerHTML=h.length?h.map(x=>`<div class="gameHistory"><b>${esc(gameName(x.type))} · ${esc(x.summary||"")}</b><div>${esc(x.time||"")}</div></div>`).join(""):'<div class="empty">还没有战绩。<br>先开一局。</div>'
 }
 function openGameSetup(type){
@@ -4715,16 +4748,6 @@ $("#liveMuteBtn").onclick=()=>{if(!currentLive)return;currentLive.ttsEnabled=!cu
 
 $("#liveGiftBtn").onclick=()=>$("#liveGiftMenu").classList.toggle("show");
 $("#liveGiftMenu").onclick=async e=>{let b=e.target.closest("button[data-gift]");if(!b||!currentLive)return;let gift=b.dataset.gift,u=liveMaskObj();currentLive.gifts++;liveAddLine(u,`${gift==="舰长"||gift==="提督"?"开通":"送出"} ${gift}${gift==="舰长"||gift==="提督"?"":" ×1"}`,"gift");$("#liveGiftMenu").classList.remove("show");if(currentLive.streamerType==="char"){triggerLiveExpression("happy");triggerLiveMotion();setTimeout(()=>liveCharStreamerReply(`User interacted with the livestream by ${gift==="舰长"||gift==="提督"?"opening "+gift:"sending "+gift}.`),250)}};
-
-document.addEventListener("click",e=>{
- let tile=e.target.closest?.("[data-game-open]");
- if(!tile)return;
- e.preventDefault();e.stopPropagation();
- let type=tile.dataset.gameOpen;
- if(!["truth","dice","rps","joker","mahjong"].includes(type))return;
- openGameSetup(type)
-});
-
 $("#gameSetupBack").onclick=()=>{page("gameHall");renderGameHall()};
 $("#gameStartBtn").onclick=()=>{
  gameParticipants=$$("#gameContactPicker input:checked").map(x=>x.value);if(currentGameType==="mahjong"&&gameParticipants.length!==3)return toast("麻将需要正好选择 3 个 Char");if(!gameParticipants.length)return toast("至少选一个 Char");
