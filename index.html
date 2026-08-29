@@ -1311,7 +1311,9 @@ body.phoneActive{
 <section class="page" data-page="relationTrace"><header class="head"><button class="back" data-back="contactDetail">返回</button><div class="headTitle">关系痕迹</div><div></div></header><div class="body" id="relationTraceBody"></div></section>
 
 <section class="page" data-page="editor"><header class="head"><button class="back" id="editorCancel">取消</button><div class="headTitle" id="editorTitle">新建联系人</div><button class="headAction" id="editorSave">保存</button></header><div class="body"><div class="form">
-<div class="field"><label>姓名</label><input class="input" id="edName"></div><div class="field"><label>头像</label><input class="input" id="edAvatar" type="file" accept="image/*"></div><div class="field"><label>角色设定 / Description</label><textarea class="textarea" id="edDescription"></textarea></div><div class="field"><label>人物生图提示词 / Character Image Prompt</label><textarea class="textarea smallarea" id="edImagePrompt" placeholder="可选。填写人物固定外貌、发型、服装等；留空则自动从角色设定中提取。"></textarea><div class="help">只作为该联系人的人物视觉设定；不会替代全局正面 / 负面提示词。</div></div><div class="field"><label>Personality</label><textarea class="textarea smallarea" id="edPersonality"></textarea></div><div class="field"><label>Scenario</label><textarea class="textarea smallarea" id="edScenario"></textarea></div><div class="field"><label>First Message</label><textarea class="textarea smallarea" id="edFirst"></textarea></div><div class="field"><label>Message Example</label><textarea class="textarea smallarea" id="edExample"></textarea></div><div class="field"><label>System Prompt</label><textarea class="textarea smallarea" id="edSystem"></textarea></div><div class="field"><label>原始/补充文本</label><textarea class="textarea" id="edRaw"></textarea></div></div></div></section>
+<div class="field"><label>姓名</label><input class="input" id="edName"></div><div class="field"><label>头像</label><input class="input" id="edAvatar" type="file" accept="image/*"></div><div class="field"><label>角色设定 / Description</label><textarea class="textarea" id="edDescription"></textarea></div><div class="field"><label>人物生图提示词 / Character Image Prompt</label><textarea class="textarea smallarea" id="edImagePrompt" placeholder="可选。填写人物固定外貌、发型、服装等；留空则自动从角色设定中提取。"></textarea><div class="help">只作为该联系人的人物视觉设定；不会替代全局正面 / 负面提示词。</div></div>
+<div class="field"><label>人物参考图 / 锁脸图</label><input class="input" id="edReferenceImage" type="file" accept="image/*"><div class="help">上传一张最满意的角色脸。支持参考图的生图接口会优先用它保持人物一致；不支持时自动退回纯文字生图。</div><div id="edReferencePreview" style="display:none;margin-top:8px"><img alt="人物参考图" style="width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line)"><button class="btn danger" id="removeReferenceImage" type="button" style="margin-top:7px;width:96px">移除参考图</button></div></div>
+<div class="field"><label>锁脸强度</label><select class="input" id="edFaceLockStrength"><option value="off">关闭</option><option value="weak">弱</option><option value="medium">中</option><option value="strong">强</option></select><div class="help">弱：只参考五官气质；中：优先保持脸和发型；强：尽量保持身份一致。参考图接口不支持强度参数时，会通过提示词近似控制。</div></div><div class="field"><label>Personality</label><textarea class="textarea smallarea" id="edPersonality"></textarea></div><div class="field"><label>Scenario</label><textarea class="textarea smallarea" id="edScenario"></textarea></div><div class="field"><label>First Message</label><textarea class="textarea smallarea" id="edFirst"></textarea></div><div class="field"><label>Message Example</label><textarea class="textarea smallarea" id="edExample"></textarea></div><div class="field"><label>System Prompt</label><textarea class="textarea smallarea" id="edSystem"></textarea></div><div class="field"><label>原始/补充文本</label><textarea class="textarea" id="edRaw"></textarea></div></div></div></section>
 <section class="page" data-page="messages"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">消息</div><div></div></header><div class="body" id="conversationList"></div></section>
 <section class="page chatPage" data-page="chat"><header class="head"><button class="back" data-back="messages">返回</button><div class="chatTitleStack"><div class="headTitle" id="chatTitle"></div><div class="onlineBadge">在线</div></div><div style="display:flex;align-items:center"><button class="summaryBtn" id="chatSummaryBtn" type="button" title="聊天总结">Σ</button><button class="chatSearchBtn" id="chatSearchBtn" type="button" title="搜索聊天">⌕</button><select class="maskSelect" id="chatMaskSelect" title="切换 User 面具"></select></div></header><div class="searchBar" id="chatSearchBar"><input id="chatSearchInput" placeholder="搜索聊天内容"><button id="chatSearchClose" type="button">关闭</button></div><div class="chatBody" id="chatBody"></div><div class="pendingHint" id="pendingHint">已发送消息；继续发送，或按“回复”让角色统一回复</div><div class="stickerPicker" id="stickerPicker"><div class="stickerPickerGrid" id="stickerPickerGrid"></div></div>
 <div class="mediaPicker" id="mediaPicker"><div class="mediaPickerGrid"><button class="mediaAction" id="userImageBtn">发图片</button><button class="mediaAction" id="userTransferBtn">转账</button><button class="mediaAction" id="closeMediaPicker">取消</button></div><input id="userImageFile" type="file" accept="image/*" hidden></div>
@@ -1552,7 +1554,7 @@ function notifyFromChar(contactId,msg){let c=contacts.find(x=>x.id===contactId);
 function markChatRead(id){if(unreadFor(id))setUnread(id,0);let k=convoKey(id),h=convos[k]||[];let changed=false;for(let m of h){if(m.role==="assistant"&&!m.readAt){m.readAt=Date.now();changed=true}}if(changed){convos[k]=h;save(K.convos,convos)}}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
-let contacts=load(K.contacts,[]),convos=load(K.convos,{}),settings=Object.assign({endpoint:"",model:"",temperature:.8,maxTokens:800,rememberKey:false},load(K.settings,{})),sessionKey=settings.rememberKey?(settings.apiKey||""):"",currentContact=null,editingId=null,pendingAvatar=null,importType=null,pendingSource="手动创建",pendingRaw=null;
+let contacts=load(K.contacts,[]),convos=load(K.convos,{}),settings=Object.assign({endpoint:"",model:"",temperature:.8,maxTokens:800,rememberKey:false},load(K.settings,{})),sessionKey=settings.rememberKey?(settings.apiKey||""):"",currentContact=null,editingId=null,pendingAvatar=null,pendingReferenceImage="",importType=null,pendingSource="手动创建",pendingRaw=null;
 let beauty=Object.assign({
   wallpaper:"",
   wallpaperOpacity:1,
@@ -1701,12 +1703,19 @@ function openRelationTrace(id=currentContact){
   page("relationTrace");
 }
 
-$("#editContact").onclick=()=>currentContact&&openEditor(contacts.find(c=>c.id===currentContact));const blank=()=>({description:"",imagePrompt:"",personality:"",scenario:"",firstMes:"",mesExample:"",systemPrompt:"",rawText:""});
-function openEditor(c=null){editingId=c?.id||null;pendingAvatar=c?.avatar||null;$("#editorTitle").textContent=c?"编辑联系人":"新建联系人";let x=c?.character||blank();$("#edName").value=c?.name||"";$("#edDescription").value=x.description||"";$("#edImagePrompt").value=x.imagePrompt||"";$("#edPersonality").value=x.personality||"";$("#edScenario").value=x.scenario||"";$("#edFirst").value=x.firstMes||"";$("#edExample").value=x.mesExample||"";$("#edSystem").value=x.systemPrompt||"";$("#edRaw").value=x.rawText||"";page("editor")}
+$("#editContact").onclick=()=>currentContact&&openEditor(contacts.find(c=>c.id===currentContact));const blank=()=>({description:"",imagePrompt:"",referenceImage:"",faceLockStrength:"off",personality:"",scenario:"",firstMes:"",mesExample:"",systemPrompt:"",rawText:""});
+function renderReferencePreview(){
+ let box=$("#edReferencePreview"),img=box?.querySelector("img");
+ if(!box||!img)return;
+ if(pendingReferenceImage){img.src=pendingReferenceImage;box.style.display="block"}else{img.removeAttribute("src");box.style.display="none"}
+}
+function openEditor(c=null){editingId=c?.id||null;pendingAvatar=c?.avatar||null;$("#editorTitle").textContent=c?"编辑联系人":"新建联系人";let x=c?.character||blank();pendingReferenceImage=x.referenceImage||"";$("#edName").value=c?.name||"";$("#edDescription").value=x.description||"";$("#edImagePrompt").value=x.imagePrompt||"";$("#edFaceLockStrength").value=x.faceLockStrength||"off";$("#edPersonality").value=x.personality||"";$("#edScenario").value=x.scenario||"";$("#edFirst").value=x.firstMes||"";$("#edExample").value=x.mesExample||"";$("#edSystem").value=x.systemPrompt||"";$("#edRaw").value=x.rawText||"";renderReferencePreview();page("editor")}
 $("#editorCancel").onclick=()=>page(editingId?"contactDetail":"contacts");$("#edAvatar").onchange=async e=>{if(e.target.files[0])pendingAvatar=await dataURL(e.target.files[0])};
-$("#editorSave").onclick=()=>{let name=$("#edName").value.trim();if(!name)return toast("请填写姓名");let old=contacts.find(c=>c.id===editingId),c={id:editingId||uuid(),name,avatar:pendingAvatar||"",sourceLabel:old?.sourceLabel||pendingSource,rawCard:old?.rawCard||pendingRaw,character:{description:$("#edDescription").value.trim(),imagePrompt:$("#edImagePrompt").value.trim(),personality:$("#edPersonality").value.trim(),scenario:$("#edScenario").value.trim(),firstMes:$("#edFirst").value.trim(),mesExample:$("#edExample").value.trim(),systemPrompt:$("#edSystem").value.trim(),rawText:$("#edRaw").value.trim()}};if(editingId)contacts=contacts.map(x=>x.id===editingId?c:x);else contacts.push(c);save(K.contacts,contacts);if(!editingId&&pendingRaw)importEmbeddedWorldbook(pendingRaw,c.name,c.id);currentContact=c.id;pendingSource="手动创建";pendingRaw=null;openContact(c.id);toast("联系人已保存")};
+$("#edReferenceImage").onchange=async e=>{let f=e.target.files?.[0];if(!f)return;pendingReferenceImage=await dataURL(f);renderReferencePreview();e.target.value=""};
+$("#removeReferenceImage").onclick=()=>{pendingReferenceImage="";renderReferencePreview()};
+$("#editorSave").onclick=()=>{let name=$("#edName").value.trim();if(!name)return toast("请填写姓名");let old=contacts.find(c=>c.id===editingId),c={id:editingId||uuid(),name,avatar:pendingAvatar||"",sourceLabel:old?.sourceLabel||pendingSource,rawCard:old?.rawCard||pendingRaw,character:{description:$("#edDescription").value.trim(),imagePrompt:$("#edImagePrompt").value.trim(),referenceImage:pendingReferenceImage||"",faceLockStrength:$("#edFaceLockStrength").value||"off",personality:$("#edPersonality").value.trim(),scenario:$("#edScenario").value.trim(),firstMes:$("#edFirst").value.trim(),mesExample:$("#edExample").value.trim(),systemPrompt:$("#edSystem").value.trim(),rawText:$("#edRaw").value.trim()}};if(editingId)contacts=contacts.map(x=>x.id===editingId?c:x);else contacts.push(c);save(K.contacts,contacts);if(!editingId&&pendingRaw)importEmbeddedWorldbook(pendingRaw,c.name,c.id);currentContact=c.id;pendingSource="手动创建";pendingRaw=null;openContact(c.id);toast("联系人已保存")};
 $("#addContact").onclick=()=>$("#importSheet").classList.add("show");$("#closeSheet").onclick=()=>$("#importSheet").classList.remove("show");$$("[data-import]").forEach(b=>b.onclick=()=>{let t=b.dataset.import;$("#importSheet").classList.remove("show");if(t==="manual"){pendingSource="手动创建";pendingRaw=null;openEditor();return}importType=t;let f=$("#importFile");f.value="";f.accept=t==="png"?".png":t==="json"?".json":t==="txt"?".txt":".docx";f.click()});
-$("#importFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x;if(importType==="png")x=await pngCard(f);else if(importType==="json")x=jsonCard(JSON.parse(await f.text()));else if(importType==="txt")x={name:f.name.replace(/\.txt$/i,""),character:{...blank(),rawText:await f.text()},source:"TXT · "+f.name};else x=await docx(f);pendingSource=x.source;pendingRaw=x.rawCard||null;openEditor();$("#edName").value=x.name||"";let c=x.character||blank();$("#edDescription").value=c.description||"";$("#edPersonality").value=c.personality||"";$("#edScenario").value=c.scenario||"";$("#edFirst").value=c.firstMes||"";$("#edExample").value=c.mesExample||"";$("#edSystem").value=c.systemPrompt||"";$("#edRaw").value=c.rawText||"";if(x.avatar)pendingAvatar=x.avatar}catch(err){console.error(err);toast("导入失败："+err.message)}};
+$("#importFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x;if(importType==="png")x=await pngCard(f);else if(importType==="json")x=jsonCard(JSON.parse(await f.text()));else if(importType==="txt")x={name:f.name.replace(/\.txt$/i,""),character:{...blank(),rawText:await f.text()},source:"TXT · "+f.name};else x=await docx(f);pendingSource=x.source;pendingRaw=x.rawCard||null;openEditor();$("#edName").value=x.name||"";let c=x.character||blank();$("#edDescription").value=c.description||"";$("#edImagePrompt").value=c.imagePrompt||"";pendingReferenceImage=c.referenceImage||"";$("#edFaceLockStrength").value=c.faceLockStrength||"off";renderReferencePreview();$("#edPersonality").value=c.personality||"";$("#edScenario").value=c.scenario||"";$("#edFirst").value=c.firstMes||"";$("#edExample").value=c.mesExample||"";$("#edSystem").value=c.systemPrompt||"";$("#edRaw").value=c.rawText||"";if(x.avatar)pendingAvatar=x.avatar}catch(err){console.error(err);toast("导入失败："+err.message)}};
 function norm(o){let d=o?.spec==="chara_card_v2"&&o.data?o.data:(o?.data?.name?o.data:o||{});return{name:d.name||o?.name||"",character:{description:d.description||"",personality:d.personality||"",scenario:d.scenario||"",firstMes:d.first_mes||"",mesExample:d.mes_example||"",systemPrompt:d.system_prompt||"",rawText:""},rawCard:o}}
 function jsonCard(o){let x=norm(o);x.source="JSON Character Card";return x}
 async function pngCard(f){let buf=await f.arrayBuffer(),b=new Uint8Array(buf),p=8,card=null,dec=new TextDecoder("latin1");while(p+12<=b.length){let len=new DataView(buf).getUint32(p),type=dec.decode(b.slice(p+4,p+8)),data=b.slice(p+8,p+8+len);p+=12+len;if(type==="tEXt"){let z=data.indexOf(0);if(z>0&&dec.decode(data.slice(0,z))==="chara"){let v=dec.decode(data.slice(z+1));try{card=JSON.parse(decodeURIComponent(escape(atob(v))))}catch{try{card=JSON.parse(atob(v))}catch{}}}}}if(!card)throw Error("PNG 中未检测到 chara metadata");let x=norm(card);x.source="PNG Tavern Card · "+f.name;x.avatar=await dataURL(f);return x}
@@ -2147,13 +2156,20 @@ function characterImagePrompt(c){
  if(desc)return desc;
  return raw.slice(0,1800);
 }
-function imagePromptForContact(scenePrompt,contactId=currentContact){
- let c=contacts.find(x=>x.id===contactId),visual=characterImagePrompt(c);
- let scene=String(scenePrompt||"").trim();
- if(!visual)return scene;
- return `CHARACTER VISUAL REFERENCE (keep identity and appearance consistent):\n${visual}\n\nCURRENT IMAGE / SCENE REQUEST:\n${scene}`;
+function contactImageContext(contactId=currentContact){
+ let c=contacts.find(x=>x.id===contactId),x=c?.character||{};
+ return {contactId:c?.id||"",referenceImage:String(x.referenceImage||""),faceLockStrength:String(x.faceLockStrength||"off")};
 }
-async function materializeAssistantPiece(part){if(part.type==="voice_request"){let url=await generateVoice(part.text);return{role:"assistant",type:"voice",url,transcript:part.text,time:now(),createdAt:Date.now()}}if(part.type==="image_request"){let finalPrompt=imagePromptForContact(part.prompt,currentContact),url=await generateImage(finalPrompt);return{role:"assistant",type:"image",url,caption:part.prompt,time:now(),createdAt:Date.now()}}if(part.type==="transfer")return{role:"assistant",type:"transfer",amount:part.amount,note:part.note,time:now(),createdAt:Date.now()};if(part.type==="sticker")return{role:"assistant",type:"sticker",url:part.url,mood:part.mood,time:now(),createdAt:Date.now()};return{role:"assistant",content:part.content,time:now(),createdAt:Date.now()}}
+function imagePromptForContact(scenePrompt,contactId=currentContact){
+ let c=contacts.find(x=>x.id===contactId),visual=characterImagePrompt(c),ctx=contactImageContext(contactId);
+ let scene=String(scenePrompt||"").trim(),lock=ctx.faceLockStrength||"off";
+ let lockText=lock==="strong"?"Preserve the same person's facial identity, facial proportions, hairline and recognizable features very strongly while allowing pose, clothing and environment to change."
+   :lock==="medium"?"Keep the same recognizable facial identity and hairstyle while allowing natural variation in pose, expression, clothing and environment."
+   :lock==="weak"?"Use the reference only as a loose identity and facial-feature guide; keep the result natural and not copied pose-for-pose."
+   :"";
+ return [visual&&`CHARACTER VISUAL REFERENCE:\n${visual}`,lockText&&`IDENTITY CONSISTENCY:\n${lockText}`,`CURRENT IMAGE / SCENE REQUEST:\n${scene}`].filter(Boolean).join("\n\n");
+}
+async function materializeAssistantPiece(part){if(part.type==="voice_request"){let url=await generateVoice(part.text);return{role:"assistant",type:"voice",url,transcript:part.text,time:now(),createdAt:Date.now()}}if(part.type==="image_request"){let finalPrompt=imagePromptForContact(part.prompt,currentContact),url=await generateImage(finalPrompt,null,contactImageContext(currentContact));return{role:"assistant",type:"image",url,caption:part.prompt,time:now(),createdAt:Date.now()}}if(part.type==="transfer")return{role:"assistant",type:"transfer",amount:part.amount,note:part.note,time:now(),createdAt:Date.now()};if(part.type==="sticker")return{role:"assistant",type:"sticker",url:part.url,mood:part.mood,time:now(),createdAt:Date.now()};return{role:"assistant",content:part.content,time:now(),createdAt:Date.now()}}
 $("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>x.content).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let raw=await apiWithMcp([{role:"system",content:prompt(c,userText)},...contextMessagesForChat(currentContact)]),pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
 
 $("#mediaBtn").onclick=()=>{$("#stickerPicker").classList.remove("show");$("#mediaPicker").classList.toggle("show")};
@@ -2420,11 +2436,68 @@ $("#saveVoiceApi").onclick=()=>{
  mediaApi.voice={provider:$("#voiceProvider").value,endpoint:$("#voiceEndpoint").value.trim(),model:$("#voiceModel").value.trim(),voiceId:$("#voiceId").value.trim(),rememberKey:remember};
  if(remember)mediaApi.voice.key=voiceSessionKey;save(K.mediaApi,mediaApi);$("#voiceApiStatus").textContent="语音 API 已保存";toast("语音 API 已保存")
 };
-async function generateImage(promptText,override=null){
+function imageGenerationUrl(endpoint){
+ let raw=String(endpoint||"").trim();if(!raw)return "";
+ try{
+   let u=new URL(raw),p=u.pathname.replace(/\/+$/,"");
+   if(/\/images\/generations$/i.test(p)){}
+   else if(/\/images\/edits$/i.test(p))p=p.replace(/\/images\/edits$/i,"/images/generations");
+   else if(/\/v\d+$/i.test(p))p+="/images/generations";
+   else p+="/images/generations";
+   u.pathname=p;return u.toString()
+ }catch{return raw}
+}
+function imageEditUrl(endpoint){
+ let raw=String(endpoint||"").trim();if(!raw)return "";
+ try{
+   let u=new URL(raw),p=u.pathname.replace(/\/+$/,"");
+   if(/\/images\/edits$/i.test(p)){}
+   else if(/\/images\/generations$/i.test(p))p=p.replace(/\/images\/generations$/i,"/images/edits");
+   else if(/\/v\d+$/i.test(p))p+="/images/edits";
+   else p+="/images/edits";
+   u.pathname=p;return u.toString()
+ }catch{return raw}
+}
+async function dataUrlToBlob(dataUrl){
+ let r=await fetch(dataUrl);return await r.blob()
+}
+function parseImageResult(d){
+ let url=d?.data?.image_urls?.[0]||d?.data?.[0]?.url;
+ let b64=d?.data?.image_base64?.[0]||d?.data?.[0]?.b64_json;
+ if(url)return url;if(b64)return"data:image/png;base64,"+b64;throw Error("未找到图片结果")
+}
+async function generateImage(promptText,override=null,imageCtx=null){
  let s=override||mediaApi.image,key=override?.key??imageSessionKey;if(!s.endpoint||!s.model)throw Error("生图 API 未配置");
- let h={"Content-Type":"application/json"};if(key)h.Authorization="Bearer "+key;
- let body,positive=String(s.positivePrompt||"").trim(),negative=String(s.negativePrompt||"").trim();
+ let positive=String(s.positivePrompt||"").trim(),negative=String(s.negativePrompt||"").trim();
  let finalPrompt=[String(promptText||"").trim(),positive].filter(Boolean).join(", ");
+ let ctx=imageCtx||{},ref=String(ctx.referenceImage||"").trim(),strength=String(ctx.faceLockStrength||"off");
+ let wantsReference=!!ref&&strength!=="off"&&!(s.provider||"").startsWith("minimax");
+
+ // Reference-image path: OpenAI-compatible image edits. If the relay does not support it, fall back to text-only generation.
+ if(wantsReference){
+   try{
+     let form=new FormData(),blob=await dataUrlToBlob(ref);
+     let ext=(blob.type||"image/png").split("/")[1]||"png";
+     let strengthHint=strength==="strong"?"Maintain the person's facial identity with high fidelity."
+       :strength==="medium"?"Maintain the person's recognizable facial identity."
+       :"Use the person's face as a loose visual reference.";
+     let promptWithNegative=[finalPrompt,strengthHint,negative&&"Avoid / Negative prompt: "+negative].filter(Boolean).join("\n\n");
+     form.append("model",s.model);form.append("prompt",promptWithNegative);form.append("image",blob,"reference."+ext);
+     if(s.size)form.append("size",s.size||"1024x1024");
+     if(strength==="strong")form.append("input_fidelity","high");
+     else if(strength==="weak")form.append("input_fidelity","low");
+     let h={};if(key)h.Authorization="Bearer "+key;
+     let r=await fetch(imageEditUrl(s.endpoint),{method:"POST",headers:h,body:form});
+     let d;try{d=await r.json()}catch{throw Error("参考图接口返回的不是 JSON · HTTP "+r.status)}
+     if(!r.ok)throw Error(d?.error?.message||d?.message||"HTTP "+r.status);
+     return parseImageResult(d)
+   }catch(e){
+     console.warn("参考图锁脸接口不可用，退回纯文字生图",e);
+   }
+ }
+
+ let h={"Content-Type":"application/json"};if(key)h.Authorization="Bearer "+key;
+ let body,url=imageGenerationUrl(s.endpoint);
  if((s.provider||"").startsWith("minimax")){
    body={model:s.model,prompt:finalPrompt,response_format:"url",n:1,prompt_optimizer:false,aspect_ratio:s.size||"1:1"};
    if(negative)body.negative_prompt=negative;
@@ -2433,10 +2506,9 @@ async function generateImage(promptText,override=null){
    body={model:s.model,prompt:compatiblePrompt,n:1,size:s.size||"1024x1024"};
    if(negative&&s.provider==="custom")body.negative_prompt=negative;
  }
- let r=await fetch(s.endpoint,{method:"POST",headers:h,body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw Error(d?.error?.message||d?.base_resp?.status_msg||"HTTP "+r.status);
- let url=d?.data?.image_urls?.[0]||d?.data?.[0]?.url;
- let b64=d?.data?.image_base64?.[0]||d?.data?.[0]?.b64_json;
- if(url)return url;if(b64)return"data:image/png;base64,"+b64;throw Error("未找到图片结果")
+ let r=await fetch(url,{method:"POST",headers:h,body:JSON.stringify(body)}),d;try{d=await r.json()}catch{throw Error("生图接口返回的不是 JSON · HTTP "+r.status)}
+ if(!r.ok)throw Error(d?.error?.message||d?.base_resp?.status_msg||d?.message||"HTTP "+r.status);
+ return parseImageResult(d)
 }
 function hexToBlobUrl(hex,type="audio/mpeg"){let a=new Uint8Array(hex.length/2);for(let i=0;i<a.length;i++)a[i]=parseInt(hex.substr(i*2,2),16);return URL.createObjectURL(new Blob([a],{type}))}
 async function generateVoice(text,override=null){
@@ -2672,7 +2744,7 @@ async function xhsGenerateImageForPost(postId){
     if(status)status.textContent="正在为这一篇生成配图…";
     p.imagePrompt=xhsEnsureImagePrompt(p);
     let prompt=p.authorType==="char"?imagePromptForContact(p.imagePrompt,p.authorId):p.imagePrompt;
-    let url=await generateImage(prompt);
+    let url=await generateImage(prompt,null,p.authorType==="char"?contactImageContext(p.authorId):null);
     p.imageUrl=url;p.imageError="";
     saveXhs();renderXhs();renderXhsDetail();
     toast("这篇配图好了");
@@ -2732,7 +2804,7 @@ Do not invent a contactName.`},{role:"user",content:`${xhsWorldContext()}\n\nExi
     $("#xhsStatus").textContent=`${c.name} 正在生成配图…`;
     let imageUrl="",singleImagePrompt=String(o.imagePrompt||"").trim()||`casual Xiaohongshu smartphone photo based on this post: ${String(o.title||"")} — ${String(o.content||"").slice(0,520)}`;
     if(xhsImageConfigured()){
-      try{imageUrl=await generateImage(imagePromptForContact(singleImagePrompt,c.id))}
+      try{imageUrl=await generateImage(imagePromptForContact(singleImagePrompt,c.id),null,contactImageContext(c.id))}
       catch(e){console.warn("XHS 生图失败",e);$("#xhsStatus").textContent=`${c.name} 配图失败：${String(e?.message||e)}`}
     }else $("#xhsStatus").textContent=`${c.name} 文案生成完成 · 生图 API 未配置`;
     xhs.posts=xhs.posts||[];xhs.posts.push({id:uuid(),category:XHS_CATS.includes(o.category)?o.category:"日常",title:String(o.title||"随手记"),content:String(o.content||""),imageUrl,authorType:"char",authorId:c.id,authorName:c.name,authorAvatar:c.avatar||"",generated:true,imagePrompt:singleImagePrompt,createdAt:Date.now(),time:xhsTime(),likes:Math.floor(Math.random()*18),liked:false,comments:[]});
@@ -2827,7 +2899,7 @@ async function xhsGenerateImagesForBatch(posts,{all=false}={}){
     try{
       p.imagePrompt=xhsEnsureImagePrompt(p);
       let prompt=p.authorType==="char"?imagePromptForContact(p.imagePrompt,p.authorId):p.imagePrompt;
-      p.imageUrl=await generateImage(prompt);
+      p.imageUrl=await generateImage(prompt,null,p.authorType==="char"?contactImageContext(p.authorId):null);
       p.imageError="";
     }catch(e){
       console.warn("XHS 生图失败",p.title,e);
