@@ -1519,7 +1519,7 @@ body.phoneActive{
     </div>
 
     <div class="liveToolSection">
-      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div>
+      <div class="liveToolSectionTitle">Live2D <span id="liveSafariCompatBadge" style="display:none;margin-left:6px;font-size:7px;font-weight:500;color:#9fe3ae">Safari 兼容模式</span></div><div id="liveSafariError" style="display:none;margin:0 0 8px;padding:8px 9px;border-radius:10px;background:#281b20;color:#f2bac8;font-size:7px;line-height:1.5;word-break:break-all"></div>
       <div class="liveModelControls">
         <button type="button" id="liveMotionBtn">随机动作</button>
         <button type="button" id="liveExpressionBtn">换表情</button>
@@ -2123,7 +2123,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.1",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.2",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2197,7 +2197,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.1",
+    appVersion:"8.2",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3728,15 +3728,17 @@ async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
    if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
    let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);urlSink.push(u);urlMap[normalizeRel(a.rel)]=u
  }
+ if(safari)await new Promise(r=>setTimeout(r,80));
  let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
  if(!cfg){let entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
  cfg=rewriteModelRefs(cfg,urlMap);
  let json=JSON.stringify(cfg);
- if(safari){
-   // 避开 Safari 偶发无法再次 fetch model3.json 的 blob: URL 问题。
-   return "data:application/json;charset=utf-8,"+encodeURIComponent(json)
- }
- let u=URL.createObjectURL(new Blob([json],{type:"application/json"}));urlSink.push(u);return u
+ // Safari 不能让 model3.json 使用 data: URL 再去引用页面创建的 blob: 资源：
+ // data: 拥有不透明 origin，WebKit 会出现 NetworkError / Not allowed to load。
+ // 所有资源统一使用同一页面创建的 blob: URL。
+ let u=URL.createObjectURL(new Blob([json],{type:"application/json;charset=utf-8"}));urlSink.push(u);
+ if(safari)await new Promise(r=>setTimeout(r,60));
+ return u
 }
 async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
 
@@ -3903,7 +3905,8 @@ function bindLive2dPointer(model){
 async function mountLive2d(modelId,retryMode=false){
  cleanupLive2dRuntime();let host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
- let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint");
+ let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint"),errBox=$("#liveSafariError");
+ if(errBox){errBox.style.display="none";errBox.textContent=""}
  try{
    if(safari&&hint)hint.textContent=retryMode?"Safari 兼容模式重试中":"Safari 兼容模式加载中";
    if(safari&&!live2dWebglPreflight())throw Error("Safari 当前没有可用的 WebGL");
@@ -3941,7 +3944,9 @@ async function mountLive2d(modelId,retryMode=false){
      await new Promise(r=>setTimeout(r,220));
      return mountLive2d(modelId,true)
    }
-   if(hint)hint.textContent="Live2D 加载失败："+(e?.message||"Safari/WebGL 错误");
+   let fullMsg=String(e?.stack||e?.message||e||"Safari/WebGL 错误");
+   if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
+   if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
    return false
  }
 }
