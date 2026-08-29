@@ -1426,8 +1426,9 @@ body.phoneActive{
     <div class="field"><label>直播标题</label><input class="input" id="liveTitleInput" maxlength="80" placeholder="随便聊聊 / 下班直播 / 深夜电台"></div>
     <div class="field"><label>直播主题</label><textarea class="textarea smallarea" id="liveTopicInput" placeholder="可选。比如：做饭、聊天、画画、打游戏、回答弹幕……"></textarea></div>
     <div class="field"><label>直播背景</label><input class="input" id="liveBgFile" type="file" accept="image/*"><div class="help">可替换直播间背景；留空则使用默认深色直播背景。</div><button class="btn" type="button" id="clearLiveBgBtn" style="margin-top:7px">清除直播背景</button><div id="liveBgPreview" class="liveBgPreview"></div></div>
-    <div class="field"><label>Live2D 模型</label><select class="input" id="liveModelSelect"><option value="">不使用 Live2D</option></select><div class="help">可给 User / 每个 Char 分别绑定模型。模型文件只保存在本机浏览器。</div></div>
-    <div class="field"><label>导入 Live2D 文件夹</label><input class="input" id="liveModelFolder" type="file" webkitdirectory directory multiple accept=".json,.moc3,.png,.jpg,.jpeg,.physics3.json,.pose3.json,.exp3.json,.motion3.json"><div class="help">请选择包含 *.model3.json 与纹理/moc3/motion/expression 等资源的整个文件夹。</div><div id="liveModelImportStatus" class="tiny"></div></div>
+    <div class="field"><label>Live2D 模型</label><select class="input" id="liveModelSelect"><option value="">不使用 Live2D</option></select><div class="help">可给 User / 每个 Char 分别绑定模型。模型大文件保存在本机 IndexedDB，不再占用 localStorage。</div></div>
+    <div class="field"><label>导入 Live2D ZIP</label><input class="input" id="liveModelZip" type="file" accept=".zip,application/zip,application/x-zip-compressed"><div class="help">iPhone 推荐：直接选择下载好的 Live2D .zip，不需要解压。会自动寻找 *.model3.json 并导入同包资源。</div></div>
+    <div class="field"><label>导入已解压模型（电脑端）</label><input class="input" id="liveModelFolder" type="file" webkitdirectory directory multiple><div class="help">电脑浏览器可选择整个模型文件夹；iPhone 建议使用上面的 ZIP 导入。</div><div id="liveModelImportStatus" class="tiny"></div></div>
     <div class="field"><label>模型绑定</label><button class="btn" type="button" id="bindLiveModelBtn">绑定给当前主播</button><button class="btn" type="button" id="clearLiveModelBtn" style="margin-left:6px">取消绑定</button><div class="help" id="liveModelBindHint"></div></div>
     <div class="field"><label><input type="checkbox" id="liveTtsEnabled"> 主播发言时启用 TTS + 嘴型同步</label><div class="help">使用设置里的语音 API。Char 开播最适合；User 开播也可开启。</div></div>
     <div class="field"><label><input type="checkbox" id="liveTouchEnabled" checked> 允许点击 Live2D 触发动作 / 表情</label></div>
@@ -1575,7 +1576,7 @@ body.phoneActive{
 
 
 <div class="settingGroup"><h3>PHONE DATA BACKUP</h3><div class="settingBox backupBox">
-  <div class="backupMeta">导出整部“小手机”的本地数据：联系人、所有聊天、User 面具、世界书、备忘录、首页/聊天美化、朋友圈、自主消息、总结、关系便签、表情包、未读与在线状态，以及 API 的地址/模型等非敏感配置。不会导出 Chat / Image / Voice API Key，也不会导出 MCP Token。</div>
+  <div class="backupMeta">完整导出整部“小手机”的本地数据：联系人、聊天、User 面具、世界书、备忘录、美化、朋友圈/小红书、纪念日、外卖、游戏、直播、Live2D、关系网、主动行为、通话，以及 Chat / Image / Voice API 配置与 Key、MCP Token。注意：导出的 JSON 含明文密钥，请只保存到私人位置，不要分享。</div>
   <div class="actions">
     <button class="btn primary" id="exportPhoneData" type="button">导出小手机数据</button>
     <button class="btn" id="phoneDataInfo" type="button">查看导出范围</button>
@@ -1587,7 +1588,7 @@ body.phoneActive{
 </div></div>
 
 <div class="settingGroup"><h3>CHAT BACKUP</h3><div class="settingBox backupBox">
-  <div class="backupMeta">导出的是可恢复聊天环境的 JSON 备份：联系人、聊天记录、User 面具、聊天总结、关系便签、未读状态、聊天主题、表情包和朋友圈。不会导出 API Key。</div>
+  <div class="backupMeta">导出可完整恢复聊天环境的 JSON：联系人、聊天记录、User 面具、世界书、聊天总结、关系便签、未读、聊天主题、表情包、朋友圈/小红书，以及 Chat / Image / Voice API 配置与 Key、MCP Token。注意：文件含明文密钥，请勿分享。</div>
   <div class="actions">
     <button class="btn primary" id="exportChatBackup" type="button">导出聊天备份</button>
     <button class="btn" id="quickBackupInfo" type="button">查看备份范围</button>
@@ -1993,8 +1994,17 @@ $("#exportChatBackup").onclick=async()=>{
   toast(r.method==="share"?"请选择「存储到文件」":"聊天备份已导出")
 };
 $("#quickBackupInfo").onclick=()=>{
-  let c=backupCounts(backupPayload().data);
-  $("#chatBackupStatus").textContent=`当前可备份\n联系人：${c.contacts}\n聊天时间线：${c.chats}\nUser 面具：${c.masks}\n长期总结：${c.summaries}\n朋友圈：${c.moments}\n\n不会包含：Chat / Image / Voice API Key`;
+  let c=backupCounts(backupPayload().data),p=backupPayload().data;
+  $("#chatBackupStatus").textContent=`当前可备份
+联系人：${c.contacts}
+聊天时间线：${c.chats}
+User 面具：${c.masks}
+世界书：${p.worldbooks?.length||0}
+长期总结：${c.summaries}
+朋友圈：${c.moments}
+
+包括：Chat / Image / Voice API Key、API 配置、MCP Token
+警告：JSON 中密钥为明文，请勿分享`;
 };
 $("#importChatBackupFile").onchange=e=>{
   pendingBackupFile=e.target.files?.[0]||null;
@@ -2028,20 +2038,37 @@ function sanitizedMediaApi(){
 }
 function sanitizedMcp(){return (mcpServers||[]).map(s=>{let x=cloneJson(s);delete x.token;return x})}
 function phoneDataPayload(){
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"3.9",data:{
+  let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
+  let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
+  fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"6.4",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
     chatSummaries:cloneJson(chatSummaries),summarySettings:cloneJson(summarySettings),presence:cloneJson(presence),unread:cloneJson(unread),
-    settings:withoutSecret(settings,["apiKey"]),mediaApi:sanitizedMediaApi(),mcpServers:sanitizedMcp(),forum:cloneJson(forum),xhs:cloneJson(xhs),anniversaries:cloneJson(anniversaries),takeout:cloneJson(takeout),gameHall:cloneJson(gameHall),liveRoom:cloneJson(liveRoom),live2d:cloneJson(live2dStore),charNetwork:cloneJson(charNetwork),initiative:cloneJson(initiative),calls:cloneJson(calls)
+    settings:fullSettings,mediaApi:fullMedia,mcpServers:cloneJson(mcpServers),forum:cloneJson(forum),xhs:cloneJson(xhs),anniversaries:cloneJson(anniversaries),takeout:cloneJson(takeout),gameHall:cloneJson(gameHall),liveRoom:cloneJson(liveRoom),live2d:cloneJson(live2dStore),charNetwork:cloneJson(charNetwork),initiative:cloneJson(initiative),calls:cloneJson(calls)
   }}
 }
+
+async function blobToDataUrl(blob){return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(blob)})}
+async function exportLive2dAssetsForBackup(){
+ let out={version:1,models:{}};
+ for(let m of live2dStore.models||[]){let assets=await idbGetLive2dAssets(m.id);if(!assets.length)continue;out.models[m.id]=[];for(let a of assets)out.models[m.id].push({rel:a.rel,name:a.name,type:a.type,data:await blobToDataUrl(a.blob)})}
+ return out
+}
+async function phoneDataPayloadWithAssets(){let p=phoneDataPayload();p.data.live2d=cloneJson(live2dMetaStore());p.data.live2dAssetBackup=await exportLive2dAssetsForBackup();return p}
+async function restoreLive2dAssetsFromBackup(d,mode){
+ let pack=d.live2dAssetBackup;if(!pack?.models)return;
+ if(mode==="replace")await idbClearLive2dAssets();
+ for(let [modelId,list] of Object.entries(pack.models||{})){let assets=(list||[]).map(a=>({rel:a.rel,name:a.name,type:a.type,blob:dataUrlToBlobSync(a.data)}));if(assets.length)await idbPutLive2dAssets(modelId,assets)}
+}
+
 function phoneDataCounts(d){return {contacts:Array.isArray(d.contacts)?d.contacts.length:0,chats:d.convos&&typeof d.convos==="object"?Object.keys(d.convos).length:0,masks:Array.isArray(d.masks)?d.masks.length:0,worldbooks:Array.isArray(d.worldbooks)?d.worldbooks.length:0,moments:Array.isArray(d.moments)?d.moments.length:0,stickers:(d.stickers?.user?.length||0)+Object.values(d.stickers?.chars||{}).reduce((n,a)=>n+(Array.isArray(a)?a.length:0),0)}}
 function normalizePhoneData(raw){
   if(!raw||raw.schema!==PHONE_DATA_SCHEMA)throw Error("不是咖喱小手机数据备份");
   if(Number(raw.version)!==PHONE_DATA_VERSION)throw Error("暂不支持这个小手机备份版本");
   let d=raw.data||{};
-  return {contacts:Array.isArray(d.contacts)?d.contacts:[],convos:d.convos&&typeof d.convos==="object"?d.convos:{},masks:Array.isArray(d.masks)?d.masks:[],activeMaskId:String(d.activeMaskId||""),worldbooks:Array.isArray(d.worldbooks)?d.worldbooks:[],notes:String(d.notes||""),beauty:d.beauty&&typeof d.beauty==="object"?d.beauty:{},chatBeauty:d.chatBeauty&&typeof d.chatBeauty==="object"?d.chatBeauty:{},chatThemes:d.chatThemes&&typeof d.chatThemes==="object"?d.chatThemes:{},moments:Array.isArray(d.moments)?d.moments:[],autonomy:d.autonomy&&typeof d.autonomy==="object"?d.autonomy:{},momentSeen:Number(d.momentSeen||0),stickers:d.stickers&&typeof d.stickers==="object"?d.stickers:{user:[],chars:{},charUseUser:{}},relationNotes:d.relationNotes&&typeof d.relationNotes==="object"?d.relationNotes:{},chatSummaries:d.chatSummaries&&typeof d.chatSummaries==="object"?d.chatSummaries:{},summarySettings:d.summarySettings&&typeof d.summarySettings==="object"?d.summarySettings:{},presence:d.presence&&typeof d.presence==="object"?d.presence:{},unread:d.unread&&typeof d.unread==="object"?d.unread:{},settings:d.settings&&typeof d.settings==="object"?d.settings:{},mediaApi:d.mediaApi&&typeof d.mediaApi==="object"?d.mediaApi:{},mcpServers:Array.isArray(d.mcpServers)?d.mcpServers:[],forum:d.forum&&typeof d.forum==="object"?d.forum:{posts:[]},xhs:d.xhs&&typeof d.xhs==="object"?d.xhs:{posts:[]},anniversaries:Array.isArray(d.anniversaries)?d.anniversaries:[],takeout:d.takeout&&typeof d.takeout==="object"?d.takeout:{orders:[]},gameHall:d.gameHall&&typeof d.gameHall==="object"?d.gameHall:{history:[]},liveRoom:d.liveRoom&&typeof d.liveRoom==="object"?d.liveRoom:{history:[]},live2d:d.live2d&&typeof d.live2d==="object"?d.live2d:{models:[],bindings:{}},charNetwork:d.charNetwork&&typeof d.charNetwork==="object"?d.charNetwork:{enabled:false,permissions:{know:true,privateChat:false,jealousy:false,readUserInteractions:false,crossApp:false},relations:{}}}
+  return {contacts:Array.isArray(d.contacts)?d.contacts:[],convos:d.convos&&typeof d.convos==="object"?d.convos:{},masks:Array.isArray(d.masks)?d.masks:[],activeMaskId:String(d.activeMaskId||""),worldbooks:Array.isArray(d.worldbooks)?d.worldbooks:[],notes:String(d.notes||""),beauty:d.beauty&&typeof d.beauty==="object"?d.beauty:{},chatBeauty:d.chatBeauty&&typeof d.chatBeauty==="object"?d.chatBeauty:{},chatThemes:d.chatThemes&&typeof d.chatThemes==="object"?d.chatThemes:{},moments:Array.isArray(d.moments)?d.moments:[],autonomy:d.autonomy&&typeof d.autonomy==="object"?d.autonomy:{},momentSeen:Number(d.momentSeen||0),stickers:d.stickers&&typeof d.stickers==="object"?d.stickers:{user:[],chars:{},charUseUser:{}},relationNotes:d.relationNotes&&typeof d.relationNotes==="object"?d.relationNotes:{},chatSummaries:d.chatSummaries&&typeof d.chatSummaries==="object"?d.chatSummaries:{},summarySettings:d.summarySettings&&typeof d.summarySettings==="object"?d.summarySettings:{},presence:d.presence&&typeof d.presence==="object"?d.presence:{},unread:d.unread&&typeof d.unread==="object"?d.unread:{},settings:d.settings&&typeof d.settings==="object"?d.settings:{},mediaApi:d.mediaApi&&typeof d.mediaApi==="object"?d.mediaApi:{},mcpServers:Array.isArray(d.mcpServers)?d.mcpServers:[],forum:d.forum&&typeof d.forum==="object"?d.forum:{posts:[]},xhs:d.xhs&&typeof d.xhs==="object"?d.xhs:{posts:[]},anniversaries:Array.isArray(d.anniversaries)?d.anniversaries:[],takeout:d.takeout&&typeof d.takeout==="object"?d.takeout:{orders:[]},gameHall:d.gameHall&&typeof d.gameHall==="object"?d.gameHall:{history:[]},liveRoom:d.liveRoom&&typeof d.liveRoom==="object"?d.liveRoom:{history:[]},live2d:d.live2d&&typeof d.live2d==="object"?d.live2d:{models:[],bindings:{}},charNetwork:d.charNetwork&&typeof d.charNetwork==="object"?d.charNetwork:{enabled:false,permissions:{know:true,privateChat:false,jealousy:false,readUserInteractions:false,crossApp:false},relations:{}},initiative:d.initiative&&typeof d.initiative==="object"?d.initiative:{enabled:false,frequency:2,quiet:{enabled:true,start:"23:30",end:"08:00"},actions:{message:true,selfie:true,moment:true,live:true,game:true,call:false},chars:{},log:[],lastRun:0},calls:d.calls&&typeof d.calls==="object"?d.calls:{history:[]},live2dAssetBackup:d.live2dAssetBackup&&typeof d.live2dAssetBackup==="object"?d.live2dAssetBackup:{version:1,models:{}}}
 }
 function mergeNotes(a,b){a=String(a||"").trim();b=String(b||"").trim();if(!a)return b;if(!b||a===b)return a;return a+"\n\n--- 导入备忘录 ---\n"+b}
 function mergeStickers(a,b){
@@ -2055,17 +2082,19 @@ function applyPhoneData(d,mode){
     contacts=d.contacts;convos=d.convos;masks=d.masks;activeMaskId=d.activeMaskId;worldbooks=d.worldbooks;beauty=Object.assign({},beauty,d.beauty);chatBeauty=Object.assign({},chatBeauty,d.chatBeauty);chatThemes=d.chatThemes;moments=d.moments;autonomy=d.autonomy;momentSeen=d.momentSeen;stickers=d.stickers;relationNotes=d.relationNotes;chatSummaries=d.chatSummaries;summarySettings=Object.assign({},summarySettings,d.summarySettings);presence=d.presence;unread=d.unread;settings=Object.assign({},settings,d.settings);mediaApi=Object.assign({},mediaApi,d.mediaApi);mcpServers=d.mcpServers;forum=d.forum||{posts:[]};xhs=d.xhs||{posts:[]};anniversaries=d.anniversaries||[];takeout=d.takeout||{orders:[]};gameHall=d.gameHall||{history:[]};liveRoom=d.liveRoom||{history:[]};live2dStore=d.live2d||{models:[],bindings:{}};charNetwork=d.charNetwork||{enabled:false,permissions:{know:true,privateChat:false,jealousy:false,readUserInteractions:false,crossApp:false},relations:{}};initiative=d.initiative||initiative;calls=d.calls||{history:[]};
     localStorage.setItem(K.notes,d.notes||"")
   }else{
-    contacts=mergeById(contacts,d.contacts);convos=mergeConvos(convos,d.convos);masks=mergeById(masks,d.masks);worldbooks=mergeById(worldbooks,d.worldbooks);beauty=Object.assign({},beauty,d.beauty);chatBeauty=Object.assign({},chatBeauty,d.chatBeauty);chatThemes=mergeObjectShallow(chatThemes,d.chatThemes);moments=mergeById(moments,d.moments);autonomy=mergeObjectShallow(autonomy,d.autonomy);momentSeen=Math.max(Number(momentSeen||0),Number(d.momentSeen||0));stickers=mergeStickers(stickers,d.stickers);relationNotes=mergeObjectShallow(relationNotes,d.relationNotes);chatSummaries=mergeObjectShallow(chatSummaries,d.chatSummaries);summarySettings=Object.assign({},summarySettings,d.summarySettings);presence=mergeObjectShallow(presence,d.presence);unread=mergeObjectShallow(unread,d.unread);settings=Object.assign({},settings,d.settings);mediaApi=Object.assign({},mediaApi,d.mediaApi);mcpServers=mergeById(mcpServers,d.mcpServers);forum={posts:mergeById(forum.posts||[],d.forum?.posts||[])};xhs={posts:mergeById(xhs.posts||[],d.xhs?.posts||[])};anniversaries=mergeById(anniversaries,d.anniversaries||[]);takeout={orders:mergeById(takeout.orders||[],d.takeout?.orders||[])};gameHall={history:mergeById(gameHall.history||[],d.gameHall?.history||[])};liveRoom={history:mergeById(liveRoom.history||[],d.liveRoom?.history||[])};live2dStore=d.live2d||live2dStore;charNetwork=d.charNetwork||charNetwork;initiative=d.initiative||initiative;localStorage.setItem(K.notes,mergeNotes(localStorage.getItem(K.notes)||"",d.notes));if(!activeMaskId&&d.activeMaskId)activeMaskId=d.activeMaskId
+    contacts=mergeById(contacts,d.contacts);convos=mergeConvos(convos,d.convos);masks=mergeById(masks,d.masks);worldbooks=mergeById(worldbooks,d.worldbooks);beauty=Object.assign({},beauty,d.beauty);chatBeauty=Object.assign({},chatBeauty,d.chatBeauty);chatThemes=mergeObjectShallow(chatThemes,d.chatThemes);moments=mergeById(moments,d.moments);autonomy=mergeObjectShallow(autonomy,d.autonomy);momentSeen=Math.max(Number(momentSeen||0),Number(d.momentSeen||0));stickers=mergeStickers(stickers,d.stickers);relationNotes=mergeObjectShallow(relationNotes,d.relationNotes);chatSummaries=mergeObjectShallow(chatSummaries,d.chatSummaries);summarySettings=Object.assign({},summarySettings,d.summarySettings);presence=mergeObjectShallow(presence,d.presence);unread=mergeObjectShallow(unread,d.unread);settings=Object.assign({},settings,d.settings);mediaApi=Object.assign({},mediaApi,d.mediaApi);mcpServers=mergeById(mcpServers,d.mcpServers);forum={posts:mergeById(forum.posts||[],d.forum?.posts||[])};xhs={posts:mergeById(xhs.posts||[],d.xhs?.posts||[])};anniversaries=mergeById(anniversaries,d.anniversaries||[]);takeout={orders:mergeById(takeout.orders||[],d.takeout?.orders||[])};gameHall={history:mergeById(gameHall.history||[],d.gameHall?.history||[])};liveRoom={history:mergeById(liveRoom.history||[],d.liveRoom?.history||[])};live2dStore=d.live2d||live2dStore;charNetwork=d.charNetwork||charNetwork;initiative=d.initiative||initiative;calls={history:mergeById(calls.history||[],d.calls?.history||[])};localStorage.setItem(K.notes,mergeNotes(localStorage.getItem(K.notes)||"",d.notes));if(!activeMaskId&&d.activeMaskId)activeMaskId=d.activeMaskId
   }
   if(!masks.length)masks=[{id:"mask_default",name:"默认 user",userName:"user",avatar:"",prompt:"",note:""}];
   if(!masks.some(x=>x.id===activeMaskId))activeMaskId=masks[0].id;
-  delete settings.apiKey;if(mediaApi.image)delete mediaApi.image.key;if(mediaApi.voice)delete mediaApi.voice.key;for(let srv of mcpServers)delete srv.token;
-  save(K.contacts,contacts);save(K.convos,convos);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId);save(K.worldbooks,worldbooks);save(K.beauty,beauty);save(K.chatBeauty,chatBeauty);save(K.chatThemes,chatThemes);save(K.moments,moments);save(K.autonomy,autonomy);localStorage.setItem(K.momentSeen,String(momentSeen));save(K.stickers,stickers);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.summarySettings,summarySettings);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.settings,settings);save(K.mediaApi,mediaApi);save(K.mcp,mcpServers);save(K.forum,forum);save(K.xhs,xhs);save(K.anniversaries,anniversaries)
+  if(settings.apiKey){settings.rememberKey=true;sessionKey=settings.apiKey}
+  if(mediaApi.image?.key){mediaApi.image.rememberKey=true;imageSessionKey=mediaApi.image.key}
+  if(mediaApi.voice?.key){mediaApi.voice.rememberKey=true;voiceSessionKey=mediaApi.voice.key}
+  save(K.contacts,contacts);save(K.convos,convos);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId);save(K.worldbooks,worldbooks);save(K.beauty,beauty);save(K.chatBeauty,chatBeauty);save(K.chatThemes,chatThemes);save(K.moments,moments);save(K.autonomy,autonomy);localStorage.setItem(K.momentSeen,String(momentSeen));save(K.stickers,stickers);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.summarySettings,summarySettings);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.settings,settings);save(K.mediaApi,mediaApi);save(K.mcp,mcpServers);save(K.forum,forum);save(K.xhs,xhs);save(K.anniversaries,anniversaries);save(K.takeout,takeout);save(K.gameHall,gameHall);save(K.liveRoom,liveRoom);saveLive2d();save(K.charNetwork,charNetwork);save(K.initiative,initiative);save(K.calls,calls);setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("备份中的旧 Live2D 迁移失败",e)),100)
 }
-$("#exportPhoneData").onclick=async()=>{let p=phoneDataPayload(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");let r=await downloadJsonFile(`curry_phone_full_data_${stamp}.json`,p);if(!r?.ok){if(!r?.cancelled)toast("导出失败，请重试");return}let c=phoneDataCounts(p.data);$("#phoneDataStatus").textContent=`已导出：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.masks} 面具 · ${c.worldbooks} 世界书 · ${c.moments} 朋友圈\n${r.method==="share"?"iPhone：请在系统面板选择「存储到文件」":"备份文件已交给浏览器下载"}`;toast(r.method==="share"?"请选择「存储到文件」":"小手机数据已导出")};
-$("#phoneDataInfo").onclick=()=>{let c=phoneDataCounts(phoneDataPayload().data);$("#phoneDataStatus").textContent=`当前整机备份\n联系人：${c.contacts}\n聊天时间线：${c.chats}\nUser 面具：${c.masks}\n世界书：${c.worldbooks}\n朋友圈：${c.moments}\n小红书：${(phoneDataPayload().data.xhs?.posts||[]).length}\n纪念日：${(phoneDataPayload().data.anniversaries||[]).length}\n表情包：${c.stickers}\n\n还包括：备忘录、美化、聊天主题、自主消息、关系便签、长期总结、上下文设置、未读/在线状态、API 地址与模型配置、MCP 地址和工具列表\n\n绝不包含：Chat / Image / Voice API Key、MCP Token`};
+$("#exportPhoneData").onclick=async()=>{try{$("#phoneDataStatus").textContent="正在打包完整备份（包含 Live2D 模型资源）…";let p=await phoneDataPayloadWithAssets(),d=new Date(),stamp=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0"),"_",String(d.getHours()).padStart(2,"0"),String(d.getMinutes()).padStart(2,"0")].join("");let r=await downloadJsonFile(`curry_phone_full_data_${stamp}.json`,p);if(!r?.ok){if(!r?.cancelled)toast("导出失败，请重试");return}let c=phoneDataCounts(p.data),assets=Object.keys(p.data.live2dAssetBackup?.models||{}).length;$("#phoneDataStatus").textContent=`已导出：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.worldbooks} 世界书 · ${assets} 个 Live2D 模型\n${r.method==="share"?"iPhone：请在系统面板选择「存储到文件」":"备份文件已交给浏览器下载"}`;toast(r.method==="share"?"请选择「存储到文件」":"完整备份已导出")}catch(e){console.error(e);$("#phoneDataStatus").textContent="导出失败："+e.message}};
+$("#phoneDataInfo").onclick=()=>{let c=phoneDataCounts(phoneDataPayload().data);$("#phoneDataStatus").textContent=`当前整机完整备份\n联系人：${c.contacts}\n聊天时间线：${c.chats}\nUser 面具：${c.masks}\n世界书：${c.worldbooks}\n朋友圈：${c.moments}\n小红书：${(phoneDataPayload().data.xhs?.posts||[]).length}\n纪念日：${(phoneDataPayload().data.anniversaries||[]).length}\n表情包：${c.stickers}\n\n还包括：美化、聊天主题、长期总结、外卖、游戏、直播、Live2D、关系网、主动行为、通话记录、Chat / Image / Voice API 地址、模型和 Key、MCP 地址与 Token\n\n警告：该 JSON 包含明文 API Key / Token，只能作为私人备份，不要分享给别人。`};
 $("#importPhoneDataFile").onchange=e=>{pendingPhoneDataFile=e.target.files?.[0]||null;$("#phoneDataStatus").textContent=pendingPhoneDataFile?`已选择：${pendingPhoneDataFile.name}`:""};
-$("#importPhoneData").onclick=async()=>{if(!pendingPhoneDataFile)return toast("先选择小手机数据 JSON");let mode=$("#phoneImportMode").value;if(mode==="replace"&&!confirm("完整覆盖会替换当前小手机的联系人、聊天、世界书、美化、备忘录等本地数据。API Key 和 MCP Token 不会从备份恢复。确定继续？"))return;try{let raw=JSON.parse(await pendingPhoneDataFile.text()),d=normalizePhoneData(raw),c=phoneDataCounts(d);applyPhoneData(d,mode);$("#phoneDataStatus").textContent=`导入完成：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.worldbooks} 世界书\n模式：${mode==="replace"?"完整覆盖":"合并"}\n即将刷新以重新载入全部数据…`;toast("小手机数据已导入");pendingPhoneDataFile=null;$("#importPhoneDataFile").value="";setTimeout(()=>location.reload(),700)}catch(e){$("#phoneDataStatus").textContent="导入失败："+e.message}};
+$("#importPhoneData").onclick=async()=>{if(!pendingPhoneDataFile)return toast("先选择小手机数据 JSON");let mode=$("#phoneImportMode").value;if(mode==="replace"&&!confirm("完整覆盖会替换当前小手机全部本地数据，并恢复备份中的 API Key / MCP Token / Live2D 模型。确定继续？"))return;try{$("#phoneDataStatus").textContent="正在恢复完整备份…";let raw=JSON.parse(await pendingPhoneDataFile.text()),d=normalizePhoneData(raw),c=phoneDataCounts(d);await restoreLive2dAssetsFromBackup(d,mode);applyPhoneData(d,mode);$("#phoneDataStatus").textContent=`导入完成：${c.contacts} 联系人 · ${c.chats} 聊天时间线 · ${c.worldbooks} 世界书\nLive2D 大文件已恢复到 IndexedDB\n模式：${mode==="replace"?"完整覆盖":"合并"}\n即将刷新…`;toast("完整备份已恢复");pendingPhoneDataFile=null;$("#importPhoneDataFile").value="";setTimeout(()=>location.reload(),900)}catch(e){console.error(e);$("#phoneDataStatus").textContent="导入失败："+e.message}};
 
 $("#chatSummaryBtn").onclick=openSummaryPage;
 $("#saveChatSummary").onclick=()=>{let r=summaryRecord(currentContact);r.text=$("#chatSummaryText").value.trim();r.updatedAt=Date.now();chatSummaries[summaryKey(currentContact)]=r;saveSummaries();renderSummaryPage();toast("总结已保存")};
@@ -2086,7 +2115,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"3.9",
+    appVersion:"6.4",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -2098,7 +2127,11 @@ function backupPayload(){
       chatThemes:cloneJson(chatThemes),
       stickers:cloneJson(stickers),
       moments:cloneJson(moments),
-      xhs:cloneJson(xhs)
+      xhs:cloneJson(xhs),
+      worldbooks:cloneJson(worldbooks),
+      settings:Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""}),
+      mediaApi:(()=>{let x=cloneJson(mediaApi);x.image=x.image||{};x.voice=x.voice||{};x.image.key=imageSessionKey||x.image.key||"";x.voice.key=voiceSessionKey||x.voice.key||"";return x})(),
+      mcpServers:cloneJson(mcpServers)
     }
   }
 }
@@ -2158,7 +2191,11 @@ function normalizeBackupPayload(raw){
     unread:d.unread&&typeof d.unread==="object"?d.unread:{},
     chatThemes:d.chatThemes&&typeof d.chatThemes==="object"?d.chatThemes:{},
     stickers:d.stickers&&typeof d.stickers==="object"?d.stickers:{user:[],chars:{},charUseUser:{}},
-    moments:Array.isArray(d.moments)?d.moments:[]
+    moments:Array.isArray(d.moments)?d.moments:[],
+    worldbooks:Array.isArray(d.worldbooks)?d.worldbooks:[],
+    settings:d.settings&&typeof d.settings==="object"?d.settings:{},
+    mediaApi:d.mediaApi&&typeof d.mediaApi==="object"?d.mediaApi:{},
+    mcpServers:Array.isArray(d.mcpServers)?d.mcpServers:[]
   }
 }
 function mergeById(current,incoming){
@@ -2186,6 +2223,10 @@ function importBackupData(d,mode="merge"){
     chatThemes=d.chatThemes;
     stickers=d.stickers;
     moments=d.moments;
+    worldbooks=d.worldbooks||[];
+    settings=Object.assign({},settings,d.settings||{});
+    mediaApi=Object.assign({},mediaApi,d.mediaApi||{});
+    mcpServers=d.mcpServers||[];
   }else{
     contacts=mergeById(contacts,d.contacts);
     convos=mergeConvos(convos,d.convos);
@@ -2196,6 +2237,10 @@ function importBackupData(d,mode="merge"){
     unread=mergeObjectShallow(unread,d.unread);
     chatThemes=mergeObjectShallow(chatThemes,d.chatThemes);
     moments=mergeById(moments,d.moments);
+    worldbooks=mergeById(worldbooks,d.worldbooks||[]);
+    settings=Object.assign({},settings,d.settings||{});
+    mediaApi=Object.assign({},mediaApi,d.mediaApi||{});
+    mcpServers=mergeById(mcpServers,d.mcpServers||[]);
     stickers={
       user:[...(stickers.user||[])],
       chars:Object.assign({},stickers.chars||{}),
@@ -2217,7 +2262,11 @@ function importBackupData(d,mode="merge"){
   if(!masks.some(x=>x.id===activeMaskId))activeMaskId=masks[0]?.id||"mask_default";
   save(K.contacts,contacts);save(K.convos,convos);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId);
   save(K.chatSummaries,chatSummaries);save(K.relationNotes,relationNotes);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);
-  save(K.chatThemes,chatThemes);save(K.stickers,stickers);save(K.moments,moments);
+  save(K.chatThemes,chatThemes);save(K.stickers,stickers);save(K.moments,moments);save(K.worldbooks,worldbooks);
+  if(settings.apiKey){settings.rememberKey=true;sessionKey=settings.apiKey}save(K.settings,settings);
+  if(mediaApi.image?.key){mediaApi.image.rememberKey=true;imageSessionKey=mediaApi.image.key}
+  if(mediaApi.voice?.key){mediaApi.voice.rememberKey=true;voiceSessionKey=mediaApi.voice.key}
+  save(K.mediaApi,mediaApi);save(K.mcp,mcpServers);
   renderContacts();renderConvos();updateMessageBadge();updateMomentBadge();renderHome39();renderStickerLibraries();
 }
 
@@ -3297,7 +3346,7 @@ async function callSpeak(text){
 async function mountCallLive2d(){
  cleanupCallVideoOnly();let c=callContact(currentCall?.contactId),mid=c?callBoundModelId(c):"";if(!mid){$("#callStatusText").textContent="未绑定 Live2D，使用头像模式";return false}
  let rec=(live2dStore.models||[]).find(x=>x.id===mid),host=$("#callVideoStage"),canvasHost=host?.querySelector(".callLive2dCanvas");if(!rec||!canvasHost)return false;
- try{await ensureLive2dLibs();let urls=[],urlMap={};for(let [rel,e] of Object.entries(rec.entries||{})){if(/\.model3\.json$/i.test(rel))continue;let u=URL.createObjectURL(dataUrlToBlobSync(e.data));urls.push(u);urlMap[normalizeRel(rel)]=u}let e=rec.entries[rec.modelJsonRel],cfg=JSON.parse(atob(e.data.split(",")[1]||""));cfg=rewriteModelRefs(cfg,urlMap);let mu=URL.createObjectURL(new Blob([JSON.stringify(cfg)],{type:"application/json"}));urls.push(mu);
+ try{await ensureLive2dLibs();let urls=[],mu=await buildLive2dModelUrlFor(rec,urls);
  let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);let model=await PIXI.live2d.Live2DModel.from(mu);app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
 }
 function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
@@ -3400,7 +3449,47 @@ const networkStyle=document.createElement("style");networkStyle.textContent=`
 `;document.head.appendChild(networkStyle);
 
 let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0};
-function saveLive2d(){save(K.live2d,live2dStore)}
+const LIVE2D_DB_NAME="curry_phone_live2d_v64",LIVE2D_DB_VERSION=1,LIVE2D_ASSET_STORE="assets";
+let live2dDbPromise=null;
+function openLive2dDb(){
+ if(live2dDbPromise)return live2dDbPromise;
+ live2dDbPromise=new Promise((resolve,reject)=>{
+  let req=indexedDB.open(LIVE2D_DB_NAME,LIVE2D_DB_VERSION);
+  req.onupgradeneeded=()=>{let db=req.result;if(!db.objectStoreNames.contains(LIVE2D_ASSET_STORE)){let s=db.createObjectStore(LIVE2D_ASSET_STORE,{keyPath:"key"});s.createIndex("modelId","modelId",{unique:false})}};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error("IndexedDB 打开失败"))
+ });
+ return live2dDbPromise
+}
+async function idbPutLive2dAssets(modelId,assets){
+ let db=await openLive2dDb();return await new Promise((resolve,reject)=>{let tx=db.transaction(LIVE2D_ASSET_STORE,"readwrite"),s=tx.objectStore(LIVE2D_ASSET_STORE);
+  for(let a of assets)s.put({key:modelId+"::"+normalizeRel(a.rel),modelId,rel:normalizeRel(a.rel),name:a.name||normalizeRel(a.rel).split("/").pop(),type:a.type||a.blob?.type||guessMime(a.rel),blob:a.blob});
+  tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||Error("模型写入 IndexedDB 失败"));tx.onabort=()=>reject(tx.error||Error("模型写入被中止"))
+ })
+}
+async function idbGetLive2dAssets(modelId){
+ let db=await openLive2dDb();return await new Promise((resolve,reject)=>{let tx=db.transaction(LIVE2D_ASSET_STORE,"readonly"),idx=tx.objectStore(LIVE2D_ASSET_STORE).index("modelId"),req=idx.getAll(modelId);req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error)})
+}
+async function idbDeleteLive2dModel(modelId){
+ let db=await openLive2dDb(),arr=await idbGetLive2dAssets(modelId);return await new Promise((resolve,reject)=>{let tx=db.transaction(LIVE2D_ASSET_STORE,"readwrite"),s=tx.objectStore(LIVE2D_ASSET_STORE);arr.forEach(a=>s.delete(a.key));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})
+}
+async function idbClearLive2dAssets(){
+ let db=await openLive2dDb();return await new Promise((resolve,reject)=>{let tx=db.transaction(LIVE2D_ASSET_STORE,"readwrite"),req=tx.objectStore(LIVE2D_ASSET_STORE).clear();req.onsuccess=resolve;req.onerror=()=>reject(req.error)})
+}
+function live2dMetaStore(){
+ return {models:(live2dStore.models||[]).map(m=>{let x=Object.assign({},m);delete x.entries;return x}),bindings:Object.assign({},live2dStore.bindings||{})}
+}
+function saveLive2d(){live2dStore=live2dMetaStore();save(K.live2d,live2dStore)}
+async function migrateLegacyLive2dToIndexedDb(){
+ let dirty=false;
+ for(let m of live2dStore.models||[]){
+  if(!m.entries||!Object.keys(m.entries).length)continue;
+  let assets=[],cfg=m.modelConfig||null;
+  for(let [rel,e] of Object.entries(m.entries)){let blob=dataUrlToBlobSync(e.data);assets.push({rel,name:e.name,type:e.type||blob.type,blob});if(rel===m.modelJsonRel&&!cfg){try{cfg=JSON.parse(await blob.text())}catch{}}}
+  await idbPutLive2dAssets(m.id,assets);m.modelConfig=cfg;m.fileList=assets.map(a=>a.rel);m.assetStore="indexeddb";m.assetCount=assets.length;delete m.entries;dirty=true
+ }
+ if(dirty)saveLive2d()
+}
+setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("Live2D 旧数据迁移失败",e)),800);
 function live2dBindingKey(type,id){return type==="user"?"user":"char:"+id}
 function boundLive2dModelId(type,id){return live2dStore.bindings?.[live2dBindingKey(type,id)]||""}
 function cleanupLive2dRuntime(){
@@ -3419,14 +3508,46 @@ function guessMime(name){
 }
 async function readFileDataUrl(file){return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
 function normalizeRel(p){return String(p||"").replace(/\\/g,"/").replace(/^\.\//,"")}
+
+async function ensureJSZip(){
+ await ensureScript("https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",()=>!!window.JSZip)
+}
+function bytesToDataUrl(bytes,mime="application/octet-stream"){
+ let chunk=0x8000,parts=[];for(let i=0;i<bytes.length;i+=chunk)parts.push(String.fromCharCode(...bytes.subarray(i,i+chunk)));
+ return `data:${mime};base64,${btoa(parts.join(""))}`
+}
+async function importLive2dZip(file){
+ if(!file)throw Error("没有选择 ZIP");
+ await ensureJSZip();
+ let zip=await JSZip.loadAsync(file),all=Object.values(zip.files).filter(x=>!x.dir);
+ let modelEntries=all.filter(x=>/\.model3\.json$/i.test(x.name));
+ if(!modelEntries.length)throw Error("ZIP 里没有找到 .model3.json");
+ modelEntries.sort((a,b)=>a.name.split("/").length-b.name.split("/").length||a.name.length-b.name.length);
+ let modelFile=modelEntries[0],modelPath=normalizeRel(modelFile.name),root=modelPath.replace(/[^/]+$/,""),assets=[];
+ for(let z of all){
+   let full=normalizeRel(z.name);if(full.startsWith("__MACOSX/")||!full.startsWith(root))continue;
+   let rel=normalizeRel(full.slice(root.length));if(!rel)continue;
+   let blob=await z.async("blob");if(!blob.type)blob=new Blob([blob],{type:guessMime(rel)});
+   assets.push({rel,name:rel.split("/").pop(),type:blob.type||guessMime(rel),blob})
+ }
+ let modelRel=normalizeRel(modelPath.slice(root.length)),raw=new TextDecoder("utf-8").decode(await modelFile.async("uint8array")),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||file.name.replace(/\.zip$/i,"")||modelRel.replace(/\.model3\.json$/i,""));
+ await idbPutLive2dAssets(id,assets);
+ live2dStore.models=live2dStore.models||[];
+ live2dStore.models.push({id,name,modelJsonRel:modelRel,modelConfig:cfg,fileList:assets.map(a=>a.rel),assetStore:"indexeddb",assetCount:assets.length,createdAt:Date.now(),source:"zip",sourceName:file.name});
+ try{saveLive2d()}catch(e){await idbDeleteLive2dModel(id);throw e}
+ return id
+}
+
 async function importLive2dFolder(files){
  let arr=[...files],modelFile=arr.find(f=>/\.model3\.json$/i.test(f.name));if(!modelFile)throw Error("文件夹里没有找到 .model3.json");
- let rootPath=(modelFile.webkitRelativePath||modelFile.name).replace(/[^/]+$/,""),entries={};
- for(let f of arr){
-   let rel=normalizeRel((f.webkitRelativePath||f.name).replace(rootPath,""));entries[rel]={name:f.name,type:f.type||guessMime(f.name),data:await readFileDataUrl(f)}
- }
- let raw=await modelFile.text(),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||modelFile.name.replace(/\.model3\.json$/i,""));
- live2dStore.models=live2dStore.models||[];live2dStore.models.push({id,name,modelJsonRel:normalizeRel((modelFile.webkitRelativePath||modelFile.name).replace(rootPath,"")),entries,createdAt:Date.now()});saveLive2d();return id
+ let rootPath=(modelFile.webkitRelativePath||modelFile.name).replace(/[^/]+$/,""),assets=[];
+ for(let f of arr){let rel=normalizeRel((f.webkitRelativePath||f.name).replace(rootPath,""));assets.push({rel,name:f.name,type:f.type||guessMime(f.name),blob:f})}
+ let raw=await modelFile.text(),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||modelFile.name.replace(/\.model3\.json$/i,"")),modelRel=normalizeRel((modelFile.webkitRelativePath||modelFile.name).replace(rootPath,""));
+ await idbPutLive2dAssets(id,assets);
+ live2dStore.models=live2dStore.models||[];
+ live2dStore.models.push({id,name,modelJsonRel:modelRel,modelConfig:cfg,fileList:assets.map(a=>a.rel),assetStore:"indexeddb",assetCount:assets.length,createdAt:Date.now(),source:"folder"});
+ try{saveLive2d()}catch(e){await idbDeleteLive2dModel(id);throw e}
+ return id
 }
 function live2dFillSelect(selected=""){
  let s=$("#liveModelSelect");if(!s)return;s.innerHTML='<option value="">不使用 Live2D</option>'+((live2dStore.models||[]).map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join(""));
@@ -3453,17 +3574,19 @@ async function ensureLive2dLibs(){
  await ensureScript("https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js",()=>!!window.PIXI);
  await ensureScript("https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",()=>!!window.PIXI?.live2d?.Live2DModel);
 }
-async function buildLive2dModelUrl(modelRec){
- let urlMap={};live2dRuntime.blobUrls=[];
- for(let [rel,e] of Object.entries(modelRec.entries||{})){
-   if(/\.model3\.json$/i.test(rel))continue;
-   let blob=dataUrlToBlobSync(e.data),u=URL.createObjectURL(blob);live2dRuntime.blobUrls.push(u);urlMap[normalizeRel(rel)]=u
+async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
+ let assets=await idbGetLive2dAssets(modelRec.id);if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
+ let urlMap={};
+ for(let a of assets){
+   if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
+   let u=URL.createObjectURL(a.blob);urlSink.push(u);urlMap[normalizeRel(a.rel)]=u
  }
- let modelEntry=modelRec.entries?.[modelRec.modelJsonRel];if(!modelEntry)throw Error("模型 JSON 丢失");
- let cfg=JSON.parse(atob(modelEntry.data.split(",")[1]||""));
+ let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
+ if(!cfg){let entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
  cfg=rewriteModelRefs(cfg,urlMap);
- let blob=new Blob([JSON.stringify(cfg)],{type:"application/json"}),url=URL.createObjectURL(blob);live2dRuntime.blobUrls.push(url);return url
+ let u=URL.createObjectURL(new Blob([JSON.stringify(cfg)],{type:"application/json"}));urlSink.push(u);return u
 }
+async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
 
 function live2dCoreSet(id,val){
  try{let core=live2dRuntime.model?.internalModel?.coreModel;if(core?.setParameterValueById)core.setParameterValueById(id,val)}catch{}
@@ -3471,10 +3594,7 @@ function live2dCoreSet(id,val){
 function live2dCoreAdd(id,val){
  try{let core=live2dRuntime.model?.internalModel?.coreModel;if(core?.addParameterValueById)core.addParameterValueById(id,val)}catch{}
 }
-function live2dModelConfig(){
- let rec=live2dRuntime.modelRec;if(!rec)return null;
- try{let e=rec.entries?.[rec.modelJsonRel];return e?JSON.parse(atob(e.data.split(",")[1]||"")):null}catch{return null}
-}
+function live2dModelConfig(){let rec=live2dRuntime.modelRec;return rec?.modelConfig||null}
 function live2dExpressionNames(){
  let cfg=live2dModelConfig(),refs=cfg?.FileReferences?.Expressions||[];
  return refs.map(x=>x.Name).filter(Boolean)
@@ -4054,7 +4174,15 @@ function openAnniversaryEditor(id=null){
 
 
 
-$("#liveModelFolder").onchange=async e=>{let fs=e.target.files;if(!fs?.length)return;$("#liveModelImportStatus").textContent="正在导入模型文件…";try{let id=await importLive2dFolder(fs);live2dFillSelect(id);$("#liveModelImportStatus").textContent="导入成功";toast("Live2D 模型已导入")}catch(err){console.error(err);$("#liveModelImportStatus").textContent="导入失败："+err.message;toast("Live2D 导入失败")}e.target.value=""};
+
+$("#liveModelZip").onchange=async e=>{
+ let f=e.target.files?.[0];if(!f)return;
+ $("#liveModelImportStatus").textContent="正在解压并导入 ZIP…";
+ try{let id=await importLive2dZip(f);live2dFillSelect(id);$("#liveModelImportStatus").textContent="ZIP 导入成功（已存入 IndexedDB）";toast("Live2D ZIP 已导入")}
+ catch(err){console.error(err);$("#liveModelImportStatus").textContent="ZIP 导入失败："+err.message;toast("Live2D ZIP 导入失败")}
+ e.target.value=""
+};
+$("#liveModelFolder").onchange=async e=>{let fs=e.target.files;if(!fs?.length)return;$("#liveModelImportStatus").textContent="正在导入模型文件…";try{let id=await importLive2dFolder(fs);live2dFillSelect(id);$("#liveModelImportStatus").textContent="导入成功（已存入 IndexedDB）";toast("Live2D 模型已导入")}catch(err){console.error(err);$("#liveModelImportStatus").textContent="导入失败："+err.message;toast("Live2D 导入失败")}e.target.value=""};
 $("#bindLiveModelBtn").onclick=()=>{let b=live2dCurrentStreamerBinding(),mid=$("#liveModelSelect").value;if(!b.type)return toast("先选主播");if(!mid)return toast("先选一个模型");live2dStore.bindings=live2dStore.bindings||{};live2dStore.bindings[live2dBindingKey(b.type,b.id)]=mid;saveLive2d();refreshLive2dBindingHint();toast("模型已绑定")};
 $("#clearLiveModelBtn").onclick=()=>{let b=live2dCurrentStreamerBinding();if(!b.type)return;delete live2dStore.bindings[live2dBindingKey(b.type,b.id)];saveLive2d();$("#liveModelSelect").value="";refreshLive2dBindingHint();toast("已取消绑定")};
 $("#liveStreamer").onchange=()=>{live2dFillSelect();refreshLive2dBindingHint()};
