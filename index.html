@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.7.1 · IndexedDB 媒体迁移</title>
+<title>咖喱小手机 V8.8 · IndexedDB 媒体迁移</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -975,6 +975,14 @@ body.phoneActive .curryHomeScreen{
 }
 
 .recalledMessage{opacity:.58;font-style:italic;font-size:.92em}.msgMenu{z-index:99999;touch-action:manipulation}
+
+/* ===== V8.8 小红书：AI 配图工具恢复 ===== */
+.xhsImageTools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid #f1f1f1}
+.xhsImageTools button{border:1px solid #e7e7e7;border-radius:999px;background:#fff;padding:7px 11px;font-size:8px}
+.xhsImageTools button.primary{background:#30322f;color:#fff;border-color:#30322f}
+.xhsImageTools button.danger{color:#a55}
+.xhsImageToolStatus{width:100%;font-size:8px;color:#999;line-height:1.45}
+
 </style>
 <style id="customThemeStyle"></style>
 <style id="chatCustomThemeStyle"></style>
@@ -1273,7 +1281,7 @@ body.phoneActive{
   <header class="xhsHeader"><button class="back" data-back="home">返回</button><div class="xhsTitle">小红书</div><button class="headAction" id="xhsNewBtn">发布</button></header>
   <div class="xhsTabs"><button class="xhsTab" data-xhs-tab="following">关注</button><button class="xhsTab active" data-xhs-tab="discover">发现</button></div>
   <div class="xhsCats" id="xhsCats"></div>
-  <div class="xhsToolbar"><button class="btn" id="xhsAiPostBtn">Char 发一篇</button><button class="btn" id="xhsAiFeedBtn">热闹一下</button></div>
+  <div class="xhsToolbar"><button class="btn" id="xhsAiPostBtn">Char 发一篇</button><button class="btn" id="xhsAiFeedBtn">热闹一下</button><button class="btn" id="xhsRepairImagesBtn">AI补图</button></div>
   <div class="xhsStatus" id="xhsStatus">角色、网友和 User 共用同一条世界观时间线</div>
   <div class="body xhsFeed" id="xhsFeed"></div>
 </section>
@@ -2163,7 +2171,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.7",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.8",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2237,7 +2245,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.7",
+    appVersion:"8.8",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3105,9 +3113,13 @@ function xhsCommentHtml(p,c){
 function renderXhsDetail(){
   let p=(xhs.posts||[]).find(x=>x.id===currentXhsPostId),host=$("#xhsDetailBody");if(!p){host.innerHTML='<div class="empty">笔记不存在。</div>';return}
   let a=xhsAuthor(p.authorType,p.authorId,p.authorName,p.authorAvatar),comments=p.comments||[];
-  host.innerHTML=`${p.imageUrl?`<img class="xhsHero" src="${esc(p.imageUrl)}" alt="">`:""}<div class="xhsDetailMain"><div class="xhsAuthorRow">${xhsAvatarHtml(a,"xhsAuthorAvatar")}<div><div class="xhsAuthorName">${esc(a.name)}${p.generated?'<span class="xhsGeneratedBadge">AI 图文</span>':""}</div><div class="tiny">${esc(p.time||"")}</div></div></div><div class="xhsDetailTitle">${esc(p.title||"无标题")}</div><div class="xhsDetailText">${esc(p.content||"")}</div><div class="xhsDetailActions"><button type="button" id="xhsLikePost">${p.liked?"♥ 已赞":"♡ 点赞"} ${Number(p.likes||0)}</button><button type="button" id="xhsRefreshComments">让评论区热闹</button></div></div><div class="xhsCommentsHead">共 ${comments.length} 条评论</div><div class="xhsCommentList">${comments.map(c=>xhsCommentHtml(p,c)).join("")||'<div class="empty" style="padding:24px 10px">还没人评论</div>'}</div>`;
+  host.innerHTML=`${p.imageUrl?`<img class="xhsHero" src="${esc(p.imageUrl)}" alt="">`:""}<div class="xhsDetailMain"><div class="xhsAuthorRow">${xhsAvatarHtml(a,"xhsAuthorAvatar")}<div><div class="xhsAuthorName">${esc(a.name)}${p.generated?'<span class="xhsGeneratedBadge">AI 图文</span>':""}</div><div class="tiny">${esc(p.time||"")}</div></div></div><div class="xhsDetailTitle">${esc(p.title||"无标题")}</div><div class="xhsDetailText">${esc(p.content||"")}</div><div class="xhsDetailActions"><button type="button" id="xhsLikePost">${p.liked?"♥ 已赞":"♡ 点赞"} ${Number(p.likes||0)}</button><button type="button" id="xhsRefreshComments">让评论区热闹</button></div><div class="xhsImageTools"><button type="button" class="primary" id="xhsGenerateThisImage">${p.imageUrl?"AI重生成":"AI补配图"}</button><button type="button" id="xhsPickThisImage">相册选图</button><button type="button" id="xhsUrlThisImage">图片URL</button>${p.imageUrl?'<button type="button" class="danger" id="xhsRemoveThisImage">移除图片</button>':""}<div class="xhsImageToolStatus" id="xhsImageToolStatus">${p.imageError?"上次失败："+esc(p.imageError):p.imageUrl?"当前已有配图，可重生成或自己替换":"这篇还没有配图，可以单独 AI 生图。"}</div></div></div><div class="xhsCommentsHead">共 ${comments.length} 条评论</div><div class="xhsCommentList">${comments.map(c=>xhsCommentHtml(p,c)).join("")||'<div class="empty" style="padding:24px 10px">还没人评论</div>'}</div>`;
   $("#xhsLikePost").onclick=()=>{p.liked=!p.liked;p.likes=Math.max(0,Number(p.likes||0)+(p.liked?1:-1));saveXhs();renderXhsDetail();renderXhs()};
   $("#xhsRefreshComments").onclick=()=>aiXhsComments(p.id,4);
+  $("#xhsGenerateThisImage").onclick=()=>xhsGenerateImageForPost(p.id);
+  $("#xhsPickThisImage").onclick=()=>xhsPickLocalImage(p.id);
+  $("#xhsUrlThisImage").onclick=()=>xhsSetImageUrl(p.id);
+  if($("#xhsRemoveThisImage"))$("#xhsRemoveThisImage").onclick=()=>xhsRemovePostImage(p.id);
   $$("[data-xhs-reply]").forEach(b=>b.onclick=()=>{xhsReplyToId=b.dataset.xhsReply;let c=xhsFindComment(p,xhsReplyToId),a=xhsAuthor(c.authorType,c.authorId,c.authorName,c.authorAvatar);$("#xhsReplyHintText").textContent="回复 @"+a.name;$("#xhsReplyHint").classList.add("show");$("#xhsCommentInput").focus()});
   $$("[data-xhs-comment-like]").forEach(b=>b.onclick=()=>{let c=xhsFindComment(p,b.dataset.xhsCommentLike);c.liked=!c.liked;c.likes=Math.max(0,Number(c.likes||0)+(c.liked?1:-1));saveXhs();renderXhsDetail()})
 }
@@ -3117,25 +3129,150 @@ $("#xhsNewBtn").onclick=()=>{let m=xhsMaskInfo();$("#xhsIdentity").textContent=`
 $("#xhsImageFile").onchange=async e=>{let f=e.target.files?.[0];if(!f)return;pendingXhsImage=await dataURL(f);$("#xhsImagePreview img").src=pendingXhsImage;$("#xhsImagePreview").classList.add("show")};
 $("#xhsPublishBtn").onclick=()=>{let title=$("#xhsTitleInput").value.trim(),content=$("#xhsContentInput").value.trim();if(!title||!content)return toast("标题和正文都要写");let m=xhsMaskInfo();xhs.posts=xhs.posts||[];xhs.posts.push({id:uuid(),category:$("#xhsCategory").value||"日常",title,content,imageUrl:pendingXhsImage||$("#xhsImageUrl").value.trim(),authorType:"user",authorId:m.id,authorName:m.name,authorAvatar:m.avatar,createdAt:Date.now(),time:xhsTime(),likes:0,liked:false,comments:[]});saveXhs();page("xhs");renderXhs();toast("笔记发布了")};
 function xhsWorldContext(){return forumWorldContext()}
-function xhsRecentContextFor(c){return recentContextForContact(c.id).slice(-5000)}
+function xhsMaskContext(){
+  let m=activeMask?.()||{};
+  return {
+    id:activeMaskId||m.id||"mask_default",
+    name:m.userName||m.name||"user",
+    prompt:String(m.prompt||"").trim(),
+    note:String(m.note||"").trim()
+  }
+}
+function xhsRecentContextFor(c,limit=2600){
+  if(!c)return "";
+  let h=convos[convoKey(c.id,activeMaskId)]||[];
+  let rows=h.slice(-28).filter(m=>!m.recalled).map(m=>{
+    let who=m.role==="user"?"User":c.name;
+    let body=historyContent(m);
+    return body?`${who}: ${body}`:"";
+  }).filter(Boolean).join("\n");
+  let memory="";
+  try{memory=String(summaryRecord?.(c.id)?.text||"").trim()}catch{}
+  return [memory&&`Older relationship/chat memory:\n${memory.slice(-1800)}`,rows&&`Recent chat:\n${rows}`].filter(Boolean).join("\n\n").slice(-limit)
+}
+function xhsImageConfigured(){
+  let s=mediaApi.image||{};
+  return !!(String(s.endpoint||"").trim()&&String(s.model||"").trim())
+}
+function xhsEnsureImagePrompt(p){
+  if(String(p.imagePrompt||"").trim())return String(p.imagePrompt).trim();
+  return `casual Xiaohongshu smartphone photo, ordinary real-life scene, no text or logo, based on this post: ${String(p.title||"")} — ${String(p.content||"").slice(0,520)}`
+}
+async function xhsGenerateImageForPost(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  let status=$("#xhsImageToolStatus"),btn=$("#xhsGenerateThisImage");
+  if(btn)btn.disabled=true;
+  try{
+    if(!xhsImageConfigured())throw Error("请先到设置里配置生图 API");
+    if(status)status.textContent="正在为这一篇生成配图…";
+    p.imagePrompt=xhsEnsureImagePrompt(p);
+    let prompt=p.authorType==="char"?imagePromptForContact(p.imagePrompt,p.authorId):p.imagePrompt;
+    let url=await generateImage(prompt,null,p.authorType==="char"?contactImageContext(p.authorId):null);
+    p.imageUrl=url;p.imageError="";
+    saveXhs();renderXhs();renderXhsDetail();toast("这篇配图好了")
+  }catch(e){
+    p.imageError=String(e?.message||e||"生图失败");
+    saveXhs();if(status)status.textContent="配图失败："+p.imageError;toast("这篇配图没生成")
+  }finally{if(btn)btn.disabled=false}
+}
+function xhsPickLocalImage(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  let input=document.createElement("input");input.type="file";input.accept="image/*";
+  input.onchange=async()=>{let f=input.files?.[0];if(!f)return;try{p.imageUrl=await dataURL(f);p.imageError="";saveXhs();renderXhs();renderXhsDetail();toast("已换成你选的图片")}catch(e){toast("读取图片失败："+(e?.message||e))}};
+  input.click()
+}
+function xhsSetImageUrl(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  let url=prompt("粘贴图片 URL",/^https?:/i.test(p.imageUrl||"")?p.imageUrl:"");
+  if(url===null)return;url=url.trim();if(!url)return;
+  p.imageUrl=url;p.imageError="";saveXhs();renderXhs();renderXhsDetail();toast("图片已更新")
+}
+function xhsRemovePostImage(postId){
+  let p=(xhs.posts||[]).find(x=>x.id===postId);if(!p)return;
+  p.imageUrl="";p.imageError="";saveXhs();renderXhs();renderXhsDetail();toast("这篇图片已移除")
+}
+async function xhsRepairMissingImages(){
+  let btn=$("#xhsRepairImagesBtn");if(btn)btn.disabled=true;
+  try{
+    if(!xhsImageConfigured())throw Error("请先到设置 → IMAGE GENERATION API 保存生图模型");
+    let visible=xhsVisiblePosts().filter(p=>!p.imageUrl).slice(0,10);
+    if(!visible.length){toast("当前笔记都有图啦");return}
+    let ok=0,fail=0,last="";
+    for(let i=0;i<visible.length;i++){
+      let p=visible[i];$("#xhsStatus").textContent=`AI 补图 ${i+1}/${visible.length}…`;
+      try{
+        p.imagePrompt=xhsEnsureImagePrompt(p);
+        let prompt=p.authorType==="char"?imagePromptForContact(p.imagePrompt,p.authorId):p.imagePrompt;
+        p.imageUrl=await generateImage(prompt,null,p.authorType==="char"?contactImageContext(p.authorId):null);
+        p.imageError="";ok++
+      }catch(e){p.imageError=String(e?.message||e);last=p.imageError;fail++}
+      saveXhs();renderXhs()
+    }
+    $("#xhsStatus").textContent=fail?`补图完成 ${ok}/${visible.length} · ${fail} 张失败${last?" · "+last:""}`:`补图完成 · ${ok} 张全部成功`
+  }catch(e){$("#xhsStatus").textContent="补图失败："+String(e?.message||e);toast(String(e?.message||e))}
+  finally{if(btn)btn.disabled=false}
+}
 async function aiXhsPost(){
   if(!settings.endpoint||!settings.model){toast("请先配置 Chat API");return}
   if(!contacts.length){toast("还没有 Char");return}
   $("#xhsStatus").textContent="正在让 Char 想发什么…";
   try{
-    let chars=contacts.slice(0,16).map(c=>`${c.name}: ${(c.character?.description||c.character?.personality||"").slice(0,500)}`).join("\n");
-    let raw=await api([{role:"system",content:`Choose ONE existing character and create a believable Xiaohongshu-style social post from that character's real account. It should feel like something they would voluntarily post, not exposition. Generate a visual prompt that looks like a plausible photo/illustration from their point of view and matches their personality. Return STRICT JSON only:
+    let mask=xhsMaskContext();
+    let chars=contacts.slice(0,14).map(c=>{
+      let persona=(c.character?.description||c.character?.personality||"").slice(0,520);
+      let chat=xhsRecentContextFor(c,1200);
+      return `### ${c.name}\nCHARACTER: ${persona||"(none)"}\nRELATIONSHIP / CHAT WITH CURRENT USER MASK:\n${chat||"(no recent chat)"}`;
+    }).join("\n\n");
+
+    let raw=await api([
+      {role:"system",content:`Choose ONE existing character and create a believable Xiaohongshu-style social post from that character's real account.
+
+IMPORTANT:
+- Use the CURRENT USER MASK and that character's actual recent chat with User as relationship/life context.
+- The post may be inspired by something that happened in chat, their mood after talking to User, shared plans, jokes, food, places, gifts, arguments, daily life, etc.
+- Do NOT mechanically quote private chat or expose private/intimate details that the character would not realistically post publicly.
+- The character is allowed to post something completely mundane if that fits them better.
+- Keep the character's own voice and social-media habits.
+- Generate an English visual prompt matching the post and character. If the character has a fixed visual prompt/reference face, the image pipeline will apply it later.
+
+Return STRICT JSON only:
 {"contactName":"exact existing character name","category":"日常|校园|穿搭|美食|摄影|吐槽|八卦","title":"short title","content":"natural post text","imagePrompt":"detailed image-generation prompt in English"}.
-Do not invent a contactName.`},{role:"user",content:`${xhsWorldContext()}\n\nExisting characters:\n${chars}`}]);
-    let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.contactName);if(!c)throw Error("AI 没选到已有 Char");
-    $("#xhsStatus").textContent=`${c.name} 正在生成配图…`;
-    let imageUrl="";
-    if(o.imagePrompt&&String(o.imagePrompt).trim()){
+Do not invent a contactName.`},
+      {role:"user",content:`${xhsWorldContext()}
+
+CURRENT USER MASK
+Name: ${mask.name}
+Persona / relationship setting:
+${mask.prompt||"(none)"}
+Private note:
+${mask.note||"(none)"}
+
+EXISTING CHARACTERS + THEIR CHAT CONTEXT WITH THIS USER MASK
+${chars}`}
+    ]);
+
+    let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.contactName);
+    if(!c)throw Error("AI 没选到已有 Char");
+
+    let imageUrl="",imageError="";
+    if(o.imagePrompt&&String(o.imagePrompt).trim()&&xhsImageConfigured()){
+      $("#xhsStatus").textContent=`${c.name} 正在生成配图…`;
       try{imageUrl=await generateImage(imagePromptForContact(String(o.imagePrompt).trim(),c.id),null,contactImageContext(c.id))}
-      catch(e){console.warn("XHS 生图失败",e);$("#xhsStatus").textContent=`${c.name} 的文案好了，但生图失败：${e.message}`}
+      catch(e){imageError=String(e?.message||e);console.warn("XHS 生图失败",e)}
     }
-    xhs.posts=xhs.posts||[];xhs.posts.push({id:uuid(),category:XHS_CATS.includes(o.category)?o.category:"日常",title:String(o.title||"随手记"),content:String(o.content||""),imageUrl,authorType:"char",authorId:c.id,authorName:c.name,authorAvatar:c.avatar||"",generated:true,imagePrompt:String(o.imagePrompt||""),createdAt:Date.now(),time:xhsTime(),likes:Math.floor(Math.random()*18),liked:false,comments:[]});
-    saveXhs();renderXhs();$("#xhsStatus").textContent=`${c.name} 发了一篇${imageUrl?"带图":"纯文字"}笔记`;toast(c.name+" 发小红书了")
+
+    xhs.posts=xhs.posts||[];
+    xhs.posts.push({
+      id:uuid(),category:XHS_CATS.includes(o.category)?o.category:"日常",
+      title:String(o.title||"随手记"),content:String(o.content||""),
+      imageUrl,authorType:"char",authorId:c.id,authorName:c.name,authorAvatar:c.avatar||"",
+      generated:true,imagePrompt:String(o.imagePrompt||""),imageError,
+      contextMaskId:mask.id,createdAt:Date.now(),time:xhsTime(),
+      likes:Math.floor(Math.random()*18),liked:false,comments:[]
+    });
+    saveXhs();renderXhs();
+    $("#xhsStatus").textContent=imageError?`${c.name} 发了一篇 · 配图失败，可进笔记点 AI补配图`:`${c.name} 发了一篇${imageUrl?"带图":"纯文字"}笔记`;
+    toast(c.name+" 发小红书了")
   }catch(e){$("#xhsStatus").textContent="生成失败："+e.message}
 }
 async function aiXhsComments(postId=currentXhsPostId,count=4){
@@ -3162,12 +3299,12 @@ Return STRICT JSON only:
     }
     saveXhs();if(document.querySelector('[data-page="xhsDetail"]').classList.contains("active"))renderXhsDetail();renderXhs();$("#xhsStatus").textContent="评论区活跃了一轮"
   }catch(e){
-    let quota=e?.name==="QuotaExceededError"||/quota has been exceeded/i.test(String(e?.message||""));
-    let msg=quota?"本地存储空间已满（通常是头像/壁纸/聊天图片等 Base64 数据占满了浏览器 localStorage），评论已生成但无法保存。请先导出备份，再清理部分大图片数据。":String(e?.message||e);
+    let msg=String(e?.message||e);
     toast("生成评论失败："+msg);$("#xhsStatus").textContent="评论生成失败："+msg
   }
 }
 $("#xhsAiPostBtn").onclick=aiXhsPost;
+if($("#xhsRepairImagesBtn"))$("#xhsRepairImagesBtn").onclick=xhsRepairMissingImages;
 $("#xhsAiFeedBtn").onclick=async()=>{let ps=xhsPosts();if(!ps.length){await aiXhsPost();ps=xhsPosts()}if(ps.length)await aiXhsComments(ps[Math.floor(Math.random()*Math.min(ps.length,4))].id,4)};
 $("#xhsAiCommentsBtn").onclick=()=>aiXhsComments(currentXhsPostId,4);
 
