@@ -1273,7 +1273,7 @@ body.phoneActive{
   <header class="xhsHeader"><button class="back" data-back="home">返回</button><div class="xhsTitle">小红书</div><button class="headAction" id="xhsNewBtn">发布</button></header>
   <div class="xhsTabs"><button class="xhsTab" data-xhs-tab="following">关注</button><button class="xhsTab active" data-xhs-tab="discover">发现</button></div>
   <div class="xhsCats" id="xhsCats"></div>
-  <div class="xhsToolbar"><button class="btn" id="xhsAiPostBtn">Char 发一篇</button><button class="btn" id="xhsAiFeedBtn">热闹一下</button></div>
+  <div class="xhsToolbar"><button class="btn" id="xhsAiPostBtn">Char 发一篇</button><button class="btn" id="xhsAiFeedBtn">热闹一下</button><button class="btn" id="xhsRepairImagesBtn">补全配图</button></div>
   <div class="xhsStatus" id="xhsStatus">角色、网友和 User 共用同一条世界观时间线</div>
   <div class="body xhsFeed" id="xhsFeed"></div>
 </section>
@@ -2682,12 +2682,12 @@ async function aiXhsPost(){
 Do not invent a contactName.`},{role:"user",content:`${xhsWorldContext()}\n\nExisting characters:\n${chars}`}]);
     let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.contactName);if(!c)throw Error("AI 没选到已有 Char");
     $("#xhsStatus").textContent=`${c.name} 正在生成配图…`;
-    let imageUrl="";
-    if(o.imagePrompt&&String(o.imagePrompt).trim()){
-      try{imageUrl=await generateImage(imagePromptForContact(String(o.imagePrompt).trim(),c.id))}
-      catch(e){console.warn("XHS 生图失败",e);$("#xhsStatus").textContent=`${c.name} 的文案好了，配图暂时没生成`}
-    }
-    xhs.posts=xhs.posts||[];xhs.posts.push({id:uuid(),category:XHS_CATS.includes(o.category)?o.category:"日常",title:String(o.title||"随手记"),content:String(o.content||""),imageUrl,authorType:"char",authorId:c.id,authorName:c.name,authorAvatar:c.avatar||"",generated:true,imagePrompt:String(o.imagePrompt||""),createdAt:Date.now(),time:xhsTime(),likes:Math.floor(Math.random()*18),liked:false,comments:[]});
+    let imageUrl="",singleImagePrompt=String(o.imagePrompt||"").trim()||`casual Xiaohongshu smartphone photo based on this post: ${String(o.title||"")} — ${String(o.content||"").slice(0,520)}`;
+    if(xhsImageConfigured()){
+      try{imageUrl=await generateImage(imagePromptForContact(singleImagePrompt,c.id))}
+      catch(e){console.warn("XHS 生图失败",e);$("#xhsStatus").textContent=`${c.name} 配图失败：${String(e?.message||e)}`}
+    }else $("#xhsStatus").textContent=`${c.name} 文案生成完成 · 生图 API 未配置`;
+    xhs.posts=xhs.posts||[];xhs.posts.push({id:uuid(),category:XHS_CATS.includes(o.category)?o.category:"日常",title:String(o.title||"随手记"),content:String(o.content||""),imageUrl,authorType:"char",authorId:c.id,authorName:c.name,authorAvatar:c.avatar||"",generated:true,imagePrompt:singleImagePrompt,createdAt:Date.now(),time:xhsTime(),likes:Math.floor(Math.random()*18),liked:false,comments:[]});
     saveXhs();renderXhs();$("#xhsStatus").textContent=`${c.name} 发了一篇${imageUrl?"带图":"纯文字"}笔记`;toast(c.name+" 发小红书了")
   }catch(e){$("#xhsStatus").textContent="生成失败："+e.message}
 }
@@ -2723,19 +2723,20 @@ function xhsNpcAvatarSeed(name="路人"){
 }
 function xhsNormalizeBatchPost(item){
   let c=item.authorType==="char"?contacts.find(x=>x.name===item.contactName):null;
-  let isChar=!!c;
+  let isChar=!!c, title=String(item.title||"随手记").slice(0,60), content=String(item.content||"").slice(0,2400);
+  let fallbackPrompt=`casual Xiaohongshu smartphone photo illustrating this everyday-life post, no text in image. Title: ${title}. Scene: ${content.slice(0,420)}`;
   return {
     id:uuid(),
     category:XHS_CATS.includes(item.category)?item.category:"日常",
-    title:String(item.title||"随手记").slice(0,60),
-    content:String(item.content||"").slice(0,2400),
+    title,
+    content,
     imageUrl:"",
     authorType:isChar?"char":"npc",
     authorId:c?.id||"",
     authorName:isChar?c.name:String(item.authorName||["今天也在摸鱼","不喝冰美式","小狗禁止加班","路过一下","睡到自然醒"][Math.floor(Math.random()*5)]),
     authorAvatar:c?.avatar||"",
     generated:true,
-    imagePrompt:String(item.imagePrompt||"").trim(),
+    imagePrompt:String(item.imagePrompt||"").trim()||fallbackPrompt,
     wantsImage:item.wantsImage!==false,
     createdAt:Date.now()+Math.floor(Math.random()*5000),
     time:xhsTime(),
@@ -2759,25 +2760,54 @@ Never invent contactName for char posts.`},{role:"user",content:`${xhsWorldConte
   let o=parseForumJson(raw),arr=Array.isArray(o.posts)?o.posts:[];
   return arr.slice(0,count).map(xhsNormalizeBatchPost);
 }
-async function xhsGenerateImagesForBatch(posts){
-  let imageCandidates=posts.filter(p=>p.wantsImage&&p.imagePrompt);
-  // Keep the feed image-heavy, but cap one refresh to avoid hammering the image endpoint too hard.
-  let target=Math.min(imageCandidates.length,Math.max(5,Math.round(posts.length*.8)));
+function xhsImageConfigured(){
+  let s=mediaApi.image||{};
+  return !!(String(s.endpoint||"").trim()&&String(s.model||"").trim());
+}
+function xhsEnsureImagePrompt(p){
+  if(String(p.imagePrompt||"").trim())return String(p.imagePrompt).trim();
+  return `casual Xiaohongshu smartphone photo, ordinary real-life scene, no text or logo, based on this post: ${String(p.title||"")} — ${String(p.content||"").slice(0,520)}`;
+}
+async function xhsGenerateImagesForBatch(posts,{all=false}={}){
+  if(!xhsImageConfigured())throw Error("生图 API 未配置，请先到设置里保存生图模型");
+  let imageCandidates=posts.filter(p=>!p.imageUrl&&(all||p.wantsImage!==false));
+  let target=all?imageCandidates.length:Math.min(imageCandidates.length,Math.max(5,Math.round(posts.length*.8)));
   imageCandidates=imageCandidates.slice(0,target);
-  let done=0;
+  let done=0,failed=0,lastError="";
   for(let p of imageCandidates){
     $("#xhsStatus").textContent=`正在生成配图 ${done+1}/${target}…`;
     try{
+      p.imagePrompt=xhsEnsureImagePrompt(p);
       let prompt=p.authorType==="char"?imagePromptForContact(p.imagePrompt,p.authorId):p.imagePrompt;
       p.imageUrl=await generateImage(prompt);
+      p.imageError="";
     }catch(e){
-      console.warn("XHS 批量生图失败",p.title,e);
+      console.warn("XHS 生图失败",p.title,e);
       p.imageUrl="";
+      p.imageError=String(e?.message||e||"生图失败");
+      failed++;lastError=p.imageError;
     }
     done++;
-    // Save incrementally so successfully generated images are not lost if a later request fails.
     saveXhs();renderXhs();
   }
+  return {done,failed,lastError,success:done-failed};
+}
+async function xhsRepairMissingImages(){
+  let btn=$("#xhsRepairImagesBtn");
+  if(btn)btn.disabled=true;
+  try{
+    if(!xhsImageConfigured())throw Error("请先到设置 → IMAGE GENERATION API 保存生图模型");
+    let visible=xhsVisiblePosts().filter(p=>!p.imageUrl).slice(0,12);
+    if(!visible.length){toast("当前笔记都有图啦");return}
+    $("#xhsStatus").textContent=`准备给 ${visible.length} 篇无图笔记补图…`;
+    let r=await xhsGenerateImagesForBatch(visible,{all:true});
+    $("#xhsStatus").textContent=r.failed?`补图完成 ${r.success}/${r.done} · ${r.failed} 张失败（${r.lastError}）`:`补图完成 · ${r.success} 张全部成功`;
+    toast(r.failed?`补了 ${r.success} 张，${r.failed} 张失败`:`成功补了 ${r.success} 张图`)
+  }catch(e){
+    console.warn("XHS 补图失败",e);
+    $("#xhsStatus").textContent="补图失败："+String(e?.message||e);
+    toast(String(e?.message||e))
+  }finally{if(btn)btn.disabled=false}
 }
 async function aiXhsFeedBurst(){
   let btn=$("#xhsAiFeedBtn");
@@ -2786,26 +2816,32 @@ async function aiXhsFeedBurst(){
   try{
     let count=6+Math.floor(Math.random()*5),posts=await xhsGenerateBatch(count);
     if(!posts.length)throw Error("没有生成笔记");
-    xhs.posts=xhs.posts||[];
-    // New posts appear first because xhsVisiblePosts sorts by createdAt.
     posts.forEach((p,i)=>p.createdAt=Date.now()+i);
+    xhs.posts=xhs.posts||[];
     xhs.posts.push(...posts);
     saveXhs();renderXhs();
-    if(mediaApi.image?.endpoint&&mediaApi.image?.model){
-      await xhsGenerateImagesForBatch(posts);
+
+    if(!xhsImageConfigured()){
+      $("#xhsStatus").textContent=`已生成 ${posts.length} 篇文字 · 生图 API 未配置`;
+      toast("笔记有了，但生图 API 还没配置");
+      return;
     }
-    $("#xhsStatus").textContent=`刚刷新 ${posts.length} 篇 · ${posts.filter(p=>p.imageUrl).length} 篇带图`;
-    toast("发现页热闹起来了")
+    let r=await xhsGenerateImagesForBatch(posts);
+    $("#xhsStatus").textContent=r.failed
+      ?`刚刷新 ${posts.length} 篇 · ${r.success} 张图成功 · ${r.failed} 张失败（${r.lastError}）`
+      :`刚刷新 ${posts.length} 篇 · ${r.success} 篇带图`;
+    toast(r.failed?"笔记刷出来了，有些图生成失败":"发现页热闹起来了")
   }catch(e){
     console.warn("XHS 热闹一下失败",e);
-    $("#xhsStatus").textContent="角色、网友和 User 共用同一条世界观时间线";
-    toast("这次没刷出来，等会再试")
+    $("#xhsStatus").textContent="刷新失败："+String(e?.message||e);
+    toast("这次没刷出来")
   }finally{
     if(btn)btn.disabled=false
   }
 }
 $("#xhsAiPostBtn").onclick=aiXhsPost;
 $("#xhsAiFeedBtn").onclick=aiXhsFeedBurst;
+$("#xhsRepairImagesBtn").onclick=xhsRepairMissingImages;
 $("#xhsAiCommentsBtn").onclick=()=>aiXhsComments(currentXhsPostId,4);
 
 
