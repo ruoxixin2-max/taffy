@@ -2123,7 +2123,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.2",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.3",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2197,7 +2197,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"8.2",
+    appVersion:"8.3",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3645,6 +3645,7 @@ function refreshLive2dBindingHint(){
  if(mid&&$("#liveModelSelect"))$("#liveModelSelect").value=mid
 }
 
+if(typeof window.process==="undefined")window.process={env:{NODE_ENV:"production"}};
 function isSafariLive2d(){
  let ua=navigator.userAgent||"";
  return /Safari/i.test(ua)&&!/Chrome|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua)
@@ -3686,6 +3687,11 @@ async function ensureScript(src,test){
  if(test())return;await new Promise((res,rej)=>{let s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(Error("加载脚本失败："+src));document.head.appendChild(s)})
 }
 async function ensureLive2dLibs(){
+ // Safari/WebKit 下 UMD 包可能直接读取 process.env；浏览器并没有 Node 的 process 全局。
+ // 提前提供最小 shim，避免 cubism4.min.js 在初始化阶段直接 ReferenceError。
+ if(typeof window.process==="undefined")window.process={env:{NODE_ENV:"production"}};
+ else if(!window.process.env)window.process.env={NODE_ENV:"production"};
+ else if(!("NODE_ENV" in window.process.env))window.process.env.NODE_ENV="production";
  // Cubism 3/4 模型除了 pixi-live2d-display，还必须先加载官方 Cubism Core。
  // v6.5 漏掉的就是这一层，因此插件脚本会在初始化阶段直接失败。
  if(!window.Live2DCubismCore){
@@ -3944,7 +3950,7 @@ async function mountLive2d(modelId,retryMode=false){
      await new Promise(r=>setTimeout(r,220));
      return mountLive2d(modelId,true)
    }
-   let fullMsg=String(e?.stack||e?.message||e||"Safari/WebGL 错误");
+   let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+(e?.stack?"\n"+e.stack:"");
    if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
    if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
    return false
