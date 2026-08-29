@@ -1430,32 +1430,114 @@ body.phoneActive{
     <div class="field"><label>导入 Live2D ZIP</label><input class="input" id="liveModelZip" type="file" accept=".zip,application/zip,application/x-zip-compressed"><div class="help">iPhone 推荐：直接选择下载好的 Live2D .zip，不需要解压。会自动寻找 *.model3.json 并导入同包资源。</div></div>
     <div class="field"><label>导入已解压模型（电脑端）</label><input class="input" id="liveModelFolder" type="file" webkitdirectory directory multiple><div class="help">电脑浏览器可选择整个模型文件夹；iPhone 建议使用上面的 ZIP 导入。</div><div id="liveModelImportStatus" class="tiny"></div></div>
     <div class="field"><label>模型绑定</label><button class="btn" type="button" id="bindLiveModelBtn">绑定给当前主播</button><button class="btn" type="button" id="clearLiveModelBtn" style="margin-left:6px">取消绑定</button><div class="help" id="liveModelBindHint"></div></div>
+    <div class="field"><label>Live2D 大小 <span id="liveScaleValue">55%</span></label><input class="input" id="liveScaleRange" type="range" min="25" max="140" step="5" value="55"><div class="help">模型太大或只看到头顶时往左调；默认 55%。</div></div>
+    <div class="field"><label>Live2D 上下位置 <span id="liveYValue">92%</span></label><input class="input" id="liveYRange" type="range" min="55" max="115" step="2" value="92"><div class="help">数值越小越往上，越大越往下。</div></div>
+    <div class="field"><label>Live2D 左右位置 <span id="liveXValue">50%</span></label><input class="input" id="liveXRange" type="range" min="0" max="100" step="2" value="50"><div class="help">50% 居中；数值越小越靠左，越大越靠右。</div></div>
     <div class="field"><label><input type="checkbox" id="liveTtsEnabled"> 主播发言时启用 TTS + 嘴型同步</label><div class="help">使用设置里的语音 API。Char 开播最适合；User 开播也可开启。</div></div>
     <div class="field"><label><input type="checkbox" id="liveTouchEnabled" checked> 允许点击 Live2D 触发动作 / 表情</label></div>
+    <div class="field"><label>Live2D 面捕</label><div class="help">使用前置摄像头在本机识别人脸，驱动头部、眼睛和嘴型。画面不会上传。</div><label style="display:block;margin-top:7px"><input type="checkbox" id="liveFaceCaptureEnabled"> 开播后自动启动面捕</label></div>
     <div class="field"><label>允许哪些 Char 进直播间</label><div class="liveViewerPicker" id="liveViewerPicker"></div><div class="help">不勾选时默认所有联系人都可能出现。</div></div>
   </div></div>
 </section>
 
-<section class="page livePage" data-page="liveStudio">
-  <header class="head"><button class="back" id="liveEndBtn">结束</button><div class="headTitle" id="liveStudioTitle">直播中</div><button class="headAction" id="liveBuzzBtn">热闹一下</button></header>
-  <div class="body liveStudioBody">
+
+<section class="page livePage livePageV2" data-page="liveStudio">
+  <header class="liveV2Topbar">
+    <button type="button" id="liveEndBtn">结束</button>
+    <div class="liveV2TitleWrap"><b id="liveStudioTitle">直播中</b><span id="liveProgramLabel">闲聊</span></div>
+    <div class="liveV2TopActions"><button type="button" id="livePkBtn">PK</button><button type="button" id="liveBuzzBtn">热闹</button></div>
+  </header>
+
+  <div class="liveV2Shell">
     <div class="biliLiveHeader" id="biliLiveHeader"></div>
-    <div class="biliRankRow"><button>新人榜</button><button>人气榜</button><div class="biliRankHint">你所关注的 3 人</div></div>
-    <div class="liveStage" id="liveStage"></div>
-    <div class="biliNotice">严禁违法违规、低俗暴力、诈骗等不良内容。请理性互动，谨防诈骗。</div>
-    <div class="liveStats" id="liveStats"></div>
-    <div class="liveDanmakuLayer" id="liveDanmakuLayer"></div>
-    <div class="liveRankPanel" id="liveRankPanel"></div>
-    <div class="liveBattleLog" id="liveBattleLog"></div>
-    <div class="liveModelControls" id="liveModelControls"><button type="button" id="liveMotionBtn">随机动作</button><button type="button" id="liveExpressionBtn">换表情</button><button type="button" id="liveMuteBtn">语音开/关</button></div>
-    <div class="liveFeed" id="liveFeed"></div>
+
+    <div class="liveProgramTabs" id="liveProgramTabs">
+      <button type="button" data-live-program="chat" class="active">闲聊</button>
+      <button type="button" data-live-program="radio">电台</button>
+      <button type="button" data-live-program="game">游戏</button>
+      <button type="button" data-live-program="truth">真心话</button>
+      <button type="button" data-live-program="pk">PK</button>
+    </div>
+
+    <div class="liveStageFrame" id="liveStageFrame">
+      <div class="liveStage" id="liveStage"></div>
+      <div class="liveDanmakuLayer" id="liveDanmakuLayer"></div>
+
+      <div class="liveProgramCard" id="liveProgramCard">
+        <span id="liveProgramEyebrow">ON AIR</span>
+        <b id="liveProgramTitle">随便聊聊</b>
+        <small id="liveProgramSub">和观众聊点什么</small>
+      </div>
+
+      <div class="livePkPanel" id="livePkPanel">
+        <div class="livePkTop"><b>直播 PK</b><span id="livePkTimer">03:00</span><button type="button" id="livePkEndBtn">结束</button></div>
+        <div class="livePkNames"><span id="livePkLeftName">User</span><span>VS</span><span id="livePkRightName">Char</span></div>
+        <div class="livePkBar"><i id="livePkLeftBar"></i><i id="livePkRightBar"></i></div>
+        <div class="livePkScores"><b id="livePkLeftScore">0</b><span id="livePkStatus">等待应援</span><b id="livePkRightScore">0</b></div>
+      </div>
+
+      <div class="liveStageStats" id="liveStats"></div>
+      <button type="button" class="liveToolFloat" id="liveToolOpenBtn">主播工具</button>
+    </div>
+
+    <div class="liveV2Below">
+      <div class="liveRankPanel" id="liveRankPanel"></div>
+      <div class="liveBattleLog" id="liveBattleLog"></div>
+      <div class="liveFeed" id="liveFeed"></div>
+      <div class="biliNotice">严禁违法违规、低俗暴力、诈骗等不良内容。请理性互动，谨防诈骗。</div>
+    </div>
   </div>
+
+  <div class="livePkMenu" id="livePkMenu"><div class="livePkMenuTitle">选择 PK 对手</div><div id="livePkOpponentList"></div><button type="button" id="livePkCancelBtn">取消</button></div>
+
   <div class="liveGiftMenu" id="liveGiftMenu">
-<button type="button" data-gift="小花" data-score="10">小花<b>10</b></button><button type="button" data-gift="奶茶" data-score="30">奶茶<b>30</b></button>
-<button type="button" data-gift="应援棒" data-score="99">应援棒<b>99</b></button><button type="button" data-gift="小电视" data-score="299">小电视<b>299</b></button>
-<button type="button" data-gift="舰长" data-score="1980">开通舰长<b>1980</b></button><button type="button" data-gift="提督" data-score="5200">开通提督<b>5200</b></button></div>
-<form class="liveComposer" id="liveComposer"><input id="liveInput" placeholder="发弹幕 / 主播说句话"><button type="button" id="liveGiftBtn">礼物</button><button type="submit">发送</button></form>
+    <button type="button" data-gift="小花" data-score="10">小花<b>10</b></button>
+    <button type="button" data-gift="奶茶" data-score="30">奶茶<b>30</b></button>
+    <button type="button" data-gift="应援棒" data-score="99">应援棒<b>99</b></button>
+    <button type="button" data-gift="小电视" data-score="299">小电视<b>299</b></button>
+    <button type="button" data-gift="舰长" data-score="1980">开通舰长<b>1980</b></button>
+    <button type="button" data-gift="提督" data-score="5200">开通提督<b>5200</b></button>
+  </div>
+
+  <div class="liveToolMask" id="liveToolMask"></div>
+  <aside class="liveToolDrawer" id="liveToolDrawer">
+    <div class="liveToolHandle"></div>
+    <div class="liveToolHead"><div><b>主播工具</b><span>舞台、面捕与 Live2D</span></div><button type="button" id="liveToolCloseBtn">完成</button></div>
+
+    <div class="liveToolSection">
+      <div class="liveToolSectionTitle">舞台位置</div>
+      <div class="liveFineTune" id="liveFineTune">
+        <label>大小 <input type="range" id="liveNowScale" min="20" max="160" step="2" value="55"><span id="liveNowScaleValue">55%</span></label>
+        <label>上下 <input type="range" id="liveNowY" min="45" max="120" step="1" value="92"><span id="liveNowYValue">92%</span></label>
+        <label>左右 <input type="range" id="liveNowX" min="0" max="100" step="1" value="50"><span id="liveNowXValue">50%</span></label>
+      </div>
+      <div class="liveModelControls" id="liveModelControls">
+        <button type="button" id="liveSmallerBtn">缩小</button><button type="button" id="liveLargerBtn">放大</button>
+        <button type="button" id="liveLeftBtn">左移</button><button type="button" id="liveRightBtn">右移</button>
+        <button type="button" id="liveUpBtn">上移</button><button type="button" id="liveDownBtn">下移</button>
+      </div>
+    </div>
+
+    <div class="liveToolSection">
+      <div class="liveToolSectionTitle">Live2D</div>
+      <div class="liveModelControls">
+        <button type="button" id="liveMotionBtn">随机动作</button>
+        <button type="button" id="liveExpressionBtn">换表情</button>
+        <button type="button" id="liveFaceBtn">启动面捕</button>
+        <button type="button" id="liveMuteBtn">语音开/关</button>
+      </div>
+      <div class="liveFacePanel" id="liveFacePanel"><video id="liveFaceVideo" playsinline muted></video><div><b id="liveFaceState">面捕未启动</b><span>前置摄像头 · 本机处理</span></div></div>
+    </div>
+  </aside>
+
+  <form class="liveComposer liveComposerV2" id="liveComposer">
+    <input id="liveInput" placeholder="发弹幕 / 主播说句话">
+    <button type="button" id="liveMoreBtn">更多</button>
+    <button type="button" id="liveGiftBtn">礼物</button>
+    <button type="submit">发送</button>
+  </form>
 </section>
+
 
 <section class="page livePage" data-page="liveHistory">
   <header class="head"><button class="back" data-back="liveRoom">返回</button><div class="headTitle">直播记录</div><div></div></header>
@@ -2041,7 +2123,7 @@ function phoneDataPayload(){
   let fullSettings=Object.assign({},cloneJson(settings),{apiKey:sessionKey||settings.apiKey||""});
   let fullMedia=cloneJson(mediaApi||{});fullMedia.image=fullMedia.image||{};fullMedia.voice=fullMedia.voice||{};
   fullMedia.image.key=imageSessionKey||fullMedia.image.key||"";fullMedia.voice.key=voiceSessionKey||fullMedia.voice.key||"";
-  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"6.4",data:{
+  return {schema:PHONE_DATA_SCHEMA,version:PHONE_DATA_VERSION,exportedAt:new Date().toISOString(),appVersion:"8.0",data:{
     contacts:cloneJson(contacts),convos:cloneJson(convos),masks:cloneJson(masks),activeMaskId:activeMaskId||"",
     worldbooks:cloneJson(worldbooks),notes:localStorage.getItem(K.notes)||"",beauty:cloneJson(beauty),chatBeauty:cloneJson(chatBeauty),chatThemes:cloneJson(chatThemes),
     moments:cloneJson(moments),autonomy:cloneJson(autonomy),momentSeen:Number(momentSeen||0),stickers:cloneJson(stickers),relationNotes:cloneJson(relationNotes),
@@ -2115,7 +2197,7 @@ function backupPayload(){
     schema:CHAT_BACKUP_SCHEMA,
     version:CHAT_BACKUP_VERSION,
     exportedAt:new Date().toISOString(),
-    appVersion:"6.4",
+    appVersion:"8.0",
     data:{
       contacts:cloneJson(contacts),
       convos:cloneJson(convos),
@@ -3346,8 +3428,8 @@ async function callSpeak(text){
 async function mountCallLive2d(){
  cleanupCallVideoOnly();let c=callContact(currentCall?.contactId),mid=c?callBoundModelId(c):"";if(!mid){$("#callStatusText").textContent="未绑定 Live2D，使用头像模式";return false}
  let rec=(live2dStore.models||[]).find(x=>x.id===mid),host=$("#callVideoStage"),canvasHost=host?.querySelector(".callLive2dCanvas");if(!rec||!canvasHost)return false;
- try{await ensureLive2dLibs();let urls=[],mu=await buildLive2dModelUrlFor(rec,urls);
- let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);let model=await PIXI.live2d.Live2DModel.from(mu);app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
+ try{await ensureLive2dLibs();if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");let urls=[],mu=await buildLive2dModelUrlFor(rec,urls);
+ let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);let model=await getLive2DModelClass().from(mu);app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
 }
 function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
 async function renderCallMode(){let video=currentCall?.mode==="video";$("#callVideoStage").className="callVideoStage "+(video?"videoMode":"voiceMode");if(video)await mountCallLive2d();else{cleanupCallVideoOnly();$("#callStatusText").textContent="语音通话"}}
@@ -3448,7 +3530,7 @@ const networkStyle=document.createElement("style");networkStyle.textContent=`
 .networkBody{padding:13px 12px 90px!important}.networkMasterCard{display:flex;align-items:center;justify-content:space-between;border-radius:19px;background:#17181d;color:#fff;padding:16px 15px}.networkMasterCard b{display:block;font-size:14px}.networkMasterCard span{display:block;color:#aaa;font-size:8px;margin-top:5px;max-width:220px;line-height:1.5}.networkSwitch input{display:none}.networkSwitch i{display:block;width:43px;height:25px;border-radius:999px;background:#555;position:relative;transition:.2s}.networkSwitch i:after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.2s}.networkSwitch input:checked+i{background:#30322f}.networkSwitch input:checked+i:after{left:21px}.networkSafety{font-size:9px;line-height:1.6;padding:10px 12px;border-radius:12px;background:#f3f3ef;color:#777;margin:9px 0 13px}.networkSafety.on{background:#eee8e4;color:#715f55}.networkPerms{display:grid;gap:7px}.networkPerms label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.networkPerms input{width:18px;height:18px;margin-top:1px}.networkPerms b{display:block;font-size:10px}.networkPerms span{display:block;font-size:8px;color:#999;line-height:1.5;margin-top:3px}.networkPerms.disabled{opacity:.42;pointer-events:none}.networkSection{margin:18px 2px 8px}.networkSection b{font-size:11px}.networkSection span{font-size:8px;color:#999;margin-left:6px}.networkEditor{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.networkArrow{text-align:center;color:#aaa;font-size:12px;padding:3px}.networkEditor .input,.networkEditor .textarea{margin-bottom:7px}.networkEditor .primary{width:100%;border:0;border-radius:12px;background:#30322f;color:#fff;padding:10px;font-size:9px}.networkRelation{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;margin-bottom:7px}.networkRelationTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.networkRelationNames{font-size:10px;font-weight:800}.networkRelationType{font-size:8px;border-radius:999px;background:#eee;padding:4px 7px;color:#666}.networkRelationNote{font-size:8px;color:#999;line-height:1.5;margin-top:6px}.networkRelationActions{margin-top:7px;text-align:right}.networkRelationActions button{border:0;background:transparent;color:#999;font-size:8px}
 `;document.head.appendChild(networkStyle);
 
-let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0};
+let live2dStore=load(K.live2d,{models:[],bindings:{}}),live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1};
 const LIVE2D_DB_NAME="curry_phone_live2d_v64",LIVE2D_DB_VERSION=1,LIVE2D_ASSET_STORE="assets";
 let live2dDbPromise=null;
 function openLive2dDb(){
@@ -3493,12 +3575,13 @@ setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("Live2D �
 function live2dBindingKey(type,id){return type==="user"?"user":"char:"+id}
 function boundLive2dModelId(type,id){return live2dStore.bindings?.[live2dBindingKey(type,id)]||""}
 function cleanupLive2dRuntime(){
+ try{stopLiveFaceCapture()}catch{}
  try{if(live2dRuntime.raf)cancelAnimationFrame(live2dRuntime.raf)}catch{}
  try{if(live2dRuntime.audio){live2dRuntime.audio.pause();live2dRuntime.audio.src=""}}catch{}
  try{if(live2dRuntime.audioCtx)live2dRuntime.audioCtx.close()}catch{}
  try{if(live2dRuntime.model?.destroy)live2dRuntime.model.destroy({children:true})}catch{}
  try{if(live2dRuntime.app?.destroy)live2dRuntime.app.destroy(true,{children:true,texture:true,baseTexture:true})}catch{}
- (live2dRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0}
+ (live2dRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});live2dRuntime={app:null,model:null,blobUrls:[],audio:null,audioCtx:null,analyser:null,raf:0,modelRec:null,exprIndex:0,motionIndex:0,fit:null,baseScale:1}
 }
 function dataUrlToBlobSync(dataUrl){
  let [head,b64]=String(dataUrl).split(","),mime=(head.match(/data:([^;]+)/)||[])[1]||"application/octet-stream",bin=atob(b64||""),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:mime})
@@ -3571,9 +3654,41 @@ async function ensureScript(src,test){
  if(test())return;await new Promise((res,rej)=>{let s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(Error("加载脚本失败："+src));document.head.appendChild(s)})
 }
 async function ensureLive2dLibs(){
+ // Cubism 3/4 模型除了 pixi-live2d-display，还必须先加载官方 Cubism Core。
+ // v6.5 漏掉的就是这一层，因此插件脚本会在初始化阶段直接失败。
+ if(!window.Live2DCubismCore){
+   let coreUrls=[
+     "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js",
+     "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/core/live2dcubismcore.js"
+   ],coreErr=null;
+   for(let src of coreUrls){
+     try{
+       await ensureScript(src,()=>!!window.Live2DCubismCore);
+       if(window.Live2DCubismCore)break
+     }catch(e){coreErr=e}
+   }
+   if(!window.Live2DCubismCore)throw coreErr||Error("Cubism Core 加载失败")
+ }
  await ensureScript("https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js",()=>!!window.PIXI);
- await ensureScript("https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",()=>!!window.PIXI?.live2d?.Live2DModel);
+ let loaded=!!(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel);
+ if(!loaded){
+   let urls=[
+     "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",
+     "https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism4.min.js"
+   ],lastErr=null;
+   for(let src of urls){
+     try{
+       await ensureScript(src,()=>!!(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel));
+       if(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel){loaded=true;break}
+     }catch(e){lastErr=e}
+   }
+   if(!loaded)throw lastErr||Error("pixi-live2d-display 加载失败")
+ }
+ window.PIXI.live2d=window.PIXI.live2d||{};
+ if(!window.PIXI.live2d.Live2DModel)window.PIXI.live2d.Live2DModel=window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel;
+ if(!window.PIXI.live2d.Live2DModel)throw Error("Live2DModel 未初始化")
 }
+function getLive2DModelClass(){return window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel||null}
 async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  let assets=await idbGetLive2dAssets(modelRec.id);if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
  let urlMap={};
@@ -3595,32 +3710,118 @@ function live2dCoreAdd(id,val){
  try{let core=live2dRuntime.model?.internalModel?.coreModel;if(core?.addParameterValueById)core.addParameterValueById(id,val)}catch{}
 }
 function live2dModelConfig(){let rec=live2dRuntime.modelRec;return rec?.modelConfig||null}
-function live2dExpressionNames(){
- let cfg=live2dModelConfig(),refs=cfg?.FileReferences?.Expressions||[];
- return refs.map(x=>x.Name).filter(Boolean)
+function live2dExpressionDefs(){
+ let refs=live2dModelConfig()?.FileReferences?.Expressions||[];
+ return Array.isArray(refs)?refs.filter(Boolean):[]
 }
-function live2dMotionGroups(){
- let cfg=live2dModelConfig(),m=cfg?.FileReferences?.Motions||{};return Object.keys(m||{})
+function live2dMotionDefs(){
+ let m=live2dModelConfig()?.FileReferences?.Motions||{},out=[];
+ for(let [group,list] of Object.entries(m||{}))if(Array.isArray(list))list.forEach((item,index)=>out.push({group,index,item}));
+ return out
 }
 async function triggerLiveExpression(preferred=""){
  let model=live2dRuntime.model;if(!model)return false;
- let names=live2dExpressionNames(),name=preferred&&names.includes(preferred)?preferred:names.length?names[(live2dRuntime.exprIndex++)%names.length]:"";
+ let mm=model.internalModel?.motionManager,em=mm?.expressionManager,defs=live2dExpressionDefs();
+ if(!em&&!defs.length){toast("这个模型没有可用表情");return false}
  try{
-   if(name&&model.expression){await model.expression(name);return true}
-   if(model.expression){await model.expression();return true}
- }catch(e){console.warn("expression failed",e)}
- // Fallback facial parameters if model exposes standard IDs.
- let happy=/happy|smile|joy|开心|笑/i.test(preferred),angry=/angry|mad|生气/i.test(preferred),sad=/sad|哭|难过/i.test(preferred);
- live2dCoreSet("ParamEyeLSmile",happy?1:0);live2dCoreSet("ParamEyeRSmile",happy?1:0);
- live2dCoreSet("ParamBrowLY",angry?-.5:sad?.45:0);live2dCoreSet("ParamBrowRY",angry?-.5:sad?.45:0);
- live2dCoreSet("ParamMouthForm",happy?.7:sad?-.5:0);return true
+   let ok=false;
+   if(preferred&&defs.length&&em?.setExpression){
+     let re=preferred==="happy"?/happy|smile|joy|laugh|开心|笑/i:preferred==="angry"?/angry|mad|生气|怒/i:preferred==="sad"?/sad|cry|难过|哭/i:new RegExp(preferred,"i");
+     let hit=defs.find(x=>re.test(x.Name||""));if(hit)ok=await em.setExpression(hit.Name)
+   }
+   if(!ok&&em?.setRandomExpression)ok=await em.setRandomExpression();
+   if(!ok&&typeof model.expression==="function")ok=await model.expression();
+   if(ok===false){toast("这个表情没有成功播放");return false}
+   toast("已切换表情");return true
+ }catch(e){console.warn("expression failed",e);toast("表情触发失败："+(e.message||"未知错误"));return false}
 }
 async function triggerLiveMotion(group=""){
- let model=live2dRuntime.model;if(!model)return false;let groups=live2dMotionGroups(),g=group&&groups.includes(group)?group:groups.length?groups[(live2dRuntime.motionIndex++)%groups.length]:"";
- try{if(g&&model.motion){await model.motion(g);return true}}catch(e){console.warn("motion failed",e)}
- // fallback nod/body sway
- let n=0,start=performance.now();function tick(t){if(!live2dRuntime.model)return;let p=Math.min(1,(t-start)/700),v=Math.sin(p*Math.PI*2)*8*(1-p);live2dCoreAdd("ParamAngleZ",v*.12);live2dCoreAdd("ParamBodyAngleX",v*.08);if(p<1)requestAnimationFrame(tick)}requestAnimationFrame(tick);return true
+ let model=live2dRuntime.model;if(!model)return false;
+ let mm=model.internalModel?.motionManager,defs=live2dMotionDefs();
+ let groups=[...new Set(defs.map(x=>x.group))];
+ if(!groups.length&&mm?.definitions)groups=Object.keys(mm.definitions||{});
+ if(!groups.length){toast("这个模型没有可用动作");return false}
+ // 优先避开 Idle，随机动作按钮更容易看出明显变化。
+ let visibleGroups=groups.filter(g=>!/idle/i.test(g));if(!visibleGroups.length)visibleGroups=groups;
+ let g=group&&groups.includes(group)?group:visibleGroups[Math.floor(Math.random()*visibleGroups.length)];
+ try{
+   let ok=false;
+   if(mm?.startRandomMotion)ok=await mm.startRandomMotion(g,3);
+   if(!ok&&typeof model.motion==="function"){
+     let list=defs.filter(x=>x.group===g),idx=list.length?list[Math.floor(Math.random()*list.length)].index:0;
+     ok=await model.motion(g,idx,3)
+   }
+   if(ok===false){toast("这个动作没有成功播放");return false}
+   toast("动作："+g);return true
+ }catch(e){console.warn("motion failed",e);toast("动作触发失败："+(e.message||"未知错误"));return false}
 }
+
+let faceCaptureRuntime={running:false,stream:null,mesh:null,raf:0,busy:false,last:{},smooth:.42};
+
+function lmDist(a,b){let dx=(a.x-b.x),dy=(a.y-b.y);return Math.hypot(dx,dy)}
+function liveFaceSet(id,val){
+ let core=live2dRuntime.model?.internalModel?.coreModel;if(!core)return;
+ try{core.setParameterValueById?.(id,val)}catch{}
+}
+function liveFaceSmooth(key,val){
+ let prev=faceCaptureRuntime.last[key];if(prev==null)prev=val;
+ let next=prev+(val-prev)*faceCaptureRuntime.smooth;faceCaptureRuntime.last[key]=next;return next
+}
+function applyFaceLandmarks(lm){
+ if(!live2dRuntime.model||!lm?.length)return;
+ // MediaPipe FaceMesh landmark indices.
+ let leO=lm[33],leI=lm[133],reI=lm[362],reO=lm[263],nose=lm[1],chin=lm[152];
+ let lUp=lm[159],lDn=lm[145],rUp=lm[386],rDn=lm[374];
+ let mouthL=lm[61],mouthR=lm[291],lipU=lm[13],lipD=lm[14];
+ if(![leO,leI,reI,reO,nose,chin,lUp,lDn,rUp,rDn,mouthL,mouthR,lipU,lipD].every(Boolean))return;
+
+ let eyeMidX=(leI.x+reI.x)/2,eyeMidY=(leI.y+reI.y)/2,eyeSpan=Math.max(.001,Math.abs(reI.x-leI.x));
+ let roll=Math.atan2(reI.y-leI.y,reI.x-leI.x)*180/Math.PI;
+ let yaw=(nose.x-eyeMidX)/eyeSpan*55;
+ let faceHeight=Math.max(.001,chin.y-eyeMidY);
+ let pitch=((nose.y-eyeMidY)/faceHeight-.34)*70;
+
+ let lEye=Math.min(1.25,Math.max(0,lmDist(lUp,lDn)/Math.max(.001,lmDist(leO,leI))*5.4));
+ let rEye=Math.min(1.25,Math.max(0,lmDist(rUp,rDn)/Math.max(.001,lmDist(reI,reO))*5.4));
+ let mouthW=Math.max(.001,lmDist(mouthL,mouthR)),mouthOpen=Math.min(1,Math.max(0,(lmDist(lipU,lipD)/mouthW-.025)*7.8));
+ let mouthCurve=((mouthL.y+mouthR.y)/2-(lipU.y+lipD.y)/2)/mouthW;
+ let mouthForm=Math.max(-1,Math.min(1,-mouthCurve*9));
+
+ let angX=liveFaceSmooth("x",Math.max(-30,Math.min(30,-yaw)));
+ let angY=liveFaceSmooth("y",Math.max(-25,Math.min(25,-pitch)));
+ let angZ=liveFaceSmooth("z",Math.max(-30,Math.min(30,-roll)));
+ liveFaceSet("ParamAngleX",angX);liveFaceSet("ParamAngleY",angY);liveFaceSet("ParamAngleZ",angZ);
+ liveFaceSet("ParamBodyAngleX",angX*.18);liveFaceSet("ParamBodyAngleZ",angZ*.12);
+ liveFaceSet("ParamEyeLOpen",liveFaceSmooth("le",lEye));liveFaceSet("ParamEyeROpen",liveFaceSmooth("re",rEye));
+ liveFaceSet("ParamMouthOpenY",liveFaceSmooth("mo",mouthOpen));liveFaceSet("ParamMouthForm",liveFaceSmooth("mf",mouthForm));
+}
+async function ensureFaceMeshLib(){
+ await ensureScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js",()=>!!window.FaceMesh)
+}
+async function startLiveFaceCapture(){
+ if(faceCaptureRuntime.running)return;
+ if(!live2dRuntime.model)return toast("先加载 Live2D 模型");
+ if(!navigator.mediaDevices?.getUserMedia)return toast("当前浏览器不支持摄像头");
+ try{
+   await ensureFaceMeshLib();
+   let video=$("#liveFaceVideo"),stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:480}},audio:false});
+   video.srcObject=stream;await video.play();
+   let mesh=new FaceMesh({locateFile:file=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`});
+   mesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+   mesh.onResults(res=>{let lm=res.multiFaceLandmarks?.[0];if(lm){applyFaceLandmarks(lm);$("#liveFaceState").textContent="面捕追踪中"}else $("#liveFaceState").textContent="未检测到脸"});
+   faceCaptureRuntime.running=true;faceCaptureRuntime.stream=stream;faceCaptureRuntime.mesh=mesh;$("#liveFacePanel").classList.add("show");$("#liveFaceBtn").textContent="关闭面捕";$("#liveFaceState").textContent="正在启动";
+   let loop=async()=>{if(!faceCaptureRuntime.running)return;if(!faceCaptureRuntime.busy&&video.readyState>=2){faceCaptureRuntime.busy=true;try{await mesh.send({image:video})}catch(e){console.warn("face mesh frame",e)}finally{faceCaptureRuntime.busy=false}}faceCaptureRuntime.raf=requestAnimationFrame(loop)};loop();
+ }catch(e){console.warn("face capture failed",e);stopLiveFaceCapture();toast("面捕启动失败："+(e.message||"摄像头不可用"))}
+}
+function stopLiveFaceCapture(){
+ faceCaptureRuntime.running=false;try{if(faceCaptureRuntime.raf)cancelAnimationFrame(faceCaptureRuntime.raf)}catch{}
+ try{faceCaptureRuntime.stream?.getTracks?.().forEach(x=>x.stop())}catch{}
+ try{faceCaptureRuntime.mesh?.close?.()}catch{}
+ let v=$("#liveFaceVideo");if(v){try{v.pause()}catch{}v.srcObject=null}
+ faceCaptureRuntime={running:false,stream:null,mesh:null,raf:0,busy:false,last:{},smooth:.42};
+ if($("#liveFacePanel"))$("#liveFacePanel").classList.remove("show");if($("#liveFaceBtn"))$("#liveFaceBtn").textContent="启动面捕"
+}
+
 function inferLiveEmotion(text){
  let s=String(text||"");
  if(/哈哈|笑|开心|好耶|喜欢|爱|可爱|^^|嘿嘿|好吃/i.test(s))return"happy";
@@ -3657,7 +3858,7 @@ async function speakLiveText(text){
 function bindLive2dPointer(model){
  if(!model)return;
  try{
-   model.interactive=true;model.on("pointertap",async()=>{if(!currentLive?.touchEnabled)return;await triggerLiveMotion();if(Math.random()<.7)triggerLiveExpression()});
+   model.interactive=true;model.on("pointertap",async()=>{if(!currentLive?.touchEnabled)return;await triggerLiveMotion()});
    model.on("hit",async hitAreas=>{if(!currentLive?.touchEnabled)return;let hit=(hitAreas||[]).join(",");if(/head|face/i.test(hit)){triggerLiveExpression("happy");live2dCoreAdd("ParamAngleX",(Math.random()-.5)*10)}else triggerLiveMotion()})
  }catch(e){console.warn("live2d pointer bind failed",e)}
 }
@@ -3666,26 +3867,56 @@ async function mountLive2d(modelId){
  cleanupLive2dRuntime();let host=$("#liveStage"),canvasHost=host?.querySelector(".liveStageCanvas");if(!host||!canvasHost||!modelId)return false;
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
  try{
-   await ensureLive2dLibs();let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);
-   let url=await buildLive2dModelUrl(rec),model=await PIXI.live2d.Live2DModel.from(url);app.stage.addChild(model);live2dRuntime.modelRec=rec;bindLive2dPointer(model);
-   let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),scale=Math.min(w/(b.width||w),h/(b.height||h))*0.92;model.scale.set(scale);model.x=w/2;model.y=h*0.96;model.anchor?.set?.(0.5,1)};
-   fit();setTimeout(fit,80);live2dRuntime.app=app;live2dRuntime.model=model;host.classList.add("hasLive2d");let hint=host.querySelector(".liveStageHint");if(hint){hint.textContent="Live2D 已加载";hint.classList.add("ok")}return true
+   await ensureLive2dLibs();if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");let app=new PIXI.Application({resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);
+   let url=await buildLive2dModelUrl(rec),model=await getLive2DModelClass().from(url);app.stage.addChild(model);live2dRuntime.modelRec=rec;bindLive2dPointer(model);
+   model.scale.set(1);let b0=model.getLocalBounds?.()||model.getBounds(),w0=canvasHost.clientWidth||300,h0=canvasHost.clientHeight||300;live2dRuntime.baseScale=Math.min(w0/Math.max(1,b0.width||1),h0/Math.max(1,b0.height||1));let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
+   fit();setTimeout(fit,80);live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");let hint=host.querySelector(".liveStageHint");if(hint){hint.textContent="Live2D 已加载";hint.classList.add("ok")}if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),350);return true
  }catch(e){console.warn("Live2D mount failed",e);cleanupLive2dRuntime();host.classList.remove("hasLive2d");let hint=host.querySelector(".liveStageHint");if(hint)hint.textContent="Live2D 加载失败："+e.message;return false}
 }
 
-let liveRoom=load(K.liveRoom,{history:[]}),currentLive=null,pendingLiveBg="";
+let liveRoom=load(K.liveRoom,{history:[]}),currentLive=null,pendingLiveBg="",livePk=null,livePkRuntime={timer:null,tick:null};
 const liveStyle=document.createElement("style");liveStyle.textContent=`
 .livePage{background:#0f0f14!important;color:#fff}.livePage .head{background:#15151c!important;border-bottom:1px solid #262631!important}.livePage .head button,.livePage .headTitle{color:#fff!important}
 .liveHomeBody{padding:14px 12px 90px!important;background:#111118!important;min-height:100%}.liveHomeHero{border-radius:20px;padding:18px;background:linear-gradient(145deg,#1f1f28,#2b2430);color:#fff;margin-bottom:14px;border:1px solid #2d2d38}.liveHomeTag{font-size:8px;letter-spacing:2px;color:#fb7299}.liveHomeTitle{font-size:24px;font-weight:850;margin-top:9px}.liveHomeSub{font-size:10px;color:#b7b8c1;margin-top:6px}.liveHomeActions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.liveHomeActions button{border:1px solid #2d2d38;background:#1a1a22;color:#fff;border-radius:16px;padding:15px 12px;text-align:left;min-height:118px}.liveHomeActions b{display:block;font-size:13px}.liveHomeActions span{display:block;font-size:8px;line-height:1.55;color:#9a9aa5;margin-top:8px}.liveSectionTitle{font-size:11px;font-weight:750;margin:18px 2px 9px}.liveRecent{border:1px solid #2b2b35;border-radius:14px;padding:11px;background:#191920;margin-bottom:8px}.liveRecent b{font-size:10px}.liveRecent div{font-size:8px;color:#8f8f99;margin-top:4px}
 .liveViewerPicker{display:grid;gap:7px}.liveViewerOption{display:flex;align-items:center;gap:9px;border:1px solid #34343e;border-radius:13px;padding:8px;background:#181820}.liveViewerOption input{width:18px;height:18px}.liveViewerAvatar{width:30px;height:30px;border-radius:50%;background:#2d2d35;overflow:hidden;display:grid;place-items:center;font-size:9px}.liveViewerAvatar img{width:100%;height:100%;object-fit:cover}
 .liveStudioBody{padding:8px 0 86px!important;background:#0b0b10!important;min-height:100%}.biliLiveHeader{display:flex;align-items:center;gap:9px;padding:10px 12px 7px}.biliHostAvatar{width:38px;height:38px;border-radius:50%;overflow:hidden;background:#2b2b32;display:grid;place-items:center}.biliHostAvatar img{width:100%;height:100%;object-fit:cover}.biliHostMeta{flex:1;min-width:0}.biliHostName{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.biliHostSub{font-size:8px;color:#999;margin-top:3px}.biliFollow{background:#fb7299;color:#fff;border:0;border-radius:999px;padding:8px 15px;font-size:9px}.biliMore{font-size:18px;color:#bbb}.biliRankRow{display:flex;gap:8px;align-items:center;padding:4px 12px 9px}.biliRankRow button{border:0;background:#2a2a31;color:#eee;border-radius:999px;padding:6px 11px;font-size:8px}.biliRankHint{margin-left:auto;font-size:8px;color:#bbb}
 .liveStage{height:300px;border-radius:0;overflow:hidden;background:#17171d center/cover no-repeat;position:relative;color:#fff;display:flex;align-items:center;justify-content:center;border-top:1px solid #26262d;border-bottom:1px solid #26262d}.liveStageAvatar{width:128px;height:128px;border-radius:26px;overflow:hidden;background:#383841;display:grid;place-items:center;font-size:36px;box-shadow:0 15px 40px #0007}.liveStageAvatar img{width:100%;height:100%;object-fit:cover}.liveOverlay{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;align-items:flex-start}.liveBadge{background:#fb7299;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:800}.liveTitleOverlay{font-size:10px;font-weight:700;max-width:70%;text-align:right;text-shadow:0 1px 5px #000}.liveStreamerName{position:absolute;bottom:12px;left:12px;font-size:14px;font-weight:800;text-shadow:0 1px 5px #000}.liveStageHint{position:absolute;bottom:12px;right:12px;font-size:8px;color:#ddd}
-.biliNotice{margin:8px 12px 3px;background:#1f1f28;border-radius:10px;padding:9px 10px;color:#d7d7de;font-size:8px;line-height:1.6}.liveStats{display:flex;gap:11px;flex-wrap:wrap;color:#bbb;font-size:8px;padding:8px 12px}.liveModelControls{display:flex;gap:6px;padding:0 12px 8px}.liveModelControls button{border:1px solid #383843;background:#202027;color:#ccc;border-radius:999px;padding:6px 9px;font-size:8px}.liveFeed{padding:0 12px 14px}.liveLine{display:flex;gap:7px;margin:8px 0;align-items:flex-start}.liveAvatar{width:27px;height:27px;border-radius:50%;overflow:hidden;background:#33333c;display:grid;place-items:center;color:#fff;font-size:8px;flex:0 0 auto}.liveAvatar img{width:100%;height:100%;object-fit:cover}.liveBubble{background:#24242c;color:#eee;border-radius:11px;padding:7px 9px;font-size:9px;line-height:1.5;max-width:84%}.liveName{font-size:8px;color:#9fa0aa;margin-bottom:2px}.liveGift{color:#fb7299;font-weight:700}
+.biliNotice{margin:8px 12px 3px;background:#1f1f28;border-radius:10px;padding:9px 10px;color:#d7d7de;font-size:8px;line-height:1.6}.liveStats{display:flex;gap:11px;flex-wrap:wrap;color:#bbb;font-size:8px;padding:8px 12px}.liveModelControls{display:flex;gap:6px;padding:0 12px 8px;flex-wrap:wrap}.liveModelControls button{border:1px solid #383843;background:#202027;color:#ccc;border-radius:999px;padding:6px 9px;font-size:8px}.liveFeed{padding:0 12px 14px}.liveLine{display:flex;gap:7px;margin:8px 0;align-items:flex-start}.liveAvatar{width:27px;height:27px;border-radius:50%;overflow:hidden;background:#33333c;display:grid;place-items:center;color:#fff;font-size:8px;flex:0 0 auto}.liveAvatar img{width:100%;height:100%;object-fit:cover}.liveBubble{background:#24242c;color:#eee;border-radius:11px;padding:7px 9px;font-size:9px;line-height:1.5;max-width:84%}.liveName{font-size:8px;color:#9fa0aa;margin-bottom:2px}.liveGift{color:#fb7299;font-weight:700}
 .liveComposer{position:absolute;bottom:8px;left:8px;right:8px;display:grid;grid-template-columns:1fr 44px 48px;gap:5px;padding:6px;background:#18181f;border-radius:18px}.liveComposer input{border:0;border-radius:13px;padding:9px 10px;background:#303038;color:#fff;font-size:15px;outline:none}.liveComposer button{border:0;border-radius:12px;background:#fb7299;color:#fff;font-size:9px}.liveComposer #liveGiftBtn{background:#33333c}
 .liveBgPreview{display:none;margin-top:8px;height:110px;border-radius:12px;background:center/cover no-repeat;border:1px solid #34343e}.liveBgPreview.show{display:block}
 .liveStageCanvas{position:absolute;inset:0;z-index:1}.liveStageCanvas canvas{width:100%!important;height:100%!important;display:block}.liveOverlay,.liveStreamerName,.liveStageHint{z-index:4}.liveStageAvatar{z-index:2}.liveStage.hasLive2d .liveStageAvatar{display:none}.liveStageHint.ok{color:#9fe3ae}.liveModelBadge{position:absolute;left:12px;bottom:38px;z-index:4;background:#0008;color:#ddd;border-radius:999px;padding:4px 7px;font-size:7px}
 .liveStageCanvas{touch-action:none}.liveStageHint.speaking{color:#ffd985}.liveVoiceDot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#fb7299;margin-right:4px;vertical-align:middle}.liveVoiceDot.on{animation:livePulse .8s infinite alternate}@keyframes livePulse{to{opacity:.25;transform:scale(.7)}}
 `;document.head.appendChild(liveStyle);
+
+liveStyle.textContent+=`
+.livePageV2{background:#09090d!important;color:#fff}.livePageV2 .liveV2Topbar{height:54px;display:grid;grid-template-columns:64px 1fr 110px;align-items:center;padding:0 12px;background:rgba(12,12,17,.94);border-bottom:1px solid #262630;position:relative;z-index:40}.liveV2Topbar button{border:0;background:transparent;color:#eee;font-size:9px}.liveV2TitleWrap{text-align:center;min-width:0}.liveV2TitleWrap b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.liveV2TitleWrap span{display:block;font-size:7px;color:#858691;margin-top:2px}.liveV2TopActions{display:flex;justify-content:flex-end;gap:4px}.liveV2TopActions button{background:#25252e;border-radius:999px;padding:7px 9px}
+.liveV2Shell{height:calc(100% - 54px);overflow:auto;padding-bottom:78px}.liveV2Shell .biliLiveHeader{padding:10px 12px 8px}.liveProgramTabs{display:flex;gap:6px;overflow:auto;padding:0 12px 9px}.liveProgramTabs button{border:0;background:#202028;color:#9697a1;border-radius:999px;padding:6px 11px;font-size:8px;white-space:nowrap}.liveProgramTabs button.active{background:#f06f9b;color:#fff}
+.liveStageFrame{position:relative;margin:0 10px;border-radius:18px;overflow:hidden;background:#121218;border:1px solid #262631;box-shadow:0 14px 35px #0007}.liveStageFrame .liveStage{height:min(55vh,520px);min-height:340px;border:0;border-radius:0;background:#15151b center/cover no-repeat}.liveStageFrame .liveDanmakuLayer{position:absolute;top:38px;left:0;right:0;height:58%;z-index:9;pointer-events:none}.liveStageFrame .liveStageStats{position:absolute;left:10px;bottom:10px;z-index:10;display:flex;gap:6px;flex-wrap:wrap;padding:0}.liveStageFrame .liveStageStats span{background:#0009;backdrop-filter:blur(10px);border:1px solid #ffffff16;border-radius:999px;padding:5px 7px;color:#ddd;font-size:7px}.liveStageFrame .liveToolFloat{position:absolute;right:10px;bottom:10px;z-index:11;border:1px solid #ffffff22;background:#0009;color:#fff;border-radius:999px;padding:7px 10px;font-size:8px;backdrop-filter:blur(10px)}
+.liveProgramCard{position:absolute;left:12px;top:12px;z-index:8;max-width:62%;padding:8px 10px;border-radius:12px;background:#0008;backdrop-filter:blur(12px);border:1px solid #ffffff12;pointer-events:none}.liveProgramCard span{display:block;font-size:6px;letter-spacing:1.4px;color:#f59abb}.liveProgramCard b{display:block;font-size:11px;margin-top:3px}.liveProgramCard small{display:block;font-size:7px;color:#b9b9c1;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.liveProgramCard.radio{left:50%;top:auto;bottom:56px;transform:translateX(-50%);text-align:center;max-width:78%;min-width:60%}.liveProgramCard.game{background:#101319cc;border-color:#60749a55}.liveProgramCard.truth{background:#1d151bcc;border-color:#bc6f8c55}.liveProgramCard.pk{display:none}
+.liveStageFrame .livePkPanel{position:absolute;left:10px;right:10px;top:10px;z-index:12;margin:0;background:#11111bd9;backdrop-filter:blur(12px);border-color:#ffffff20}.liveStageFrame .livePkPanel.show+.liveStageStats{}
+.liveV2Below{padding:9px 10px 10px}.liveV2Below .liveRankPanel{margin:0 0 8px}.liveV2Below .liveBattleLog{margin:0 0 8px}.liveV2Below .liveFeed{padding:0 0 10px;max-height:240px;overflow:auto}.liveV2Below .biliNotice{margin:0;background:#17171e}
+.livePageV2 .liveLine{margin:6px 0}.livePageV2 .liveBubble{background:#18181f;border:1px solid #24242d}.livePageV2 .liveAvatar{width:25px;height:25px}
+.liveComposerV2{position:absolute;left:8px;right:8px;bottom:8px;z-index:42;display:grid;grid-template-columns:1fr 48px 48px 48px;gap:5px;padding:6px;background:#15151ce8;border:1px solid #2b2b34;border-radius:18px;backdrop-filter:blur(16px)}.liveComposerV2 input{border:0;border-radius:12px;background:#26262e;color:#fff;padding:10px;font-size:14px;outline:none}.liveComposerV2 button{border:0;border-radius:11px;background:#292931;color:#ddd;font-size:8px}.liveComposerV2 button[type=submit]{background:#e96e99;color:#fff}
+.liveToolMask{position:absolute;inset:0;z-index:60;background:#0008;opacity:0;pointer-events:none;transition:.2s}.liveToolMask.show{opacity:1;pointer-events:auto}.liveToolDrawer{position:absolute;z-index:61;left:0;right:0;bottom:0;max-height:72%;overflow:auto;transform:translateY(105%);transition:.25s ease;background:#14141a;border-radius:22px 22px 0 0;padding:7px 12px 28px;border-top:1px solid #30303a;box-shadow:0 -20px 50px #0008}.liveToolDrawer.show{transform:translateY(0)}.liveToolHandle{width:34px;height:4px;background:#484850;border-radius:999px;margin:1px auto 8px}.liveToolHead{display:flex;align-items:center;justify-content:space-between;padding:3px 2px 10px}.liveToolHead b{display:block;font-size:13px}.liveToolHead span{display:block;font-size:7px;color:#81828d;margin-top:2px}.liveToolHead button{border:0;background:#292931;color:#fff;border-radius:999px;padding:7px 11px;font-size:8px}.liveToolSection{border-top:1px solid #27272f;padding:11px 0}.liveToolSectionTitle{font-size:9px;font-weight:800;margin-bottom:7px}.liveToolDrawer .liveFineTune{margin:0 0 8px}.liveToolDrawer .liveModelControls{padding:0}.liveToolDrawer .liveFacePanel{margin:8px 0 0}
+.livePageV2.program-radio .liveStage{filter:saturate(.78) brightness(.82)}.livePageV2.program-radio .liveStageFrame:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#0000 55%,#08080edb)}.livePageV2.program-game .liveStageFrame{border-color:#43516b}.livePageV2.program-truth .liveStageFrame{border-color:#6b4558}
+`;
+
+
+liveStyle.textContent+=`
+.livePkPanel{display:none;margin:0 12px 8px;padding:9px 10px;border:1px solid #3a2f3d;border-radius:13px;background:#19161d}.livePkPanel.show{display:block}.livePkTop{display:flex;align-items:center;gap:8px;font-size:8px;color:#bbb}.livePkTop b{font-size:10px;color:#fff}.livePkTop span{margin-left:auto;font-variant-numeric:tabular-nums;color:#fff}.livePkTop button{border:0;background:transparent;color:#aaa;font-size:8px}.livePkNames,.livePkScores{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-top:8px;font-size:9px}.livePkNames span:first-child,.livePkScores b:first-child{text-align:left}.livePkNames span:nth-child(2),.livePkScores span{text-align:center;color:#999}.livePkNames span:last-child,.livePkScores b:last-child{text-align:right}.livePkBar{height:12px;border-radius:999px;overflow:hidden;background:#2c2c33;display:flex;margin-top:7px}.livePkBar i{display:block;height:100%;transition:width .35s ease}.livePkBar #livePkLeftBar{background:#7f8ca8;width:50%}.livePkBar #livePkRightBar{background:#a87886;width:50%}.livePkScores b{font-size:11px;color:#fff}
+.livePkMenu{position:absolute;left:14px;right:14px;bottom:70px;z-index:30;display:none;background:#17171e;border:1px solid #34343e;border-radius:15px;padding:10px;box-shadow:0 14px 35px #0009}.livePkMenu.show{display:block}.livePkMenuTitle{font-size:10px;font-weight:800;margin-bottom:8px}.livePkOpponent{width:100%;display:flex;align-items:center;gap:8px;border:0;background:#24242c;color:#fff;border-radius:10px;padding:8px;margin-bottom:6px;text-align:left}.livePkOpponent .av{width:29px;height:29px;border-radius:50%;overflow:hidden;background:#33333c;display:grid;place-items:center}.livePkOpponent .av img{width:100%;height:100%;object-fit:cover}.livePkOpponent b{font-size:9px}.livePkMenu>button{width:100%;border:0;background:#292931;color:#aaa;border-radius:10px;padding:8px;font-size:8px}
+`;
+
+
+liveStyle.textContent+=`
+.liveFacePanel{display:none;margin:0 12px 8px;padding:8px;border:1px solid #34343e;border-radius:12px;background:#18181f;align-items:center;gap:9px}.liveFacePanel.show{display:flex}.liveFacePanel video{width:58px;height:78px;object-fit:cover;border-radius:9px;background:#09090d;transform:scaleX(-1)}.liveFacePanel b{display:block;font-size:9px;color:#eee}.liveFacePanel span{display:block;font-size:7px;color:#888;margin-top:4px}
+`;
+
+liveStyle.textContent+=`
+.liveFineTune{margin:0 12px 8px;padding:8px 10px;border:1px solid #34343e;border-radius:12px;background:#18181f;display:grid;gap:7px}.liveFineTune label{display:grid;grid-template-columns:32px 1fr 38px;gap:7px;align-items:center;font-size:8px;color:#bbb}.liveFineTune input{width:100%}.liveFineTune span{text-align:right;color:#eee}
+`;
+
 
 liveStyle.textContent+=`
 .liveBattleLog{margin:0 12px 8px;display:none;border-radius:10px;background:#211a21;border:1px solid #3a2a35;padding:7px 9px;font-size:8px;color:#e9c5d1;line-height:1.55}.liveBattleLog.show{display:block}.liveBattleLog b{color:#fb7299}
@@ -3722,7 +3953,7 @@ function fillLiveSetup(type){
  let s=$("#liveStreamer");s.innerHTML="";
  if(type==="user"){let u=liveMaskObj();s.innerHTML=`<option value="user:__user__">${esc(u.name)}（User）</option>`}
  else{s.innerHTML=contacts.map(c=>`<option value="char:${c.id}">${esc(c.name)}</option>`).join("")}
- $("#liveTitleInput").value="";$("#liveTopicInput").value="";$("#liveTtsEnabled").checked=type==="char";$("#liveTouchEnabled").checked=true;pendingLiveBg="";renderLiveBgPreview();live2dFillSelect();refreshLive2dBindingHint();
+ $("#liveTitleInput").value="";$("#liveTopicInput").value="";$("#liveTtsEnabled").checked=type==="char";$("#liveTouchEnabled").checked=true;$("#liveScaleRange").value="55";$("#liveYRange").value="92";$("#liveXRange").value="50";$("#liveScaleValue").textContent="55%";$("#liveYValue").textContent="92%";$("#liveXValue").textContent="50%";pendingLiveBg="";renderLiveBgPreview();live2dFillSelect();refreshLive2dBindingHint();
  $("#liveViewerPicker").innerHTML=contacts.map(c=>`<label class="liveViewerOption"><input type="checkbox" value="${c.id}"><div class="liveViewerAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc(c.name.charAt(0))}</div><div>${esc(c.name)}</div></label>`).join("");
  page("liveSetup")
 }
@@ -3771,7 +4002,105 @@ function randomViewerGift(){if(!currentLive||Math.random()>.35)return;let ids=cu
 function liveAddLine(who,text,type="comment"){
  if(!currentLive)return;currentLive.feed=currentLive.feed||[];
  let line={id:uuid(),name:who.name,avatar:who.avatar||"",whoId:who.id,isUser:who.isUser,type,text:String(text||""),createdAt:Date.now()};
- currentLive.feed.push(line);renderLiveFeed();if(type==="comment"){pushLiveDanmaku(who,text);liveAward(who,3)}
+ currentLive.feed.push(line);renderLiveFeed();touchLiveActivity(type==="gift"?16:type==="comment"?5:3);if(type==="comment"){pushLiveDanmaku(who,text);liveAward(who,3);if(livePk?.active)addLivePkScore(livePkSideForSupporter(who),3)}
+ if(type==="gift"&&livePk?.active)addLivePkScore(livePkSideForSupporter(who),livePkGiftPoints(text))
+}
+
+
+function livePkUserObj(){let m=activeMask();return{id:"user",name:m?.userName||m?.name||"User",avatar:m?.avatar||"",isUser:true}}
+function livePkOpponentObj(){if(!livePk?.opponentId)return null;let c=getContact(livePk.opponentId);return c?liveContactObj(c.id):null}
+function livePkSides(){
+ let user=livePkUserObj(),char=livePkOpponentObj();
+ return livePk?.left==="user"?{left:user,right:char}:{left:char,right:user}
+}
+function livePkFormat(sec){sec=Math.max(0,Math.ceil(sec));return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")}
+function renderLivePk(){
+ let p=$("#livePkPanel");if(!p)return;
+ if(!livePk?.active){p.classList.remove("show");return}
+ p.classList.add("show");let sides=livePkSides(),ls=livePk.leftScore||0,rs=livePk.rightScore||0,total=Math.max(1,ls+rs),lp=Math.max(8,Math.min(92,ls/total*100));
+ $("#livePkLeftName").textContent=sides.left?.name||"User";$("#livePkRightName").textContent=sides.right?.name||"Char";
+ $("#livePkLeftScore").textContent=String(ls);$("#livePkRightScore").textContent=String(rs);
+ $("#livePkLeftBar").style.width=lp+"%";$("#livePkRightBar").style.width=(100-lp)+"%";
+ let remain=Math.max(0,Math.ceil((livePk.endsAt-Date.now())/1000));$("#livePkTimer").textContent=livePkFormat(remain);
+ $("#livePkStatus").textContent=ls===rs?"势均力敌":ls>rs?`${sides.left?.name||"左侧"} 领先`:`${sides.right?.name||"右侧"} 领先`
+}
+function addLivePkScore(side,points,reason="",who=null){
+ if(!livePk?.active)return;let key=side==="left"?"leftScore":"rightScore";livePk[key]=(livePk[key]||0)+Math.max(0,Math.round(points||0));renderLivePk();
+ if(reason&&who)liveBattleSay(`${who.name} 为 ${side==="left"?livePkSides().left?.name:livePkSides().right?.name} 增加 ${Math.round(points)} PK 值`)
+}
+function livePkSideForSupporter(who){
+ if(!livePk?.active)return null;
+ if(who?.isUser)return livePk.left==="user"?"left":"right";
+ if(who?.id===livePk.opponentId)return livePk.left==="user"?"right":"left";
+ // 其他 Char 依据关系和随机倾向选边；没有关系时随机。
+ let rel=who?.id?getCharRelation(who.id,livePk.opponentId):null;
+ if(rel?.type==="friend"||rel?.type==="close")return livePk.left==="user"?"right":"left";
+ if(rel?.type==="rival"||rel?.type==="dislike"||rel?.type==="enemy")return livePk.left==="user"?"left":"right";
+ return Math.random()<.5?"left":"right"
+}
+function livePkGiftPoints(text){let s=String(text||"");if(/提督/.test(s))return 5200;if(/舰长/.test(s))return 1980;if(/小电视/.test(s))return 299;if(/应援棒/.test(s))return 99;if(/奶茶/.test(s))return 30;if(/小花/.test(s))return 10;return 8}
+function closeLivePkTimers(){clearInterval(livePkRuntime.timer);clearInterval(livePkRuntime.tick);livePkRuntime={timer:null,tick:null}}
+function endLivePk(reason="time"){
+ if(!livePk?.active)return;closeLivePkTimers();let sides=livePkSides(),ls=livePk.leftScore||0,rs=livePk.rightScore||0,winner=ls===rs?null:(ls>rs?sides.left:sides.right);
+ livePk.active=false;renderLivePk();if(currentLive?.programMode==="pk")setLiveProgram("chat",false);
+ let msg=winner?`PK 结束，${winner.name} 获胜`:"PK 结束，双方平局";liveAddLine({id:"pk_system",name:"PK",avatar:"",isUser:false},msg,"system");toast(msg)
+}
+async function livePkAiTick(){
+ if(!livePk?.active)return;let allowed=liveAllowedContacts().filter(c=>c.id!==livePk.opponentId),who=allowed.length?liveContactObj(allowed[Math.floor(Math.random()*allowed.length)].id):{id:"npc_pk_"+uuid(),name:"观众",avatar:"",isUser:false};
+ let side=livePkSideForSupporter(who),base=[6,10,18,30,66,99,199,299][Math.floor(Math.random()*8)],bonus=Math.random()<.08?500:0,pts=base+bonus;
+ addLivePkScore(side,pts,"support",who);
+ if(Math.random()<.45)pushLiveDanmaku(who,`${side==="left"?livePkSides().left?.name:livePkSides().right?.name} 加油`);
+ if(Math.random()<.2)liveAddLine(who,`为 ${side==="left"?livePkSides().left?.name:livePkSides().right?.name} 应援 +${pts}`,"gift")
+}
+function startLivePk(opponentId){
+ if(!currentLive)return;let c=getContact(opponentId);if(!c)return toast("找不到 PK 对手");closeLivePkTimers();
+ livePk={active:true,opponentId,left:currentLive.streamerType==="user"?"user":"char",leftScore:0,rightScore:0,startedAt:Date.now(),endsAt:Date.now()+180000}; currentLive.programMode="pk";setLiveProgram("pk",false);
+ $("#livePkMenu").classList.remove("show");renderLivePk();liveAddLine({id:"pk_system",name:"PK",avatar:"",isUser:false},`${livePkUserObj().name} 与 ${c.name} 开始 PK`,"system");
+ livePkRuntime.timer=setInterval(()=>{if(!livePk?.active)return;renderLivePk();if(Date.now()>=livePk.endsAt)endLivePk("time")},500);
+ livePkRuntime.tick=setInterval(livePkAiTick,3500);
+}
+function openLivePkMenu(){
+ if(!currentLive)return;
+ // User 开播：选 Char 对手；Char 开播：PK 对手固定 User。
+ if(currentLive.streamerType==="char"){startLivePk(currentLive.streamerId);return}
+ let arr=contacts.slice();if(!arr.length)return toast("没有可 PK 的 Char");
+ $("#livePkOpponentList").innerHTML=arr.map(c=>`<button type="button" class="livePkOpponent" data-pk-id="${c.id}"><span class="av">${c.avatar?`<img src="${esc(c.avatar)}">`:esc(c.name.charAt(0))}</span><b>${esc(c.name)}</b></button>`).join("");
+ $$("[data-pk-id]").forEach(b=>b.onclick=()=>startLivePk(b.dataset.pkId));$("#livePkMenu").classList.add("show")
+}
+
+
+let liveDirector={timer:null,lastActivity:0,heat:20};
+const LIVE_PROGRAMS={
+ chat:{label:"闲聊",eyebrow:"JUST CHATTING",title:"随便聊聊",sub:"和观众聊点什么"},
+ radio:{label:"深夜电台",eyebrow:"LATE NIGHT RADIO",title:"深夜电台",sub:"慢一点，聊点不急着结束的话题"},
+ game:{label:"游戏",eyebrow:"GAME TIME",title:"游戏时间",sub:"边玩边聊，弹幕一起参与"},
+ truth:{label:"真心话",eyebrow:"TRUTH TIME",title:"真心话",sub:"问点平时不敢问的"},
+ pk:{label:"PK",eyebrow:"LIVE PK",title:"直播 PK",sub:"应援值决定胜负"}
+};
+function setLiveProgram(mode,trigger=true){
+ if(!currentLive)return;mode=LIVE_PROGRAMS[mode]?mode:"chat";currentLive.programMode=mode;
+ let p=LIVE_PROGRAMS[mode],pageEl=document.querySelector('[data-page="liveStudio"]');
+ if(pageEl){pageEl.classList.remove("program-chat","program-radio","program-game","program-truth","program-pk");pageEl.classList.add("program-"+mode)}
+ $$("#liveProgramTabs [data-live-program]").forEach(b=>b.classList.toggle("active",b.dataset.liveProgram===mode));
+ $("#liveProgramLabel").textContent=p.label;$("#liveProgramEyebrow").textContent=p.eyebrow;$("#liveProgramTitle").textContent=currentLive.topic||p.title;$("#liveProgramSub").textContent=p.sub;
+ $("#liveProgramCard").className="liveProgramCard "+mode;
+ if(mode==="pk"&&trigger&&!livePk?.active)openLivePkMenu();
+ if(mode==="truth"&&trigger)liveAddLine({id:"director",name:"节目导演",avatar:"",isUser:false},"真心话环节开始了，弹幕可以提问。","system");
+ if(mode==="game"&&trigger)liveAddLine({id:"director",name:"节目导演",avatar:"",isUser:false},"游戏节目模式已切换。","system")
+}
+function openLiveTools(){stopLiveFaceCapture?.();$("#liveToolMask").classList.add("show");$("#liveToolDrawer").classList.add("show")}
+function closeLiveTools(){$("#liveToolMask").classList.remove("show");$("#liveToolDrawer").classList.remove("show")}
+function touchLiveActivity(amount=6){if(!currentLive)return;liveDirector.lastActivity=Date.now();liveDirector.heat=Math.min(100,(liveDirector.heat||20)+amount)}
+function stopLiveDirector(){clearInterval(liveDirector.timer);liveDirector.timer=null}
+function startLiveDirector(){
+ stopLiveDirector();liveDirector.lastActivity=Date.now();liveDirector.heat=20;
+ liveDirector.timer=setInterval(()=>{
+  if(!currentLive)return;
+  liveDirector.heat=Math.max(0,liveDirector.heat-.8);
+  let quiet=Date.now()-liveDirector.lastActivity;
+  if(quiet>22000&&settings.endpoint&&settings.model){liveDirector.lastActivity=Date.now();liveGenerateViewerBurst("The livestream has been quiet for a while. Help the show recover naturally.");}
+  if(currentLive.programMode==="pk"&&livePk?.active&&Math.random()<.18)livePkAiTick();
+ },4000)
 }
 
 function renderLiveBgPreview(){
@@ -3781,7 +4110,9 @@ function renderLiveBgPreview(){
 function renderLiveStage(){
  let st=liveStreamerObj();if(!st)return;
  $("#liveStudioTitle").textContent=currentLive.title||"直播中";
- renderLiveRank();
+ setLiveProgram(currentLive.programMode||"chat",false);
+ if($("#liveNowScale")){$("#liveNowScale").value=Math.round((currentLive.live2dScale??.55)*100);$("#liveNowScaleValue").textContent=$("#liveNowScale").value+"%"}if($("#liveNowY")){$("#liveNowY").value=Math.round((currentLive.live2dY??.92)*100);$("#liveNowYValue").textContent=$("#liveNowY").value+"%"}if($("#liveNowX")){$("#liveNowX").value=Math.round((currentLive.live2dX??.5)*100);$("#liveNowXValue").textContent=$("#liveNowX").value+"%"}
+ renderLiveRank();renderLivePk();
  let mid=currentLive.live2dModelId||"",mrec=(live2dStore.models||[]).find(x=>x.id===mid),hdr=$("#biliLiveHeader");
  if(hdr)hdr.innerHTML=`<div class="biliHostAvatar">${st.avatar?`<img src="${esc(st.avatar)}" alt="">`:esc(st.name.charAt(0))}</div><div class="biliHostMeta"><div class="biliHostName">${esc(st.name)}</div><div class="biliHostSub">${Math.max(1,currentLive.likes||0)} 点赞</div></div><button class="biliFollow">＋关注</button><div class="biliMore">⋮</div>`;
  $("#liveStage").style.backgroundImage=currentLive.background?`url("${currentLive.background}")`:"";
@@ -3801,7 +4132,7 @@ async function liveGenerateViewerBurst(reason="ambient"){
  if(!currentLive||!settings.endpoint||!settings.model)return;
  let st=liveStreamerObj(),allowed=liveAllowedContacts(),chars=allowed.slice(0,12).map(c=>`${c.name}: ${(c.character?.personality||c.character?.description||"").slice(0,300)}`).join("\n");
  try{
-  let raw=await api([{role:"system",content:`Generate a small burst of believable livestream comments for a fictional social app. Streamer: ${st.name}. Streamer is ${currentLive.streamerType==="user"?"the user":"an existing character"}. Topic: ${currentLive.topic||currentLive.title||"casual livestream"}. Existing characters may enter using their exact names; ordinary NPC viewers may also comment. Keep it lively but not spammy. 2-5 comments. Return STRICT JSON only: {"comments":[{"authorType":"char|npc","contactName":"exact char name if char","authorName":"npc username if npc","text":"short natural comment","gift":""}]}. Occasionally one comment may include gift like "小花×1", but most should not.`},{role:"user",content:`Reason: ${reason}\nAvailable characters:\n${chars||"(none)"}\nRecent feed:\n${(currentLive.feed||[]).slice(-10).map(x=>`${x.name}: ${x.text}`).join("\n")}`}]);
+  let raw=await api([{role:"system",content:`Generate a small burst of believable livestream comments for a fictional social app. Streamer: ${st.name}. Streamer is ${currentLive.streamerType==="user"?"the user":"an existing character"}. Topic: ${currentLive.topic||currentLive.title||"casual livestream"}. Program mode: ${LIVE_PROGRAMS[currentLive.programMode||"chat"]?.label||"闲聊"}. Existing characters may enter using their exact names; ordinary NPC viewers may also comment. Keep it lively but not spammy. 2-5 comments. Return STRICT JSON only: {"comments":[{"authorType":"char|npc","contactName":"exact char name if char","authorName":"npc username if npc","text":"short natural comment","gift":""}]}. Occasionally one comment may include gift like "小花×1", but most should not.`},{role:"user",content:`Reason: ${reason}\nAvailable characters:\n${chars||"(none)"}\nRecent feed:\n${(currentLive.feed||[]).slice(-10).map(x=>`${x.name}: ${x.text}`).join("\n")}`}]);
   let o=parseForumJson(raw),arr=Array.isArray(o.comments)?o.comments:[];
   for(let item of arr.slice(0,5)){
    let c=item.authorType==="char"?contacts.find(x=>x.name===item.contactName):null,who=c?liveContactObj(c.id):{id:"npc_"+uuid(),name:String(item.authorName||"路人"),avatar:"",isUser:false};
@@ -3814,7 +4145,7 @@ async function liveGenerateViewerBurst(reason="ambient"){
 async function liveCharStreamerReply(userText){
  let st=liveStreamerObj();if(!st||st.isUser||!settings.endpoint||!settings.model)return;
  try{
-  let c=st.contact,raw=await api([{role:"system",content:`You are ${c.name}. ${c.character?.personality||c.character?.description||""}\nYou are currently the streamer in a livestream titled "${currentLive.title}". Topic: ${currentLive.topic||"casual chat"}. Respond naturally to the user's livestream comment as the streamer. Keep it concise and conversational, 1-3 short messages. Do not narrate.`},{role:"user",content:`User comment: ${userText}\nRecent live chat:\n${(currentLive.feed||[]).slice(-8).map(x=>`${x.name}: ${x.text}`).join("\n")}`}]);
+  let c=st.contact,raw=await api([{role:"system",content:`You are ${c.name}. ${c.character?.personality||c.character?.description||""}\nYou are currently the streamer in a livestream titled "${currentLive.title}". Topic: ${currentLive.topic||"casual chat"}. Program mode: ${LIVE_PROGRAMS[currentLive.programMode||"chat"]?.label||"闲聊"}. Respond naturally to the user's livestream comment as the streamer. Keep it concise and conversational, 1-3 short messages. Do not narrate.`},{role:"user",content:`User comment: ${userText}\nRecent live chat:\n${(currentLive.feed||[]).slice(-8).map(x=>`${x.name}: ${x.text}`).join("\n")}`}]);
   let parts=splitAssistantMessages(raw).filter(x=>x.type==="text");for(let p of parts.slice(0,3)){liveAddLine(st,p.content,"streamer");await live2dReactToText(p.content);await speakLiveText(p.content)}
  }catch(e){console.warn("streamer reply failed",e)}
 }
@@ -3824,11 +4155,11 @@ async function liveUserStreamerReaction(userSpeech){
 }
 function startLiveFromSetup(){
  let raw=$("#liveStreamer").value;if(!raw)return toast("先选主播");let [type,id]=raw.split(":"),title=$("#liveTitleInput").value.trim()||"随便聊聊",topic=$("#liveTopicInput").value.trim();
- let viewerIds=$$("#liveViewerPicker input:checked").map(x=>x.value),chosen=$("#liveModelSelect").value||boundLive2dModelId(type,type==="char"?id:"__user__");currentLive={id:uuid(),streamerType:type,streamerId:type==="char"?id:"",title,topic,background:pendingLiveBg||"",viewerContactIds:viewerIds,viewerState:{},live2dModelId:chosen,ttsEnabled:$("#liveTtsEnabled").checked,touchEnabled:$("#liveTouchEnabled").checked,feed:[],viewers:1,peakViewers:1,likes:0,gifts:0,startedAt:Date.now()};
- page("liveStudio");renderLiveStage();renderLiveFeed();setTimeout(()=>liveGenerateViewerBurst("livestream just started"),400)
+ let viewerIds=$$("#liveViewerPicker input:checked").map(x=>x.value),chosen=$("#liveModelSelect").value||boundLive2dModelId(type,type==="char"?id:"__user__");currentLive={id:uuid(),streamerType:type,streamerId:type==="char"?id:"",title,topic,background:pendingLiveBg||"",viewerContactIds:viewerIds,viewerState:{},live2dModelId:chosen,live2dScale:Number($("#liveScaleRange").value||55)/100,live2dY:Number($("#liveYRange").value||92)/100,live2dX:Number($("#liveXRange").value||50)/100,ttsEnabled:$("#liveTtsEnabled").checked,touchEnabled:$("#liveTouchEnabled").checked,faceCaptureEnabled:$("#liveFaceCaptureEnabled").checked,programMode:"chat",feed:[],viewers:1,peakViewers:1,likes:0,gifts:0,startedAt:Date.now()};
+ page("liveStudio");renderLiveStage();renderLiveFeed();startLiveDirector();setTimeout(()=>liveGenerateViewerBurst("livestream just started"),400)
 }
 function endCurrentLive(){
- cleanupLive2dRuntime();if(!currentLive){page("liveRoom");return}let st=liveStreamerObj();liveRoom.history=liveRoom.history||[];liveRoom.history.push({id:currentLive.id,streamerName:st?.name||"主播",title:currentLive.title,time:takeoutTime(),messages:(currentLive.feed||[]).length,peakViewers:currentLive.peakViewers||currentLive.viewers||1,createdAt:Date.now()});saveLiveRoom();currentLive=null;page("liveRoom");renderLiveHome();toast("直播结束")
+ stopLiveDirector();closeLiveTools();closeLivePkTimers();livePk=null;cleanupLive2dRuntime();if(!currentLive){page("liveRoom");return}let st=liveStreamerObj();liveRoom.history=liveRoom.history||[];liveRoom.history.push({id:currentLive.id,streamerName:st?.name||"主播",title:currentLive.title,time:takeoutTime(),messages:(currentLive.feed||[]).length,peakViewers:currentLive.peakViewers||currentLive.viewers||1,createdAt:Date.now()});saveLiveRoom();currentLive=null;page("liveRoom");renderLiveHome();toast("直播结束")
 }
 function renderLiveHistory(){
  let h=(liveRoom.history||[]).slice().reverse();$("#liveHistoryList").innerHTML=h.length?h.map(x=>`<div class="liveRecent"><b>${esc(x.streamerName)} · ${esc(x.title)}</b><div>${esc(x.time)} · ${x.messages||0} 条互动 · 最高 ${x.peakViewers||0} 人在线</div></div>`).join(""):'<div class="empty">还没有直播记录。</div>'
@@ -4188,6 +4519,10 @@ $("#clearLiveModelBtn").onclick=()=>{let b=live2dCurrentStreamerBinding();if(!b.
 $("#liveStreamer").onchange=()=>{live2dFillSelect();refreshLive2dBindingHint()};
 
 
+
+$("#liveScaleRange").oninput=e=>$("#liveScaleValue").textContent=e.target.value+"%";
+$("#liveYRange").oninput=e=>$("#liveYValue").textContent=e.target.value+"%";
+$("#liveXRange").oninput=e=>$("#liveXValue").textContent=e.target.value+"%";
 $("#liveBgFile").onchange=async e=>{let f=e.target.files?.[0];if(!f)return;pendingLiveBg=await dataURL(f);renderLiveBgPreview();e.target.value=""};
 $("#clearLiveBgBtn").onclick=()=>{pendingLiveBg="";renderLiveBgPreview();toast("直播背景已清除")};
 
@@ -4227,6 +4562,30 @@ $("#liveBuzzBtn").onclick=()=>liveGenerateViewerBurst("refresh the room with new
 $("#liveHistoryBtn").onclick=()=>{renderLiveHistory();page("liveHistory")};
 $("#liveComposer").onsubmit=async e=>{e.preventDefault();if(!currentLive)return;let input=$("#liveInput"),t=input.value.trim();if(!t)return;input.value="";let st=liveStreamerObj();if(currentLive.streamerType==="user"){liveAddLine(st,t,"streamer");await live2dReactToText(t);await speakLiveText(t);await liveUserStreamerReaction(t);if(Math.random()<.42)setTimeout(liveCompetitiveEvent,900)}else{let u=liveMaskObj();liveAddLine(u,t,"comment");await liveCharStreamerReply(t);if(Math.random()<.45)liveGenerateViewerBurst(`The user commented: ${t}`)}};
 
+
+function refitLive2d(){try{live2dRuntime.fit?.()}catch(e){console.warn(e)}}
+function syncLiveTuneUI(){if(!currentLive)return;let s=Math.round((currentLive.live2dScale??.55)*100),y=Math.round((currentLive.live2dY??.92)*100),x=Math.round((currentLive.live2dX??.5)*100);$("#liveNowScale").value=s;$("#liveNowScaleValue").textContent=s+"%";$("#liveNowY").value=y;$("#liveNowYValue").textContent=y+"%";$("#liveNowX").value=x;$("#liveNowXValue").textContent=x+"%"}
+$("#liveNowScale").oninput=e=>{if(!currentLive)return;currentLive.live2dScale=Number(e.target.value)/100;$("#liveNowScaleValue").textContent=e.target.value+"%";refitLive2d()};
+$("#liveNowY").oninput=e=>{if(!currentLive)return;currentLive.live2dY=Number(e.target.value)/100;$("#liveNowYValue").textContent=e.target.value+"%";refitLive2d()};
+$("#liveNowX").oninput=e=>{if(!currentLive)return;currentLive.live2dX=Number(e.target.value)/100;$("#liveNowXValue").textContent=e.target.value+"%";refitLive2d()};
+$("#liveSmallerBtn").onclick=()=>{if(!currentLive)return;currentLive.live2dScale=Math.max(.2,(currentLive.live2dScale??.55)-.05);syncLiveTuneUI();refitLive2d()};
+$("#liveLargerBtn").onclick=()=>{if(!currentLive)return;currentLive.live2dScale=Math.min(1.6,(currentLive.live2dScale??.55)+.05);syncLiveTuneUI();refitLive2d()};
+$("#liveLeftBtn").onclick=()=>{if(!currentLive)return;currentLive.live2dX=Math.max(0,(currentLive.live2dX??.5)-.04);syncLiveTuneUI();refitLive2d()};
+$("#liveRightBtn").onclick=()=>{if(!currentLive)return;currentLive.live2dX=Math.min(1,(currentLive.live2dX??.5)+.04);syncLiveTuneUI();refitLive2d()};
+$("#liveUpBtn").onclick=()=>{if(!currentLive)return;currentLive.live2dY=Math.max(.45,(currentLive.live2dY??.92)-.03);syncLiveTuneUI();refitLive2d()};
+$("#liveDownBtn").onclick=()=>{if(!currentLive)return;currentLive.live2dY=Math.min(1.2,(currentLive.live2dY??.92)+.03);syncLiveTuneUI();refitLive2d()};
+
+
+$("#liveToolOpenBtn").onclick=openLiveTools;
+$("#liveToolCloseBtn").onclick=closeLiveTools;
+$("#liveToolMask").onclick=closeLiveTools;
+$("#liveMoreBtn").onclick=openLiveTools;
+$$("[data-live-program]").forEach(b=>b.onclick=()=>setLiveProgram(b.dataset.liveProgram,true));
+$("#livePkBtn").onclick=()=>livePk?.active?toast("PK 已经开始"):openLivePkMenu();
+$("#livePkCancelBtn").onclick=()=>$("#livePkMenu").classList.remove("show");
+$("#livePkEndBtn").onclick=()=>endLivePk("manual");
+
+$("#liveFaceBtn").onclick=()=>faceCaptureRuntime.running?stopLiveFaceCapture():startLiveFaceCapture();
 $("#liveMotionBtn").onclick=()=>triggerLiveMotion();
 $("#liveExpressionBtn").onclick=()=>triggerLiveExpression();
 $("#liveMuteBtn").onclick=()=>{if(!currentLive)return;currentLive.ttsEnabled=!currentLive.ttsEnabled;toast(currentLive.ttsEnabled?"直播语音已开启":"直播语音已关闭")};
