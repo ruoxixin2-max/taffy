@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.8 · 稳定修复（Live2D + 图片兼容）</title>
+<title>咖喱小手机 V8.8.2 · Safari直播防闪退</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -1203,6 +1203,25 @@ body.phoneActive{
 .forumTabs{display:flex;gap:7px;overflow:auto;padding:10px 12px;border-bottom:1px solid var(--line);background:#f5f5f2;scrollbar-width:none}.forumTabs::-webkit-scrollbar{display:none}.forumTab{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;font-size:8px}.forumTab.active{background:#5f605b;color:#fff;border-color:#5f605b}
 .forumToolbar{display:flex;gap:7px;padding:10px 12px 4px}.forumToolbar .btn{padding:9px 8px}.forumList{padding:5px 12px 90px}.forumPost{width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:13px 2px}.forumPostTop{display:flex;gap:7px;align-items:center;margin-bottom:7px}.forumBoardTag{font-size:7px;padding:3px 6px;border-radius:999px;background:#ebeae5;color:#77736b}.forumHot{font-size:7px;color:#9a665e}.forumPostTitle{font-size:12px;font-weight:780;line-height:1.45}.forumPostPreview{font-size:9px;color:var(--muted);line-height:1.55;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.forumPostMeta{font-size:7px;color:#aaa69e;margin-top:7px;display:flex;justify-content:space-between;gap:8px}.forumDetail{padding:14px 13px 90px}.forumThreadHead{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}.forumThreadTitle{font-size:17px;font-weight:800;line-height:1.4}.forumAuthor{font-size:8px;color:#8c887f;margin-top:8px}.forumContent{font-size:11px;line-height:1.75;white-space:pre-wrap;margin-top:11px}.forumReply{padding:12px 2px;border-bottom:1px solid var(--line)}.forumReplyHead{display:flex;justify-content:space-between;gap:8px;font-size:8px}.forumReplyName{font-weight:750;color:#55524c}.forumFloor{color:#aaa69e}.forumReplyText{font-size:10px;line-height:1.7;white-space:pre-wrap;margin-top:6px}.forumComposer{position:absolute;left:10px;right:10px;bottom:10px;z-index:8;display:grid;grid-template-columns:1fr 54px;gap:6px;padding:7px;border:1px solid var(--line);border-radius:18px;background:rgba(250,250,247,.95);backdrop-filter:blur(16px);box-shadow:0 8px 24px #0001}.forumComposer input{min-width:0;border:0;background:transparent;padding:9px;font-size:16px;outline:none}.forumComposer button{border:0;border-radius:13px;background:#5f605b;color:#fff;font-size:9px}.forumForm{display:grid;gap:11px}.forumIdentity{font-size:8px;color:var(--muted);padding:8px 10px;border-radius:10px;background:#f0f0ec}.forumGenStatus{font-size:8px;color:var(--muted);line-height:1.6;padding:0 12px 8px}.forumAnonMark{display:inline-block;margin-left:4px;font-size:7px;color:#999}
 </style>
+
+<style>
+html.safariLiveLowMem [data-page="liveStudio"] *,
+html.safariLiveLowMem [data-page="liveStudio"] *::before,
+html.safariLiveLowMem [data-page="liveStudio"] *::after{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  filter:none!important;
+  text-shadow:none!important;
+}
+html.safariLiveLowMem [data-page="liveStudio"] .livePage,
+html.safariLiveLowMem [data-page="liveStudio"]{
+  contain:layout paint style;
+}
+html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
+  will-change:auto!important;
+}
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -4428,13 +4447,57 @@ async function liveUserStreamerReaction(userSpeech){
  if(!currentLive||currentLive.streamerType!=="user")return;
  await liveGenerateViewerBurst(`The user streamer just said: ${userSpeech}`)
 }
+
+/* ===== V8.8.2 Safari 直播低内存保护 ===== */
+let safariLiveSuspendedMedia=[];
+let safariLiveMediaObserverWasOn=false;
+function safariLiveLowMemoryMode(){
+  return isSafariLive2d?.()||isIOSWebKitLive2d?.();
+}
+function safariLiveMemoryPrep(){
+  if(!safariLiveLowMemoryMode())return;
+  document.documentElement.classList.add("safariLiveLowMem");
+  /* The global IndexedDB media MutationObserver is useful everywhere else,
+     but live comments/danmaku create lots of mutations. Pause it during live. */
+  try{
+    if(typeof curryMediaObserver!=="undefined"){
+      curryMediaObserver.disconnect();
+      safariLiveMediaObserverWasOn=true;
+    }
+  }catch{}
+  /* Hidden pages may keep full-resolution avatars/post images decoded in WebKit.
+     Temporarily release only media OUTSIDE the live page. */
+  safariLiveSuspendedMedia=[];
+  document.querySelectorAll('.page:not([data-page="liveStudio"]) img[src],.page:not([data-page="liveStudio"]) video[src],.page:not([data-page="liveStudio"]) audio[src]').forEach(el=>{
+    try{
+      let src=el.getAttribute("src");
+      if(!src||src.startsWith("blob:")&&el.closest('[data-page="liveStudio"]'))return;
+      safariLiveSuspendedMedia.push({el,src});
+      el.removeAttribute("src");
+      if(el.tagName==="VIDEO"||el.tagName==="AUDIO"){try{el.pause()}catch{}}
+    }catch{}
+  });
+}
+function safariLiveMemoryRestore(){
+  document.documentElement.classList.remove("safariLiveLowMem");
+  let rows=safariLiveSuspendedMedia.splice(0);
+  rows.forEach(({el,src})=>{try{if(el?.isConnected&&!el.getAttribute("src"))el.setAttribute("src",src)}catch{}});
+  try{
+    if(safariLiveMediaObserverWasOn&&typeof curryMediaObserver!=="undefined"){
+      curryMediaObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["src","style"]});
+      safariLiveMediaObserverWasOn=false;
+      hydrateCurryMedia(document);
+    }
+  }catch{}
+}
+
 function startLiveFromSetup(){
- let raw=$("#liveStreamer").value;if(!raw)return toast("先选主播");let [type,id]=raw.split(":"),title=$("#liveTitleInput").value.trim()||"随便聊聊",topic=$("#liveTopicInput").value.trim();
+ let raw=$("#liveStreamer").value;if(!raw)return toast("先选主播");safariLiveMemoryPrep();let [type,id]=raw.split(":"),title=$("#liveTitleInput").value.trim()||"随便聊聊",topic=$("#liveTopicInput").value.trim();
  let viewerIds=$$("#liveViewerPicker input:checked").map(x=>x.value),chosen=$("#liveModelSelect").value||boundLive2dModelId(type,type==="char"?id:"__user__");currentLive={id:uuid(),streamerType:type,streamerId:type==="char"?id:"",title,topic,background:pendingLiveBg||"",viewerContactIds:viewerIds,viewerState:{},live2dModelId:chosen,live2dScale:Number($("#liveScaleRange").value||55)/100,live2dY:Number($("#liveYRange").value||92)/100,live2dX:Number($("#liveXRange").value||50)/100,ttsEnabled:$("#liveTtsEnabled").checked,touchEnabled:$("#liveTouchEnabled").checked,faceCaptureEnabled:$("#liveFaceCaptureEnabled").checked,programMode:"chat",feed:[],viewers:1,peakViewers:1,likes:0,gifts:0,startedAt:Date.now()};
  page("liveStudio");renderLiveStage();renderLiveFeed();startLiveDirector();setTimeout(()=>liveGenerateViewerBurst("livestream just started"),400)
 }
 function endCurrentLive(){
- stopLiveDirector();closeLiveTools();closeLivePkTimers();livePk=null;cleanupLive2dRuntime();if(!currentLive){page("liveRoom");return}let st=liveStreamerObj();liveRoom.history=liveRoom.history||[];liveRoom.history.push({id:currentLive.id,streamerName:st?.name||"主播",title:currentLive.title,time:takeoutTime(),messages:(currentLive.feed||[]).length,peakViewers:currentLive.peakViewers||currentLive.viewers||1,createdAt:Date.now()});saveLiveRoom();currentLive=null;page("liveRoom");renderLiveHome();toast("直播结束")
+ stopLiveDirector();closeLiveTools();closeLivePkTimers();livePk=null;cleanupLive2dRuntime();safariLiveMemoryRestore();if(!currentLive){page("liveRoom");return}let st=liveStreamerObj();liveRoom.history=liveRoom.history||[];liveRoom.history.push({id:currentLive.id,streamerName:st?.name||"主播",title:currentLive.title,time:takeoutTime(),messages:(currentLive.feed||[]).length,peakViewers:currentLive.peakViewers||currentLive.viewers||1,createdAt:Date.now()});saveLiveRoom();currentLive=null;page("liveRoom");renderLiveHome();toast("直播结束")
 }
 function renderLiveHistory(){
  let h=(liveRoom.history||[]).slice().reverse();$("#liveHistoryList").innerHTML=h.length?h.map(x=>`<div class="liveRecent"><b>${esc(x.streamerName)} · ${esc(x.title)}</b><div>${esc(x.time)} · ${x.messages||0} 条互动 · 最高 ${x.peakViewers||0} 人在线</div></div>`).join(""):'<div class="empty">还没有直播记录。</div>'
