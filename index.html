@@ -1671,12 +1671,6 @@ html,body,#root,#root *,#root *::before,#root *::after{
 <section class="page" data-page="notes"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">备忘录</div><div></div></header><textarea class="note" id="notes" placeholder="写点什么。"></textarea></section>
 <section class="page" data-page="settings"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">设置</div><div></div></header><div class="body">
 <div class="settingGroup"><h3>API CONNECTION</h3><div class="settingBox form"><div class="field"><label>Chat Completions 地址</label><input class="input" id="endpoint" placeholder="https://example.com/v1（也支持完整 /chat/completions）"></div><div class="field"><label>API Key</label><input class="input" id="key" type="password" autocomplete="off"></div><div class="field"><label>模型</label><div class="modelPullRow"><input class="input" id="model" placeholder="model-name"><button class="btn modelPullBtn" id="pullModels" type="button">拉取模型</button></div><select class="input modelFetchedSelect hidden" id="fetchedModelSelect"><option value="">选择已拉取模型</option></select><div class="help" id="modelPullHint">地址可直接填写 Base URL（如 /v1）；聊天会自动补 /chat/completions，拉模型自动走 /models。也支持填写完整接口。</div></div><div class="field"><label><input id="rememberKey" type="checkbox"> 在此浏览器记住 Key</label><div class="help">关闭时 Key 只保留到本页刷新前。公开部署网页时不要把正式密钥写进源码。</div></div><div class="actions"><button class="btn primary" id="saveSettings">保存</button><button class="btn" id="testApi">测试 API</button></div><div class="statusText" id="apiStatus"></div></div></div>
-<div class="settingGroup"><h3>REQUEST DEBUG</h3><div class="settingBox form">
-<div class="help">诊断手动聊天与自主消息的请求差异。不会记录 Authorization / API Key；图片 URL 会折叠为长度信息，避免日志本身撑爆 Safari。</div>
-<textarea class="cssEditor" id="apiDebugLog" spellcheck="false" readonly style="min-height:220px;background:#171917;color:#eef2ed" placeholder="发送一次消息后，这里会出现请求和响应摘要。"></textarea>
-<div class="actions"><button class="btn" id="copyApiDebug" type="button">复制日志</button><button class="btn" id="clearApiDebug" type="button">清空日志</button></div>
-<div class="statusText" id="apiDebugStatus">等待请求…</div>
-</div></div>
 
 <div class="settingGroup"><h3>IMAGE GENERATION API</h3><div class="settingBox form">
 <div class="field"><label>服务商</label><select class="input" id="imageProvider">
@@ -2713,48 +2707,7 @@ function prompt(c,userText=""){let x=c.character,m=activeMask(),wb=matchedWorldb
 replyRhythmPrompt(userText),
 x.systemPrompt,`You are ${c.name}.`,contextSummaryText(c.id)&&"A compressed long-term chat memory may be supplied as a separate system message. Treat it as established shared history.",x.description&&`Description:\n${x.description}`,x.personality&&`Personality:\n${x.personality}`,x.scenario&&`Scenario:\n${x.scenario}`,x.mesExample&&`Example dialogue:\n${x.mesExample}`,x.rawText&&`Additional character material:\n${x.rawText}`,m&&`Current user persona (${m.name}):\nUser name: ${m.userName||"user"}\n${m.prompt||""}`,wb&&`Worldbook information:\n${wb}`,anniv,food,sticker,mcp].filter(Boolean).join("\n\n")}
 function chatCompletionsUrl(endpoint){let raw=String(endpoint||"").trim();if(!raw)return "";try{let u=new URL(raw),p=u.pathname.replace(/\/+$/g,"");if(/\/chat\/completions$/i.test(p)){}else if(/\/responses$/i.test(p))p=p.replace(/\/responses$/i,"/chat/completions");else if(/\/models$/i.test(p))p=p.replace(/\/models$/i,"/chat/completions");else if(/\/completions$/i.test(p))p=p.replace(/\/completions$/i,"/chat/completions");else if(/\/v\d+$/i.test(p))p+="/chat/completions";else p+="/chat/completions";u.pathname=p;return u.toString()}catch{return raw}}
-const CURRY_API_DEBUG_KEY="curry_api_debug_v1";
-let curryApiDebugRows=[];
-function curryDebugSafeContent(v){
-  if(Array.isArray(v))return v.map(x=>{
-    if(!x||typeof x!=="object")return x;
-    if(x.type==="image_url"){
-      let u=String(x.image_url?.url||"");
-      return {type:"image_url",image_url:{url:u?`[IMAGE_URL ${u.startsWith("data:")?"data":"url"} len=${u.length}]`:"",detail:x.image_url?.detail||""}};
-    }
-    return x;
-  });
-  return v;
-}
-function curryDebugPayload(payload){return {model:payload.model,temperature:payload.temperature,max_tokens:payload.max_tokens,messages:(payload.messages||[]).map((m,i)=>({index:i,role:m.role,content:curryDebugSafeContent(m.content)}))}}
-function curryRenderApiDebug(){
-  let el=document.getElementById("apiDebugLog");if(!el)return;
-  el.value=curryApiDebugRows.map(x=>JSON.stringify(x,null,2)).join("\n\n==============================\n\n");
-  let st=document.getElementById("apiDebugStatus");if(st){let x=curryApiDebugRows[curryApiDebugRows.length-1];st.textContent=x?`${x.tag} · ${x.status||"pending"} · ${x.elapsedMs??0}ms · ${x.request?.messages?.length||0} messages`:"等待请求…"}
-}
-function curryPushApiDebug(row){curryApiDebugRows.push(row);if(curryApiDebugRows.length>8)curryApiDebugRows.shift();curryRenderApiDebug();console.log("[咖喱小手机 API DEBUG]",row)}
-window.curryApiDebug=()=>curryApiDebugRows;
-async function api(messages,o=null,debugTag="api"){
-  let s=o||settings,key=o?.apiKey??sessionKey;
-  if(!s.endpoint)throw Error("请先填写 API 地址");if(!s.model)throw Error("请填写模型");
-  let headers={"Content-Type":"application/json"};if(key)headers.Authorization="Bearer "+key;
-  let url=chatCompletionsUrl(s.endpoint),payload={model:s.model,messages,temperature:Number(s.temperature??.8),max_tokens:Number(s.maxTokens??800)};
-  let row={time:new Date().toISOString(),tag:debugTag,url,request:curryDebugPayload(payload),requestChars:JSON.stringify(curryDebugPayload(payload)).length};
-  curryPushApiDebug(row);let started=performance.now(),r,d;
-  try{
-    r=await fetch(url,{method:"POST",headers,body:JSON.stringify(payload)});
-    row.httpStatus=r.status;row.httpOk=r.ok;row.finalUrl=r.url||url;
-    try{d=await r.json()}catch(e){row.status="NON_JSON";row.elapsedMs=Math.round(performance.now()-started);row.responseText="API 返回的不是 JSON";curryRenderApiDebug();throw Error("API 返回的不是 JSON · "+r.status+" · "+(r.url||url))}
-    row.elapsedMs=Math.round(performance.now()-started);
-    if(!r.ok){row.status="ERROR";row.error=d?.error?.message||d?.message||"HTTP "+r.status;row.responsePreview=JSON.stringify(d).slice(0,2000);curryRenderApiDebug();throw Error(row.error)}
-    let out=d?.choices?.[0]?.message?.content;
-    if(typeof out!=="string"){row.status="BAD_SHAPE";row.responsePreview=JSON.stringify(d).slice(0,2000);curryRenderApiDebug();throw Error("未找到 choices[0].message.content")}
-    row.status="OK";row.responseChars=out.length;row.responsePreview=out.slice(0,800);curryRenderApiDebug();return out.trim()
-  }catch(e){
-    if(!row.status){row.status="FETCH_ERROR";row.elapsedMs=Math.round(performance.now()-started);row.error=e?.message||String(e);curryRenderApiDebug()}
-    throw e
-  }
-}
+async function api(messages,o=null){let s=o||settings,key=o?.apiKey??sessionKey;if(!s.endpoint)throw Error("请先填写 API 地址");if(!s.model)throw Error("请填写模型");let headers={"Content-Type":"application/json"};if(key)headers.Authorization="Bearer "+key;let url=chatCompletionsUrl(s.endpoint);let r=await fetch(url,{method:"POST",headers,body:JSON.stringify({model:s.model,messages,temperature:Number(s.temperature??.8),max_tokens:Number(s.maxTokens??800)})}),d;try{d=await r.json()}catch{throw Error("API 返回的不是 JSON · "+r.status+" · "+(r.url||url))}if(!r.ok)throw Error(d?.error?.message||d?.message||"HTTP "+r.status);let out=d?.choices?.[0]?.message?.content;if(typeof out!=="string")throw Error("未找到 choices[0].message.content");return out.trim()}
 $("#chatForm").onsubmit=e=>{e.preventDefault();let text=$("#chatInput").value.trim();if(!text)return;let k=convoKey(currentContact),h=convos[k]||[];h.push({msgId:uuid(),role:"user",content:text,time:now(),sentAt:Date.now(),createdAt:Date.now(),replyTo:replyTarget?{msgId:replyTarget.msgId,name:replyTarget.name,text:replyTarget.text}:undefined});convos[k]=h;save(K.convos,convos);$("#chatInput").value="";clearReplyTarget();renderChat()};
 
 function splitAssistantMessages(raw){let src=String(raw||"").trim(),out=[],re=/<message>([\s\S]*?)<\/message>|<sticker>\s*<url>([\s\S]*?)<\/url>\s*<mood>([\s\S]*?)<\/mood>\s*<\/sticker>|<voice>([\s\S]*?)<\/voice>|<image>([\s\S]*?)<\/image>|<transfer>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/transfer>|<takeout>\s*<shop>([\s\S]*?)<\/shop>\s*<items>([\s\S]*?)<\/items>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/takeout>/gi,m;while((m=re.exec(src))!==null){if(m[1]!=null)out.push({type:"text",content:m[1].trim()});else if(m[2]!=null)out.push({type:"sticker",url:m[2].trim(),mood:m[3].trim()});else if(m[4]!=null)out.push({type:"voice_request",text:m[4].trim()});else if(m[5]!=null)out.push({type:"image_request",prompt:m[5].trim()});else if(m[6]!=null)out.push({type:"transfer",amount:Number(m[6])||0,note:m[7].trim()});else out.push({type:"takeout_request",shop:m[8].trim(),items:m[9].trim(),amount:Number(m[10])||0,note:m[11].trim()})}if(out.length)return out.slice(0,12);let cleaned=src.replace(/<\/?message>/gi,"").trim();return cleaned?[{type:"text",content:cleaned}]:[]}
@@ -3292,13 +3245,6 @@ function fill(){ $("#endpoint").value=settings.endpoint||"";$("#model").value=se
   maxChars:Math.max(500,Number($("#summaryMaxChars").value||3500))
 };save(K.summarySettings,summarySettings);toast("上下文记忆设置已保存")}});
 
-setTimeout(()=>{
-  let copy=document.getElementById("copyApiDebug"),clear=document.getElementById("clearApiDebug");
-  if(copy)copy.onclick=async()=>{let el=document.getElementById("apiDebugLog"),txt=el?.value||"";if(!txt)return toast("还没有调试日志");try{await navigator.clipboard.writeText(txt);toast("调试日志已复制")}catch{el?.focus();el?.select();toast("已选中日志 请手动复制")}};
-  if(clear)clear.onclick=()=>{curryApiDebugRows=[];curryRenderApiDebug();toast("调试日志已清空")};
-  curryRenderApiDebug();
-},0);
-
 $("#saveSettings").onclick=()=>{settings.endpoint=$("#endpoint").value.trim();settings.model=$("#model").value.trim();settings.temperature=Number($("#temperature").value||.8);settings.maxTokens=Number($("#maxTokens").value||800);settings.rememberKey=$("#rememberKey").checked;sessionKey=$("#key").value.trim();if(settings.rememberKey)settings.apiKey=sessionKey;else delete settings.apiKey;save(K.settings,settings);$("#apiStatus").textContent="设置已保存";toast("设置已保存")};
 $("#testApi").onclick=async()=>{let s={endpoint:$("#endpoint").value.trim(),model:$("#model").value.trim(),temperature:0,maxTokens:16,apiKey:$("#key").value.trim()};$("#apiStatus").textContent="正在测试…";try{let x=await api([{role:"user",content:"Reply with OK."}],s);$("#apiStatus").textContent="连接成功："+x.slice(0,40)}catch(e){$("#apiStatus").textContent="连接失败："+e.message}};
 $("#notes").value=localStorage.getItem(K.notes)||"";$("#notes").oninput=e=>localStorage.setItem(K.notes,e.target.value);
@@ -3700,7 +3646,7 @@ function mcpToolPrompt(){
 async function apiWithMcp(messages){
  let working=[...messages];
  for(let round=0;round<4;round++){
-   let raw=await api(working,null,"manual_chat"),m=String(raw).match(/<mcp_call>([\s\S]*?)<\/mcp_call>/i);
+   let raw=await api(working),m=String(raw).match(/<mcp_call>([\s\S]*?)<\/mcp_call>/i);
    if(!m)return raw;
    let req;try{req=JSON.parse(m[1])}catch{return raw}
    let s=mcpServers.find(v=>v.id===req.server&&v.enabled);if(!s)return raw;
@@ -3977,7 +3923,7 @@ function renderInitiative(){
 function renderInitiativeLog(){let box=$("#initiativeLog");if(!box)return;box.innerHTML=(initiative.log||[]).length?initiative.log.slice(0,20).map(x=>`<div class="initiativeLogItem"><b>${esc(x.name)}</b> · ${esc(initiativeActionLabel(x.type))}<br>${esc(x.text||"")}</div>`).join(""):'<div class="empty">还没有主动行为。</div>'}
 async function generateInitiativeText(c,type){
  let prompts={message:"主动给 User 发一条很短的私聊消息。不要解释，不要旁白。",selfie:"你决定主动给 User 发一张自拍。只写随自拍一起发的极短文字，不要描述图片细节。",moment:"写一条你会主动发布的短朋友圈。不要解释。",live:"你准备主动开直播。给出一个很短的直播标题。",game:"你想主动邀请 User 一起玩游戏。写一句很短的邀请。",call:"你正在主动给 User 打电话。写一句来电前可能发的短消息。"};
- try{let raw=await api([{role:"system",content:`You are ${c.name}. ${(c.character?.personality||c.character?.description||"").slice(0,1000)} ${charNetworkContext(c.id)}\n${prompts[type]||prompts.message}\nStay strictly in character.`}],null,"initiative");let p=splitAssistantMessages(raw).find(x=>x.type==="text");return (p?.content||"").trim().slice(0,300)}catch(e){console.warn("initiative generation failed",e);return ""}
+ try{let raw=await api([{role:"system",content:`You are ${c.name}. ${(c.character?.personality||c.character?.description||"").slice(0,1000)} ${charNetworkContext(c.id)}\n${prompts[type]||prompts.message}\nStay strictly in character.`}]);let p=splitAssistantMessages(raw).find(x=>x.type==="text");return (p?.content||"").trim().slice(0,300)}catch(e){console.warn("initiative generation failed",e);return ""}
 }
 async function performInitiative(c,type){
  let text=await generateInitiativeText(c,type);if(!text)text=({message:"在吗？",selfie:"给你看一眼。",moment:"今天就这样。",live:"随便聊聊",game:"来一局？",call:"接一下。"})[type];
