@@ -1223,6 +1223,14 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
 </style>
 
 
+
+<style>
+/* ===== V8.8.26 transfer modal: lives inside the main app, not an external patch ===== */
+#curryTransferModal{position:fixed;inset:0;z-index:1000000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(22,23,24,.34);box-sizing:border-box}
+#curryTransferModal.show{display:flex!important}
+#curryTransferModal .curryTransferPanel{width:min(360px,calc(100vw - 36px));box-sizing:border-box;padding:18px;border:1px solid rgba(80,80,76,.14);border-radius:22px;background:#fafaf7;color:#343633;box-shadow:0 24px 70px rgba(0,0,0,.18)}
+.curryTransferHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.curryTransferEyebrow{font-size:8px;letter-spacing:.18em;color:#9a9a93}.curryTransferTitle{margin-top:3px;font-size:20px;font-weight:800}.curryTransferClose{width:34px;height:34px;border:0;border-radius:50%;background:#eeeeea;color:#676861;font-size:22px;line-height:1}.curryTransferField{display:block;margin-top:13px}.curryTransferField>span{display:block;margin:0 0 6px 2px;font-size:10px;color:#8a8b84}.curryTransferField>input,.curryTransferAmount{width:100%;box-sizing:border-box;border:1px solid #deded8;border-radius:14px;background:#fff}.curryTransferField>input{height:44px;padding:0 13px;outline:none;font-size:14px;color:#343633}.curryTransferAmount{height:54px;display:flex;align-items:center;padding:0 13px}.curryTransferAmount b{font-size:21px;margin-right:8px}.curryTransferAmount input{min-width:0;flex:1;border:0;outline:0;background:transparent;font-size:27px;font-weight:700;color:#292b28}.curryTransferActions{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin-top:18px}.curryTransferActions button{height:42px;border:0;border-radius:14px;background:#ecece7;color:#55564f;font-size:12px;font-weight:650}.curryTransferActions button.primary{background:#353733;color:#fff}
+</style>
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -1358,6 +1366,7 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
 <section class="page" data-page="messages"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">消息</div><div></div></header><div class="body" id="conversationList"></div></section>
 <section class="page chatPage" data-page="chat"><header class="head"><button class="back" data-back="messages">返回</button><div class="chatTitleStack"><div class="headTitle" id="chatTitle"></div><div class="onlineBadge">在线</div></div><div style="display:flex;align-items:center"><button class="summaryBtn" id="chatSummaryBtn" type="button" title="聊天总结">Σ</button><button class="chatSearchBtn" id="chatCallBtn" type="button" title="通话">Call</button><button class="chatSearchBtn" id="chatSearchBtn" type="button" title="搜索聊天">⌕</button></div></header><div class="searchBar" id="chatSearchBar"><input id="chatSearchInput" placeholder="搜索聊天内容"><button id="chatSearchClose" type="button">关闭</button></div><div class="chatBody" id="chatBody"></div><div class="pendingHint" id="pendingHint">已发送消息；继续发送，或按“回复”让角色统一回复</div><div class="stickerPicker" id="stickerPicker"><div class="stickerPickerGrid" id="stickerPickerGrid"></div></div>
 <div class="mediaPicker" id="mediaPicker"><div class="mediaPickerGrid"><button type="button" class="mediaAction curryMediaAction curryMediaImage" id="userImageBtn">发图片</button><button type="button" class="mediaAction curryMediaAction curryMediaTransfer" id="userTransferBtn">转账</button><button type="button" class="mediaAction" id="closeMediaPicker">取消</button></div><input id="userImageFile" type="file" accept="image/*" hidden></div>
+<div class="curryTransferModal" id="curryTransferModal" aria-hidden="true"><div class="curryTransferPanel" role="dialog" aria-modal="true" aria-labelledby="curryTransferTitle"><div class="curryTransferHead"><div><div class="curryTransferEyebrow">TRANSFER</div><div class="curryTransferTitle" id="curryTransferTitle">转账</div></div><button type="button" class="curryTransferClose" id="curryTransferClose" aria-label="关闭">×</button></div><label class="curryTransferField"><span>金额</span><div class="curryTransferAmount"><b>¥</b><input id="curryTransferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00"></div></label><label class="curryTransferField"><span>备注</span><input id="curryTransferNote" type="text" maxlength="60" placeholder="转账"></label><div class="curryTransferActions"><button type="button" id="curryTransferCancel">取消</button><button type="button" class="primary" id="curryTransferConfirm">确认转账</button></div></div></div>
 <form class="compose" id="chatForm"><div class="replyDraft" id="replyDraft"><b id="replyDraftName"></b><div class="replyDraftText" id="replyDraftText"></div><button class="replyDraftClose" id="replyDraftClose" type="button">×</button></div><textarea id="chatInput" placeholder="输入消息"></textarea><button class="stickerBtn" id="stickerBtn" type="button">表情</button><button class="stickerBtn" id="mediaBtn" type="button">＋</button><button class="send" id="sendBtn" type="submit">发送</button><button class="replyBtn" id="replyBtn" type="button">回复</button></form></section>
 
 <section class="page" data-page="chatSummary">
@@ -2728,7 +2737,16 @@ $("#mediaBtn").onclick=()=>{$("#stickerPicker").classList.remove("show");$("#med
 $("#closeMediaPicker").onclick=()=>$("#mediaPicker").classList.remove("show");
 $("#userImageBtn").onclick=()=>$("#userImageFile").click();
 $("#userImageFile").onchange=async e=>{let f=e.target.files[0];if(!f||!currentContact)return;let url=await dataURL(f),k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",type:"image",url,caption:f.name,time:now(),createdAt:Date.now()});convos[k]=h;save(K.convos,convos);$("#mediaPicker").classList.remove("show");renderChat();e.target.value=""};
-$("#userTransferBtn").onclick=()=>{if(!currentContact)return;let raw=prompt("转账金额");if(raw===null)return;let amount=Number(raw);if(!Number.isFinite(amount)||amount<=0)return toast("金额不正确");let note=prompt("转账备注（可留空）")||"转账";let k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",type:"transfer",amount,note,time:now(),createdAt:Date.now()});convos[k]=h;save(K.convos,convos);$("#mediaPicker").classList.remove("show");renderChat()};
+function closeCurryTransfer(){let dlg=$("#curryTransferModal");if(!dlg)return;dlg.classList.remove("show");dlg.setAttribute("aria-hidden","true")}
+function openCurryTransfer(){if(!currentContact)return;let dlg=$("#curryTransferModal"),amount=$("#curryTransferAmount"),note=$("#curryTransferNote");if(!dlg||!amount||!note)return toast("转账窗口加载失败");$("#mediaPicker")?.classList.remove("show");amount.value="";note.value="";dlg.classList.add("show");dlg.setAttribute("aria-hidden","false");setTimeout(()=>amount.focus(),30)}
+function submitCurryTransfer(){if(!currentContact)return closeCurryTransfer();let amount=Number($("#curryTransferAmount")?.value),note=($("#curryTransferNote")?.value||"").trim()||"转账";if(!Number.isFinite(amount)||amount<=0)return toast("金额不正确");let k=convoKey(currentContact),h=convos[k]||[];h.push({role:"user",type:"transfer",amount,note,time:now(),createdAt:Date.now()});convos[k]=h;save(K.convos,convos);closeCurryTransfer();renderChat()}
+$("#userTransferBtn").onclick=openCurryTransfer;
+$("#curryTransferClose").onclick=closeCurryTransfer;
+$("#curryTransferCancel").onclick=closeCurryTransfer;
+$("#curryTransferConfirm").onclick=submitCurryTransfer;
+$("#curryTransferModal").onclick=e=>{if(e.target===$("#curryTransferModal"))closeCurryTransfer()};
+$("#curryTransferAmount").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitCurryTransfer()}else if(e.key==="Escape")closeCurryTransfer()});
+$("#curryTransferNote").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitCurryTransfer()}else if(e.key==="Escape")closeCurryTransfer()});
 
 function resizeChatInput(){
   const el=$("#chatInput");
@@ -5778,67 +5796,4 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
-
-<style id="transfer-dialog-fix-style">
-#transferDialog{position:absolute;inset:0;z-index:260;display:none;align-items:flex-end;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-#transferDialog.show{display:flex!important}
-#transferDialog .transferDialogCard{width:100%;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:#fafbf8;box-shadow:0 -18px 45px rgba(0,0,0,.14)}
-#transferDialog .transferDialogTitle{font-size:15px;font-weight:750;margin-bottom:14px}
-#transferDialog .transferDialogLabel{font-size:9px;color:#7c817b;margin:10px 2px 6px}
-#transferDialog .transferAmountRow{display:flex;align-items:center;border:1px solid #d2d5cf;border-radius:14px;background:#fff;padding:0 12px}
-#transferDialog .transferCurrency{font-size:22px;font-weight:700;margin-right:7px}
-#transferDialog input{width:100%;height:48px;border:0!important;outline:0!important;background:transparent!important;font-size:22px!important;padding:0!important}
-#transferDialog #transferNoteInput{font-size:15px!important}
-#transferDialog .transferDialogActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
-#transferDialog .transferDialogActions button{height:43px;border-radius:13px;border:1px solid #d0d3cd;background:#fff;font-size:11px}
-#transferDialog #transferConfirm{background:#30342f;color:#fff;border-color:#30342f}
-</style>
-<div id="transferDialog" aria-hidden="true">
-  <div class="transferDialogCard">
-    <div class="transferDialogTitle">转账</div>
-    <div class="transferDialogLabel">金额</div>
-    <div class="transferAmountRow"><span class="transferCurrency">¥</span><input id="transferAmountInput" inputmode="decimal" type="text" placeholder="0.00" autocomplete="off"></div>
-    <div class="transferDialogLabel">备注</div>
-    <div class="transferAmountRow"><input id="transferNoteInput" type="text" maxlength="40" placeholder="转账" autocomplete="off"></div>
-    <div class="transferDialogActions"><button type="button" id="transferCancel">取消</button><button type="button" id="transferConfirm">确认转账</button></div>
-  </div>
-</div>
-<script id="transfer-dialog-fix-js">
-(() => {
-  const btn=document.getElementById('userTransferBtn');
-  const picker=document.getElementById('mediaPicker');
-  const dlg=document.getElementById('transferDialog');
-  const amount=document.getElementById('transferAmountInput');
-  const note=document.getElementById('transferNoteInput');
-  const cancel=document.getElementById('transferCancel');
-  const confirm=document.getElementById('transferConfirm');
-  if(!btn||!dlg||!amount||!note||!confirm)return;
-  const close=()=>{dlg.classList.remove('show');dlg.setAttribute('aria-hidden','true');amount.value='';note.value='';};
-  btn.onclick=(e)=>{
-    e.preventDefault();e.stopPropagation();
-    if(!currentContact){ if(typeof toast==='function') toast('请先进入一个聊天'); return; }
-    picker?.classList.remove('show');
-    dlg.classList.add('show');dlg.setAttribute('aria-hidden','false');
-    setTimeout(()=>amount.focus(),50);
-  };
-  cancel.onclick=(e)=>{e.preventDefault();close();};
-  dlg.onclick=(e)=>{if(e.target===dlg)close();};
-  confirm.onclick=(e)=>{
-    e.preventDefault();
-    if(!currentContact){close();return;}
-    const normalized=String(amount.value||'').trim().replace(/，/g,'.').replace(/,/g,'');
-    const value=Number(normalized);
-    if(!Number.isFinite(value)||value<=0){if(typeof toast==='function')toast('金额不正确');amount.focus();return;}
-    const finalAmount=Math.round(value*100)/100;
-    const finalNote=String(note.value||'').trim()||'转账';
-    const k=convoKey(currentContact), h=convos[k]||[];
-    h.push({role:'user',type:'transfer',amount:finalAmount,note:finalNote,time:now(),createdAt:Date.now()});
-    convos[k]=h;save(K.convos,convos);
-    close();renderChat();
-    requestAnimationFrame(()=>{const body=document.getElementById('chatBody');if(body)body.scrollTop=body.scrollHeight;});
-  };
-  amount.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();note.focus();}});
-  note.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();confirm.click();}});
-})();
-</script>
 </body></html>
