@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.8.2 · Safari直播防闪退</title>
+<title>咖喱小手机 V8.8.24 · 残影彻底清除版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -1222,6 +1222,7 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
 }
 </style>
 
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -1355,7 +1356,7 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
   </div>
 </section>
 <section class="page" data-page="messages"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">消息</div><div></div></header><div class="body" id="conversationList"></div></section>
-<section class="page chatPage" data-page="chat"><header class="head"><button class="back" data-back="messages">返回</button><div class="chatTitleStack"><div class="headTitle" id="chatTitle"></div><div class="onlineBadge">在线</div></div><div style="display:flex;align-items:center"><button class="summaryBtn" id="chatSummaryBtn" type="button" title="聊天总结">Σ</button><button class="chatSearchBtn" id="chatCallBtn" type="button" title="通话">Call</button><button class="chatSearchBtn" id="chatSearchBtn" type="button" title="搜索聊天">⌕</button><select class="maskSelect" id="chatMaskSelect" title="切换 User 面具"></select></div></header><div class="searchBar" id="chatSearchBar"><input id="chatSearchInput" placeholder="搜索聊天内容"><button id="chatSearchClose" type="button">关闭</button></div><div class="chatBody" id="chatBody"></div><div class="pendingHint" id="pendingHint">已发送消息；继续发送，或按“回复”让角色统一回复</div><div class="stickerPicker" id="stickerPicker"><div class="stickerPickerGrid" id="stickerPickerGrid"></div></div>
+<section class="page chatPage" data-page="chat"><header class="head"><button class="back" data-back="messages">返回</button><div class="chatTitleStack"><div class="headTitle" id="chatTitle"></div><div class="onlineBadge">在线</div></div><div style="display:flex;align-items:center"><button class="summaryBtn" id="chatSummaryBtn" type="button" title="聊天总结">Σ</button><button class="chatSearchBtn" id="chatCallBtn" type="button" title="通话">Call</button><button class="chatSearchBtn" id="chatSearchBtn" type="button" title="搜索聊天">⌕</button></div></header><div class="searchBar" id="chatSearchBar"><input id="chatSearchInput" placeholder="搜索聊天内容"><button id="chatSearchClose" type="button">关闭</button></div><div class="chatBody" id="chatBody"></div><div class="pendingHint" id="pendingHint">已发送消息；继续发送，或按“回复”让角色统一回复</div><div class="stickerPicker" id="stickerPicker"><div class="stickerPickerGrid" id="stickerPickerGrid"></div></div>
 <div class="mediaPicker" id="mediaPicker"><div class="mediaPickerGrid"><button class="mediaAction" id="userImageBtn">发图片</button><button class="mediaAction" id="userTransferBtn">转账</button><button class="mediaAction" id="closeMediaPicker">取消</button></div><input id="userImageFile" type="file" accept="image/*" hidden></div>
 <form class="compose" id="chatForm"><div class="replyDraft" id="replyDraft"><b id="replyDraftName"></b><div class="replyDraftText" id="replyDraftText"></div><button class="replyDraftClose" id="replyDraftClose" type="button">×</button></div><textarea id="chatInput" placeholder="输入消息"></textarea><button class="stickerBtn" id="stickerBtn" type="button">表情</button><button class="stickerBtn" id="mediaBtn" type="button">＋</button><button class="send" id="sendBtn" type="submit">发送</button><button class="replyBtn" id="replyBtn" type="button">回复</button></form></section>
 
@@ -2115,12 +2116,36 @@ function renderHome39(){
  updateMessageBadge();
 } 
 function renderConvos(){let e=$("#conversationList"),m=activeMask();e.innerHTML=contacts.length?contacts.map(c=>{let h=convos[convoKey(c.id)]||[],l=h[h.length-1],u=unreadFor(c.id);return `<button class="row convoRow" data-id="${c.id}">${av(c)}<div><div class="name">${esc(c.name)}</div><div class="sub">${esc(convoPreview(l))} · ${esc(m?.name||"默认 user")}</div></div>${u?`<span class="convoUnread">${u>99?"99+":u}</span>`:""}<div class="tiny">${esc(l?.time||"")}</div></button>`}).join(""):'<div class="empty">还没有联系人。<br>先去联系人 App 创建角色。</div>';$$('.convoRow').forEach(b=>b.onclick=()=>openChat(b.dataset.id));updateMessageBadge()}
-function fillChatMaskSelect(){let sel=$("#chatMaskSelect");sel.innerHTML=masks.map(m=>`<option value="${m.id}" ${m.id===activeMaskId?"selected":""}>${esc(m.name)}</option>`).join("")}
-$("#chatMaskSelect").onchange=e=>{activeMaskId=e.target.value;localStorage.setItem(K.activeMask,activeMaskId);renderChat();toast("已切换 User 面具；对话已切换")}
+function fillChatMaskSelect(){let sel=$("#chatMaskSelect");if(!sel)return;sel.innerHTML=masks.map(m=>`<option value="${m.id}" ${m.id===activeMaskId?"selected":""}>${esc(m.name)}</option>`).join("")}
+if($("#chatMaskSelect"))$("#chatMaskSelect").onchange=e=>{activeMaskId=e.target.value;localStorage.setItem(K.activeMask,activeMaskId);renderChat();toast("已切换 User 面具；对话已切换")}
 function openChat(id){currentContact=id;chatSearchTerm="";clearReplyTarget();let c=contacts.find(x=>x.id===id);if(!c)return;$("#chatTitle").textContent=c.name;fillChatMaskSelect();let k=convoKey(id);if(!convos[k])convos[k]=[];if(!convos[k].length&&c.character.firstMes){convos[k].push({role:"assistant",content:c.character.firstMes,time:now()});save(K.convos,convos)}renderChat();page("chat");markChatRead(id);renderChat();renderPresence()}
 function pendingUserCount(h){let n=0;for(let i=h.length-1;i>=0;i--){if(h[i].role==="assistant")break;if(h[i].role==="user")n++}return n}
 function messagePlain(m){if(!m)return"";if(m.recalled)return"[消息已撤回]";if(m.type==="sticker")return`[表情] ${m.mood||""}`;if(m.type==="image")return`[图片] ${m.caption||""}`;if(m.type==="voice")return`[语音] ${m.transcript||""}`;if(m.type==="transfer")return`[转账] ¥${Number(m.amount||0).toFixed(2)} ${m.note||""}`;if(m.type==="takeout")return`[外卖] ${m.shop||""} ${String(m.items||"").replace(/\n/g," / ")} ¥${Number(m.amount||0).toFixed(2)}`;return m.content||""}
-function renderChat(){let h=convos[convoKey(currentContact)]||[],pending=pendingUserCount(h),c=contacts.find(x=>x.id===currentContact),theme=effectiveChatBeauty(),mask=activeMask();applyChatBeauty(theme);let listenAvatar=(obj,cls)=>`<div class="listenTogetherAvatar ${cls}">${obj?.avatar?`<img src="${esc(obj.avatar)}" alt="">`:esc((obj?.userName||obj?.name||"?").trim().charAt(0)||"?")}</div>`,listenTogether=`<div class="listenTogetherAvatars">${listenAvatar(mask,"listenAvatarUser")}${listenAvatar(c,"listenAvatarChar")}</div>`;$("#chatBody").innerHTML=listenTogether+(h.length?h.map((m,i)=>{let body=m.recalled?`<span class="recalledMessage">消息已撤回</span>`:m.type==="sticker"?`<img src="${esc(m.url)}" alt="${esc(m.mood||"表情包")}">`:m.type==="image"?`<img src="${esc(m.url)}" alt="图片消息">`:m.type==="voice"?`<div class="voiceBubble"><span>🎙</span><audio controls src="${esc(m.url)}"></audio></div>`:m.type==="transfer"?`<div class="transferAmount">¥ ${Number(m.amount||0).toFixed(2)}</div><div class="transferNote">${esc(m.note||"转账")}</div>`:m.type==="takeout"?`<div class="takeoutChatCard"><div class="takeoutChatTop"><div class="takeoutChatShop">${esc(m.shop||"外卖订单")}</div><div class="takeoutChatItems">${esc(m.items||"")}</div></div><div class="takeoutChatBottom"><span>${esc(takeoutStatusText(m.status))}</span><b>¥${Number(m.amount||0).toFixed(2)}</b></div></div>`:esc(m.content),isUser=m.role==="user",showAvatar=theme.showAvatar&&!isUser&&c,avatarHtml=showAvatar?av(c,"chatAvatar"):"",q=m.replyTo,quote=q?`<div class="quoteBox"><div class="quoteName">${esc(q.name||"")}</div><div class="quoteText">${esc(q.text||"")}</div></div>`:"",hit=chatSearchTerm&&messagePlain(m).toLowerCase().includes(chatSearchTerm.toLowerCase()),classes=`msg ${isUser?"user":""} ${isUser&&i>=h.length-pending?"pending":""} ${["sticker","image"].includes(m.type)?"stickerMsg richMedia":""} ${m.type==="transfer"?"transferMsg":""} ${showAvatar?"charWithAvatar":""} ${hit?"searchHit":""}`;return `<div class="${classes}" data-msg-index="${i}">${avatarHtml}<div class="${showAvatar?"chatContent":""}"><div class="bubble ${m.type==="transfer"?"transferBubble":""}">${quote}${body}</div><div class="tiny">${esc(m.time||"")}</div>${isUser?`<div class="msgState">${m.readByChar?"已读":"已送达"}</div>`:""}</div></div>`}).join(""):'<div class="empty">这个面具下还没有对话。</div>');let p=presence[currentContact]||{};if(p.typing)$("#chatBody").insertAdjacentHTML("beforeend",`<div class="typingRow"><span class="typingDots"><i></i><i></i><i></i></span><span>${esc(c?.name||"对方")} 正在输入…</span></div>`);$("#chatBody").scrollTop=$("#chatBody").scrollHeight;fillChatMaskSelect();$("#pendingHint").classList.toggle("show",pending>0);$("#replyBtn").disabled=pending===0;bindMessageMenus();renderPresence()}
+function renderChat(){
+  let h=convos[convoKey(currentContact)]||[],pending=pendingUserCount(h),c=contacts.find(x=>x.id===currentContact),theme=effectiveChatBeauty(),mask=activeMask();
+  applyChatBeauty(theme);
+  const avatarHTML=(obj,cls)=>{let name=(obj?.userName||obj?.name||"u").trim(),url=obj?.avatar||"";return `<div class="${cls}">${url?`<img src="${esc(url)}" alt="">`:esc(name.charAt(0)||"u")}</div>`};
+  const timeLabel=(ts)=>{let d=new Date(Number(ts)||0),n=new Date();if(!Number.isFinite(d.getTime())||!Number(ts))return"";let hm=new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}).format(d),y=new Date(n);y.setDate(n.getDate()-1);if(d.toDateString()===n.toDateString())return `今天 ${hm}`;if(d.toDateString()===y.toDateString())return `昨天 ${hm}`;return new Intl.DateTimeFormat("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(d)};
+  const html=h.length?h.map((m,i)=>{
+    let body=m.recalled?`<span class="recalledMessage">消息已撤回</span>`:m.type==="sticker"?`<img src="${esc(m.url)}" alt="${esc(m.mood||"表情包")}">`:m.type==="image"?`<img src="${esc(m.url)}" alt="图片消息">`:m.type==="voice"?`<div class="voiceBubble"><span>🎙</span><audio controls src="${esc(m.url)}"></audio></div>`:m.type==="transfer"?`<div class="transferAmount">¥ ${Number(m.amount||0).toFixed(2)}</div><div class="transferNote">${esc(m.note||"转账")}</div>`:m.type==="takeout"?`<div class="takeoutChatCard"><div class="takeoutChatTop"><div class="takeoutChatShop">${esc(m.shop||"外卖订单")}</div><div class="takeoutChatItems">${esc(m.items||"")}</div></div><div class="takeoutChatBottom"><span>${esc(takeoutStatusText(m.status))}</span><b>¥${Number(m.amount||0).toFixed(2)}</b></div></div>`:esc(m.content),
+      isUser=m.role==="user", side=isUser?"user":"char", prev=h[i-1], next=h[i+1], prevSide=prev?(prev.role==="user"?"user":"char"):null, nextSide=next?(next.role==="user"?"user":"char"):null,
+      groupStart=side!==prevSide, groupEnd=side!==nextSide,
+      q=m.replyTo,quote=q?`<div class="quoteBox"><div class="quoteName">${esc(q.name||"")}</div><div class="quoteText">${esc(q.text||"")}</div></div>`:"",
+      hit=chatSearchTerm&&messagePlain(m).toLowerCase().includes(chatSearchTerm.toLowerCase()),
+      classes=`msg curryMsg ${isUser?"user":"char"} ${groupStart?"uiGroupStart":""} ${groupEnd?"uiGroupEnd":"uiGrouped"} ${isUser&&i>=h.length-pending?"pending":""} ${["sticker","image"].includes(m.type)?"stickerMsg richMedia":""} ${m.type==="transfer"?"transferMsg":""} ${hit?"searchHit":""}`,
+      avatar=avatarHTML(isUser?mask:c,isUser?"curryUserAvatar":"chatAvatar"),
+      stackClass=isUser?"curryUserContent":"chatContent",
+      ts=Number(m.createdAt||m.sentAt||0),prevTs=Number(prev?.createdAt||prev?.sentAt||0),
+      divider=ts&&(i===0||!prevTs||ts-prevTs>=10*60*1000||new Date(ts).toDateString()!==new Date(prevTs).toDateString())?`<div class="chatTimeDivider"><span>${esc(timeLabel(ts))}</span></div>`:"";
+    const onePiece=groupEnd?`<svg class="bubbleShapeSvg ${isUser?"shapeUser":"shapeChar"}" viewBox="0 0 120 60" preserveAspectRatio="none" aria-hidden="true"><path d="M18 0 H92 Q110 0 110 18 V36 Q110 46 120 53 Q115 57 108 54 Q103 60 92 60 H18 Q0 60 0 42 V18 Q0 0 18 0 Z"/></svg>`:"";
+    return `${divider}<div class="${classes}" data-msg-index="${i}">${avatar}<div class="${stackClass}"><div class="bubbleWrap ${groupEnd?"hasOnePiece":""}">${onePiece}<div class="bubble ${m.type==="transfer"?"transferBubble":""}">${quote}${body}</div></div><div class="tiny">${esc(m.time||"")}</div>${isUser?`<div class="msgState">${m.readByChar?"已读":"已送达"}</div>`:""}</div></div>`;
+  }).join(""):'<div class="empty">这个面具下还没有对话。</div>';
+  $("#chatBody").innerHTML=html;
+  let p=presence[currentContact]||{};
+  if(p.typing)$("#chatBody").insertAdjacentHTML("beforeend",`<div class="typingRow"><span class="typingDots"><i></i><i></i><i></i></span><span>${esc(c?.name||"对方")} 正在输入…</span></div>`);
+  $("#chatBody").scrollTop=$("#chatBody").scrollHeight;
+  fillChatMaskSelect();$("#pendingHint").classList.toggle("show",pending>0);$("#replyBtn").disabled=pending===0;bindMessageMenus();renderPresence();
+}
 function ensureMessageIds(h){let changed=false;(h||[]).forEach(m=>{if(!m.msgId){m.msgId=uuid();changed=true}});return changed}
 function getMessageById(id){let h=convos[convoKey(currentContact)]||[];ensureMessageIds(h);return h.find(m=>m.msgId===id)}
 function clearReplyTarget(){replyTarget=null;$("#replyDraft").classList.remove("show")}
@@ -2568,7 +2593,18 @@ function imagePromptForContact(scenePrompt,contactId=currentContact){
 }
 function historyContent(m){if(m.recalled)return "";let prefix=m.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";if(m.type==="sticker")return prefix+`[STICKER: ${m.mood||""} | ${m.url}]`;if(m.type==="image")return prefix+`[IMAGE MESSAGE: ${m.caption||""}]`;if(m.type==="voice")return prefix+`[VOICE MESSAGE: ${m.transcript||""}]`;if(m.type==="transfer")return prefix+`[TRANSFER: ¥${Number(m.amount||0).toFixed(2)} ${m.note||""}]`;if(m.type==="takeout")return prefix+`[TAKEOUT: ${m.shop||""}; ${String(m.items||"").replace(/\n/g," / ")}; ¥${Number(m.amount||0).toFixed(2)}; ${m.note||""}]`;return prefix+(m.content||"")}
 async function materializeAssistantPiece(part){if(part.type==="takeout_request"){let o={id:uuid(),direction:"charToUser",contactId:currentContact,shop:part.shop||"外卖",items:part.items||"",amount:Number(part.amount)||0,note:part.note||"",status:"ordered",createdAt:Date.now(),updatedAt:Date.now(),time:takeoutTime()};takeout.orders=takeout.orders||[];takeout.orders.push(o);saveTakeout();return{role:"assistant",type:"takeout",orderId:o.id,shop:o.shop,items:o.items,amount:o.amount,note:o.note,status:o.status,direction:o.direction,time:now(),createdAt:Date.now()}}if(part.type==="voice_request"){let url=await generateVoice(part.text);return{role:"assistant",type:"voice",url,transcript:part.text,time:now(),createdAt:Date.now()}}if(part.type==="image_request"){let finalPrompt=imagePromptForContact(part.prompt,currentContact),url=await generateImage(finalPrompt,null,contactImageContext(currentContact));return{role:"assistant",type:"image",url,caption:part.prompt,time:now(),createdAt:Date.now()}}if(part.type==="transfer")return{role:"assistant",type:"transfer",amount:part.amount,note:part.note,time:now(),createdAt:Date.now()};if(part.type==="sticker")return{role:"assistant",type:"sticker",url:part.url,mood:part.mood,time:now(),createdAt:Date.now()};return{role:"assistant",content:part.content,time:now(),createdAt:Date.now()}}
-$("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>x.content).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let raw=await apiWithMcp([{role:"system",content:prompt(c,userText)},...contextMessagesForChat(currentContact)]),pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
+function curryRealTimeContext(history=[]){
+  const d=new Date(), tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"本地时区";
+  const weekday=new Intl.DateTimeFormat("zh-CN",{weekday:"long"}).format(d);
+  const stamp=new Intl.DateTimeFormat("zh-CN",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(d);
+  const h=d.getHours();
+  const period=h<5?"凌晨":h<9?"早上":h<12?"上午":h<14?"中午":h<18?"下午":h<23?"晚上":"深夜";
+  const last=[...history].reverse().find(m=>Number(m.createdAt||m.sentAt));
+  let gap="无可用的上一条消息时间";
+  if(last){const ms=Math.max(0,Date.now()-Number(last.createdAt||last.sentAt));const min=Math.floor(ms/60000);gap=min<1?"不到1分钟":min<60?`${min}分钟`:min<1440?`${Math.floor(min/60)}小时${min%60?min%60+"分钟":""}`:`${Math.floor(min/1440)}天${Math.floor((min%1440)/60)?Math.floor((min%1440)/60)+"小时":""}`;}
+  return `[现实时间信息｜仅用于理解当前聊天时间，不要机械复述]\n当前时间：${stamp} ${weekday}\n时区：${tz}\n当前时段：${period}\n距最近一条已记录消息：${gap}`;
+}
+$("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>x.content).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let raw=await apiWithMcp([{role:"system",content:prompt(c,userText)+"\n\n"+curryRealTimeContext(h)},...contextMessagesForChat(currentContact)]),pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
 
 $("#mediaBtn").onclick=()=>{$("#stickerPicker").classList.remove("show");$("#mediaPicker").classList.toggle("show")};
 $("#closeMediaPicker").onclick=()=>$("#mediaPicker").classList.remove("show");
@@ -5121,5 +5157,448 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
   else bind();
 })();
 </script>
+
+
+
+<style id="chat-polish-v883">
+/* ===== V8.8.3 Chat polish · 冰透玻璃 / 低干扰 ===== */
+:root{
+  --chat-glass:rgba(246,249,250,.66);
+  --chat-glass-strong:rgba(249,251,252,.82);
+  --chat-ink:#35434b;
+  --chat-subtle:rgba(67,83,94,.42);
+  --chat-line:rgba(118,143,157,.15);
+  --chat-shadow:0 8px 28px rgba(53,74,87,.06);
+}
+
+/* 1. 整体：让壁纸成为主体，页面本身不再铺一层“网页灰” */
+.chatPage{background:transparent!important}
+.chatPage .head{
+  height:58px!important;
+  min-height:58px!important;
+  grid-template-columns:58px minmax(0,1fr) auto!important;
+  padding:0 10px 0 4px!important;
+  border-bottom:1px solid var(--chat-line)!important;
+  background:rgba(245,249,251,.62)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(1.08);
+  backdrop-filter:blur(12px) saturate(1.08);
+  box-shadow:0 1px 0 rgba(255,255,255,.26) inset!important;
+}
+.chatPage .back{
+  width:54px!important;height:40px!important;padding:0!important;
+  color:#50616b!important;font-size:11px!important;font-weight:500!important;
+  opacity:.82;
+}
+.chatTitleStack{gap:2px!important;min-width:0}
+.chatTitleStack .headTitle{
+  font-size:16px!important;line-height:1.12!important;font-weight:650!important;
+  letter-spacing:-.015em;color:var(--chat-ink)!important;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.onlineBadge{font-size:9px!important;color:rgba(76,96,106,.43)!important;font-weight:500!important}
+.onlineBadge::before{width:4px!important;height:4px!important;background:#8aa99a!important;box-shadow:none!important}
+
+/* 2. 顶部工具：统一为轻量图标按钮，不再像后台工具栏 */
+.chatPage .head>div:last-child{gap:3px!important;min-width:0}
+.summaryBtn,.chatSearchBtn{
+  width:30px!important;height:30px!important;min-width:30px!important;
+  margin:0!important;padding:0!important;border:1px solid rgba(116,139,151,.15)!important;
+  border-radius:50%!important;background:rgba(255,255,255,.34)!important;
+  color:#60727c!important;display:grid!important;place-items:center!important;
+  box-shadow:none!important;line-height:1!important;
+}
+.summaryBtn{font:500 13px/1 Georgia,serif!important}
+#chatCallBtn,#chatSearchBtn{font-size:0!important}
+#chatCallBtn::before{content:"⌕";font-size:15px;transform:rotate(-38deg);display:block;opacity:.88}
+#chatSearchBtn::before{content:"⌕";font-size:15px;display:block;opacity:.88}
+/* 3. 聊天区：少边框、少阴影、更多空气 */
+.chatBody{
+  padding:18px 15px 18px!important;
+  background-color:transparent!important;
+  scroll-padding-bottom:18px;
+}
+.msg{margin-bottom:13px!important}
+.msg.uiGrouped{margin-bottom:4px!important}
+.msg.uiGroupEnd{margin-bottom:14px!important}
+.msg>div{max-width:77%!important}
+.msg.charWithAvatar>.chatContent{max-width:calc(77% - 31px)!important}
+.bubble{
+  padding:9px 12px!important;
+  border:1px solid rgba(255,255,255,.38)!important;
+  border-radius:17px!important;
+  background:rgba(250,252,253,.74)!important;
+  color:#40515b!important;
+  box-shadow:0 3px 12px rgba(52,74,87,.035)!important;
+  -webkit-backdrop-filter:blur(7px);
+  backdrop-filter:blur(7px);
+  line-height:1.58!important;
+}
+.msg.user .bubble{
+  background:rgba(226,234,247,.72)!important;
+  border-color:rgba(210,222,242,.66)!important;
+  color:#40505a!important;
+}
+.msg.pending .bubble{border-style:solid!important}
+.chatAvatar{width:24px!important;height:24px!important;margin-right:7px!important;border:1px solid rgba(255,255,255,.6);box-shadow:0 2px 7px rgba(0,0,0,.04)}
+.tiny,.msgState{font-size:8px!important;color:rgba(72,91,102,.31)!important;line-height:1.2!important}
+.tiny{margin-top:4px!important}
+.msgState{margin-top:2px!important;min-height:0!important}
+.msg:not(.uiGroupEnd) .tiny,.msg:not(.uiGroupEnd) .msgState{display:none!important}
+
+/* 取消任何主题里可能给用户消息加上的“时间轴”视觉 */
+.chatBody .msg.user::before,.chatBody .msg.user::after,
+.chatBody .msg.user>div::before,.chatBody .msg.user>div::after,
+.chatBody .msgState::before,.chatBody .msgState::after{box-shadow:none!important}
+
+/* 4. 搜索与等待提示也改成同一种玻璃语言 */
+.searchBar{
+  top:62px!important;left:10px!important;right:10px!important;
+  border:1px solid var(--chat-line)!important;background:var(--chat-glass-strong)!important;
+  border-radius:16px!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:var(--chat-shadow)!important;
+}
+.pendingHint{
+  bottom:76px!important;border:0!important;background:rgba(245,249,251,.72)!important;
+  color:rgba(73,91,101,.48)!important;box-shadow:none!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
+
+/* 5. 输入栏：去掉“圆角套圆角”，变成一条悬浮玻璃控制条 */
+#root.phoneMode .chatPage>.compose,
+#root.immersive .chatPage>.compose,
+.fullscreenPhone #root .chatPage>.compose,
+.chatPage>.compose{
+  width:calc(100% - 20px)!important;max-width:calc(100% - 20px)!important;
+  margin:0 10px calc(8px + var(--phone-safe-bottom,0px))!important;
+  min-height:58px!important;padding:6px!important;gap:4px!important;
+  grid-template-columns:32px 32px minmax(0,1fr) 36px 43px!important;
+  align-items:center!important;
+  border:1px solid rgba(119,144,157,.14)!important;
+  border-radius:19px!important;
+  background:rgba(242,248,251,.68)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(1.06);
+  backdrop-filter:blur(12px) saturate(1.06);
+  box-shadow:0 8px 24px rgba(49,72,86,.07),0 1px 0 rgba(255,255,255,.48) inset!important;
+}
+.compose textarea{
+  min-height:40px!important;max-height:88px!important;padding:10px 9px!important;
+  border:0!important;border-radius:13px!important;background:rgba(255,255,255,.28)!important;
+  color:#40515b!important;box-shadow:none!important;
+}
+.compose textarea::placeholder{color:rgba(76,95,106,.37)}
+.compose textarea:focus{background:rgba(255,255,255,.44)!important}
+.stickerBtn{
+  width:32px!important;height:32px!important;border:0!important;background:transparent!important;
+  color:#6f828d!important;box-shadow:none!important;
+}
+#stickerBtn::before{font-size:17px!important;opacity:.72}
+#mediaBtn::before{font-size:21px!important;opacity:.72}
+.send{
+  width:36px!important;height:36px!important;min-width:36px!important;
+  border:0!important;border-radius:50%!important;background:rgba(174,204,226,.64)!important;
+  color:#f9fcff!important;box-shadow:none!important;
+}
+.send::before{font-size:18px!important;font-weight:450!important}
+.send:disabled{opacity:.42!important}
+.replyBtn{
+  width:43px!important;height:32px!important;padding:0!important;border:0!important;
+  border-radius:999px!important;background:rgba(255,255,255,.27)!important;
+  color:rgba(76,94,105,.48)!important;font-size:9px!important;box-shadow:none!important;
+}
+.replyBtn:not(:disabled){background:rgba(218,230,239,.62)!important;color:#5d7481!important}
+
+.replyDraft{
+  border:0!important;border-radius:12px!important;background:rgba(255,255,255,.38)!important;
+  color:#5e707a!important;
+}
+.stickerPicker,.mediaPicker{
+  border:1px solid var(--chat-line)!important;background:rgba(246,250,252,.9)!important;
+  box-shadow:0 12px 30px rgba(48,70,84,.09)!important;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+}
+
+/* iPhone 窄屏：宁可略缩工具，也不挤标题 */
+@media(max-width:390px){
+  .chatPage .head{grid-template-columns:52px minmax(0,1fr) auto!important;padding-right:6px!important}
+  .summaryBtn,.chatSearchBtn{width:28px!important;height:28px!important;min-width:28px!important}
+  .maskSelect{min-width:58px!important;max-width:72px!important;padding-left:7px!important}
+  .chatTitleStack .headTitle{font-size:15px!important}
+  #root.phoneMode .chatPage>.compose,#root.immersive .chatPage>.compose,.fullscreenPhone #root .chatPage>.compose{width:calc(100% - 16px)!important;max-width:calc(100% - 16px)!important;margin-left:8px!important;margin-right:8px!important}
+}
+
+/* ===== V8.8.5 聊天标题：相对整屏绝对居中 ===== */
+.chatPage .head{
+  position:relative!important;
+}
+.chatPage .head>.chatTitleStack{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:max-content!important;
+  max-width:44%!important;
+  margin:0!important;
+  z-index:1!important;
+  pointer-events:none!important;
+}
+.chatPage .head>.back,
+.chatPage .head>div:last-child{
+  position:relative!important;
+  z-index:2!important;
+}
+.chatPage .head>.chatTitleStack .headTitle{
+  text-align:center!important;
+  width:100%!important;
+}
+</style>
+
+<style id="chat-ui-clean-v8818">
+/* ===== V8.8.18 聊天气泡：底角一体化尾巴 =====
+   目标：头像随消息、无描边软气泡、连续消息成组、独立 SVG 小翘尾。
+   尾巴不借用页面背景色，因此更换纯色/渐变/壁纸都不会露底。 */
+
+/* 宿主 iOS 已经有状态栏，隐藏小手机自己的重复状态栏。 */
+#root.phoneMode .status,
+#root.immersive .status,
+.fullscreenPhone #root .status{
+  display:none!important;
+  height:0!important;
+  min-height:0!important;
+  padding:0!important;
+}
+
+.listenTogetherAvatars{display:none!important}
+.chatBody{padding:22px 14px 126px!important}
+
+/* 真实时间分隔：只显示文字，不做胶囊。 */
+.chatTimeDivider{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  margin:18px 0 20px!important;
+  clear:both!important;
+}
+.chatTimeDivider span{
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:rgba(72,82,90,.42)!important;
+  font-size:10px!important;
+  font-weight:650!important;
+  letter-spacing:.02em!important;
+}
+
+/* 行：头像 + 内容列；user 镜像。 */
+#chatBody .curryMsg{
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  gap:8px!important;
+  width:100%!important;
+  margin:0 0 5px!important;
+  overflow:visible!important;
+}
+#chatBody .curryMsg.user{flex-direction:row-reverse!important}
+#chatBody .curryMsg.uiGroupEnd{margin-bottom:14px!important}
+#chatBody .curryMsg>.chatContent,
+#chatBody .curryMsg>.curryUserContent{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  max-width:77%!important;
+  min-width:0!important;
+}
+#chatBody .curryMsg.user>.curryUserContent{align-items:flex-end!important}
+
+/* 头像只在一组最后一条出现；其它行保留占位，保证气泡左/右边缘整齐。 */
+#chatBody .chatAvatar,
+#chatBody .curryUserAvatar{
+  display:grid!important;
+  visibility:visible!important;
+  place-items:center!important;
+  width:31px!important;
+  height:31px!important;
+  min-width:31px!important;
+  max-width:31px!important;
+  flex:0 0 31px!important;
+  margin:0 0 -1px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  overflow:hidden!important;
+  background:#dfe3e5!important;
+  color:#667078!important;
+  box-shadow:none!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  line-height:1!important;
+}
+#chatBody .chatAvatar img,
+#chatBody .curryUserAvatar img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:50%!important;
+}
+#chatBody .curryMsg:not(.uiGroupEnd)>.chatAvatar,
+#chatBody .curryMsg:not(.uiGroupEnd)>.curryUserAvatar{visibility:hidden!important}
+
+/* bubbleWrap 是气泡和尾巴唯一的定位容器。 */
+#chatBody .bubbleWrap{
+  position:relative!important;
+  display:inline-block!important;
+  max-width:100%!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+#chatBody .curryMsg.user .bubbleWrap{align-self:flex-end!important}
+#chatBody .curryMsg.char .bubbleWrap{align-self:flex-start!important}
+
+/* 气泡：无描边、无阴影，稍扁、圆润。颜色仍读取聊天主题变量。 */
+#chatBody .curryMsg .bubble{
+  position:relative!important;
+  z-index:2!important;
+  max-width:100%!important;
+  padding:8px 13px!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:19px!important;
+  background:var(--char-bubble,#fff)!important;
+  box-shadow:none!important;
+  color:#3f474c!important;
+  font-size:14px!important;
+  line-height:1.48!important;
+  overflow:visible!important;
+}
+#chatBody .curryMsg.user .bubble{
+  background:var(--user-bubble,#e7eef9)!important;
+  color:#424b54!important;
+}
+
+/* 清掉所有旧伪元素，尾巴只允许由下面的 SVG 负责。 */
+#chatBody .curryMsg .bubble::before,
+#chatBody .curryMsg .bubble::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* ===== V8.8.20：P2 单一路径气泡 =====
+   末条消息不再是“圆角矩形 + 外挂尾巴”。
+   整个可见轮廓由一个 SVG path 一次画完；文字只是叠在上面。 */
+#chatBody .bubbleShapeSvg{
+  position:absolute!important;
+  top:0!important;
+  bottom:0!important;
+  height:100%!important;
+  width:calc(100% + 13px)!important;
+  display:block!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+  z-index:0!important;
+}
+#chatBody .bubbleShapeSvg path{stroke:none!important}
+#chatBody .bubbleShapeSvg.shapeUser{right:-10px!important}
+#chatBody .bubbleShapeSvg.shapeUser path{fill:var(--user-bubble,#e7eef9)!important}
+#chatBody .bubbleShapeSvg.shapeChar{left:-10px!important;transform:scaleX(-1)!important}
+#chatBody .bubbleShapeSvg.shapeChar path{fill:var(--char-bubble,#fff)!important}
+
+/* 只有末条气泡交给单一路径绘制；本体背景必须透明，否则又会看到“完整圆角 + 尾巴”。 */
+#chatBody .curryMsg.uiGroupEnd .bubbleWrap{isolation:isolate!important}
+#chatBody .curryMsg.uiGroupEnd .bubble{
+  z-index:1!important;
+  background:transparent!important;
+  border-radius:0!important;
+}
+#chatBody .curryMsg.uiGroupEnd.user .bubble{padding-right:15px!important}
+#chatBody .curryMsg.uiGroupEnd.char .bubble{padding-left:15px!important}
+
+/* 非末条仍是普通圆润气泡。 */
+#chatBody .curryMsg:not(.uiGroupEnd).user .bubble{background:var(--user-bubble,#e7eef9)!important}
+#chatBody .curryMsg:not(.uiGroupEnd).char .bubble{background:var(--char-bubble,#fff)!important}
+
+/* 不允许任何旧尾巴残留。 */
+#chatBody .bubbleTailExternal{display:none!important}
+#chatBody .curryMsg .bubble::before,#chatBody .curryMsg .bubble::after{content:none!important;display:none!important}
+
+/* 参考图风格：单条消息下不常驻“16:48 / 已送达”。 */
+#chatBody .curryMsg .tiny,
+#chatBody .curryMsg .msgState,
+#chatBody .curryMsg .msgTime,
+#chatBody .curryMsg .messageTime,
+#chatBody .curryMsg .msgMeta{display:none!important}
+
+/* 连续消息靠近；换说话人后再拉开。 */
+#chatBody .curryMsg.uiGrouped{margin-bottom:5px!important}
+#chatBody .curryMsg.uiGroupEnd{margin-bottom:14px!important}
+
+@media(max-width:390px){
+  .chatBody{padding-left:12px!important;padding-right:12px!important}
+  #chatBody .curryMsg>.chatContent,
+  #chatBody .curryMsg>.curryUserContent{max-width:78%!important}
+}
+/* ===== V8.8.22 主体圆角修复 =====
+   末条气泡仍为单一 SVG 路径；左上/左下/右上恢复明确圆角，
+   只有右下角进入尾巴，避免整颗末条气泡被拉成方块。 */
+/* ===== V8.8.23 矩形底清除 =====
+   末条消息只允许 SVG path 着色；所有承载层强制透明，彻底清掉残留矩形底。 */
+#chatBody .curryMsg.uiGroupEnd > .chatContent,
+#chatBody .curryMsg.uiGroupEnd > .curryUserContent,
+#chatBody .curryMsg.uiGroupEnd .bubbleWrap,
+#chatBody .curryMsg.uiGroupEnd .bubble,
+#chatBody .curryMsg.uiGroupEnd .bubbleShapeSvg{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+#chatBody .curryMsg.uiGroupEnd .bubbleWrap{
+  padding:0!important;
+  border-radius:0!important;
+}
+#chatBody .curryMsg.uiGroupEnd .bubble{
+  border-radius:0!important;
+  overflow:visible!important;
+}
+#chatBody .curryMsg.uiGroupEnd .bubbleShapeSvg rect,
+#chatBody .curryMsg.uiGroupEnd .bubbleShapeSvg ellipse,
+#chatBody .curryMsg.uiGroupEnd .bubbleShapeSvg circle{
+  display:none!important;
+  fill:none!important;
+}
+#chatBody .curryMsg.uiGroupEnd .bubbleShapeSvg path{
+  opacity:1!important;
+}
+
+</style>
+
+
+
+<style>
+/* ===== V8.8.24 残影彻底清除 =====
+   真正的矩形残影来自早期 .bubble 的 backdrop-filter：
+   即使 background 已透明，Safari 仍会按元素矩形盒绘制模糊层。
+   末条消息只保留 SVG path 着色，禁用所有滤镜/混合效果。 */
+#chatBody .curryMsg.uiGroupEnd > .chatContent,
+#chatBody .curryMsg.uiGroupEnd > .curryUserContent,
+#chatBody .curryMsg.uiGroupEnd .bubbleWrap,
+#chatBody .curryMsg.uiGroupEnd .bubble,
+#chatBody .curryMsg.uiGroupEnd .bubbleShapeSvg {
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+#chatBody .curryMsg.uiGroupEnd .bubble {
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+</style>
 
 </body></html>
