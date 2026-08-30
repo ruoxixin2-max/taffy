@@ -4,8 +4,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>咖喱小手机 V8.8.25 · 表情包视觉理解版</title>
 <style>
-:root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
 #root{min-height:100vh;display:flex;justify-content:center;align-items:flex-start}.shell{width:100%;min-height:100vh;position:relative;overflow:hidden;background:var(--paper);transition:width .5s,min-height .5s,border-radius .5s,box-shadow .5s}
 .web{min-height:100vh;background:linear-gradient(180deg,#fbfbfa,#eeeeeb);transition:.3s}nav{height:66px;padding:0 6vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.logo{font-size:12px;letter-spacing:.18em;font-weight:700}.navcopy{font-size:11px;color:var(--muted)}
 .hero{min-height:calc(100vh - 66px);display:grid;place-items:center;padding:50px 8vw}.heroIn{width:min(920px,100%);display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center}.kicker{font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:16px}.hero h1{font:400 clamp(42px,7vw,78px)/1.03 Georgia,"Songti SC",serif;margin:0 0 20px;letter-spacing:-.04em}.hero p{color:var(--muted);line-height:1.9;font-size:14px;max-width:520px}.pill{border:0;border-radius:999px;padding:13px 21px;background:var(--accent);color:#fff;margin-top:18px}.art{height:340px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,#fff,#e8eae6);box-shadow:0 22px 50px #00000012;position:relative}.art:after{content:"咖喱 / 小手机";position:absolute;left:28px;bottom:28px;font:28px Georgia,serif;color:#4a4e49}
@@ -1848,6 +1848,27 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
   </div>
 
   <div class="settingGroup">
+    <h3>FONT</h3>
+    <div class="settingBox form">
+      <div class="field">
+        <label>全局字体</label>
+        <input class="input" id="fontFamilyInput" placeholder="例如：PingFang SC / Noto Sans SC">
+        <div class="help">可直接填写系统字体名称；也可以上传本地字体文件。上传字体仅保存在当前浏览器本机。</div>
+      </div>
+      <div class="field">
+        <label>上传字体文件</label>
+        <label class="fileBtn">选择 .ttf / .otf / .woff / .woff2<input id="fontFile" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"></label>
+        <div class="statusText" id="fontStatus">当前：默认字体</div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="applyFont" type="button">应用字体</button>
+        <button class="btn" id="resetFont" type="button">恢复默认</button>
+      </div>
+      <div style="margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#f8f9f6;font-size:15px" id="fontPreview">字体预览：付常声今天也要好好说话 123 ABC</div>
+    </div>
+  </div>
+
+  <div class="settingGroup">
     <h3>CUSTOM CSS</h3>
     <div class="settingBox">
       <textarea class="cssEditor" id="customCss" spellcheck="false" placeholder=".home { ... }&#10;.icon { ... }"></textarea>
@@ -1917,6 +1938,8 @@ let beauty=Object.assign({
   iconRadius:17,
   iconOpacity:.66,
   customCss:"",
+  fontFamily:"",
+  fontUploaded:false,
   icons:{}
 },load(K.beauty,{}));
 let chatBeauty=Object.assign({wallpaper:"",overlay:.18,userBubble:"#dce1da",charBubble:"#ffffff",radius:15,font:11,showAvatar:false,customCss:""},load(K.chatBeauty,{}));
@@ -3629,6 +3652,16 @@ async function apiWithMcp(messages){
 }
 applyChatBeauty();
 
+const CURRY_FONT_DB="curry_phone_fonts_v1",CURRY_FONT_STORE="fonts",CURRY_FONT_ID="global";
+let curryFontDbPromise=null,curryFontObjectUrl="";
+function openCurryFontDb(){if(curryFontDbPromise)return curryFontDbPromise;curryFontDbPromise=new Promise((res,rej)=>{let r=indexedDB.open(CURRY_FONT_DB,1);r.onupgradeneeded=()=>{let db=r.result;if(!db.objectStoreNames.contains(CURRY_FONT_STORE))db.createObjectStore(CURRY_FONT_STORE,{keyPath:"id"})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return curryFontDbPromise}
+async function saveCurryFont(file){let db=await openCurryFontDb();return new Promise((res,rej)=>{let tx=db.transaction(CURRY_FONT_STORE,"readwrite");tx.objectStore(CURRY_FONT_STORE).put({id:CURRY_FONT_ID,blob:file,name:file.name,type:file.type||"font/woff2"});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function getCurryFont(){let db=await openCurryFontDb();return new Promise((res,rej)=>{let r=db.transaction(CURRY_FONT_STORE,"readonly").objectStore(CURRY_FONT_STORE).get(CURRY_FONT_ID);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}
+async function deleteCurryFont(){let db=await openCurryFontDb();return new Promise((res,rej)=>{let tx=db.transaction(CURRY_FONT_STORE,"readwrite");tx.objectStore(CURRY_FONT_STORE).delete(CURRY_FONT_ID);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function applyUploadedFont(){try{let rec=await getCurryFont();if(!rec?.blob)return false;if(curryFontObjectUrl)URL.revokeObjectURL(curryFontObjectUrl);curryFontObjectUrl=URL.createObjectURL(rec.blob);let old=document.getElementById("curryUploadedFontStyle");if(!old){old=document.createElement("style");old.id="curryUploadedFontStyle";document.head.appendChild(old)}old.textContent=`@font-face{font-family:"CurryCustomFont";src:url("${curryFontObjectUrl}");font-display:swap}`;document.documentElement.style.setProperty("--app-font",'"CurryCustomFont",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif');if($("fontStatus"))$("fontStatus").textContent=`当前上传字体：${rec.name||"自定义字体"}`;return true}catch(e){console.warn("字体加载失败",e);return false}}
+function applySystemFont(){let f=(beauty.fontFamily||"").trim();document.documentElement.style.setProperty("--app-font",f?`"${f.replace(/["\\]/g,"")}",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif`:'-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif');if($("fontStatus"))$("fontStatus").textContent=f?`当前系统字体：${f}`:"当前：默认字体"}
+async function refreshBeautyFont(){if(beauty.fontUploaded&&await applyUploadedFont())return;applySystemFont()}
+
 function applyBeauty(){
   const rootStyle=document.documentElement.style;
   rootStyle.setProperty("--home-wallpaper",beauty.wallpaper?`url("${beauty.wallpaper}")`:"none");
@@ -3684,10 +3717,13 @@ $("#iconRadius").oninput=e=>{beauty.iconRadius=Number(e.target.value);applyBeaut
 $("#iconRadius").onchange=()=>save(K.beauty,beauty);
 $("#iconOpacity").oninput=e=>{beauty.iconOpacity=Number(e.target.value);applyBeauty()};
 $("#iconOpacity").onchange=()=>save(K.beauty,beauty);
+$("#fontFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{await saveCurryFont(f);beauty.fontUploaded=true;beauty.fontFamily="";save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";await refreshBeautyFont();toast("字体已上传并应用")}catch(err){console.error(err);toast("字体保存失败")};e.target.value=""};
+$("#applyFont").onclick=async()=>{beauty.fontFamily=$("#fontFamilyInput").value.trim();beauty.fontUploaded=false;save(K.beauty,beauty);await refreshBeautyFont();toast(beauty.fontFamily?"字体已应用":"已使用默认字体")};
+$("#resetFont").onclick=async()=>{beauty.fontFamily="";beauty.fontUploaded=false;try{await deleteCurryFont()}catch{};save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";await refreshBeautyFont();toast("已恢复默认字体")};
 $("#applyCss").onclick=()=>{beauty.customCss=$("#customCss").value;save(K.beauty,beauty);applyBeauty();toast("自定义 CSS 已应用")};
 $("#resetBeauty").onclick=()=>{
-  beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",icons:{}};
-  save(K.beauty,beauty);applyBeauty();renderIconCustomizer();toast("已恢复默认美化");
+  beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",fontFamily:"",fontUploaded:false,icons:{}};
+  deleteCurryFont().catch(()=>{});save(K.beauty,beauty);applyBeauty();renderIconCustomizer();toast("已恢复默认美化");
 };
 $("#fullscreenApp").onclick=async()=>{
   try{
