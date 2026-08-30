@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.8.24 · 残影彻底清除版</title>
+<title>咖喱小手机 V8.8.25 · 表情包视觉理解版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -2523,6 +2523,61 @@ function contextMessagesForChat(contactId=currentContact){
     ...recent.filter(m=>!m.recalled).map(m=>({role:m.role,content:historyContent(m)}))
   ]
 }
+
+/* ===== V8.8.25 表情包 / 图片视觉理解 =====
+   - 历史中的媒体仍以文字摘要保存，避免每轮重复发送大量图片。
+   - 只把最近 2 张 User 表情包/图片作为真正的 image_url 发给支持视觉的模型。
+   - IndexedDB 本地媒体会临时转成 data URL；不会修改聊天记录本身。
+   - 若当前 API/模型不支持视觉，回复流程会自动回退到原来的纯文本上下文。 */
+async function curryVisionUrl(ref){
+  let u=String(ref||"").trim();
+  if(!u)return "";
+  try{
+    if(/^data:image\//i.test(u))return u;
+    if(typeof isCurryMediaRef==="function"&&isCurryMediaRef(u)){
+      let blob=await mediaRefToBlob(u);
+      return await blobToDataUrl(blob);
+    }
+    if(/^blob:/i.test(u)){
+      let blob=await (await fetch(u)).blob();
+      return await blobToDataUrl(blob);
+    }
+    return u;
+  }catch(e){
+    console.warn("sticker vision url failed",e);
+    return "";
+  }
+}
+function curryMediaText(m){
+  let prefix=m?.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";
+  if(m?.type==="sticker")return prefix+`用户发送了一张表情包。表情包标签/情绪：${m.mood||"未标注"}。请结合图片本身理解梗、动作、表情和语气，不要只复述标签。`;
+  if(m?.type==="image")return prefix+`用户发送了一张图片${m.caption?`，附言：${m.caption}`:""}。请结合图片内容理解这条消息。`;
+  return historyContent(m);
+}
+async function contextMessagesForChatVision(contactId=currentContact){
+  let h=convos[convoKey(contactId)]||[],r=summaryRecord(contactId),summary=String(r.text||"").trim();
+  let start=summary?Math.min(h.length,Math.max(0,Number(r.summarizedCount||0))):0;
+  let recent=h.slice(start).filter(m=>!m.recalled);
+  let rich=[];
+  for(let i=recent.length-1;i>=0&&rich.length<2;i--){
+    let m=recent[i];
+    if(m.role==="user"&&(m.type==="sticker"||m.type==="image")&&m.url)rich.push(i);
+  }
+  let richSet=new Set(rich);
+  let out=[];
+  if(summary)out.push({role:"system",content:`LONG-TERM CHAT MEMORY (compressed older conversation; treat as established history, not a new user message):\n${summary}`});
+  for(let i=0;i<recent.length;i++){
+    let m=recent[i];
+    if(!richSet.has(i)){out.push({role:m.role,content:historyContent(m)});continue}
+    let u=await curryVisionUrl(m.url);
+    if(!u){out.push({role:m.role,content:historyContent(m)});continue}
+    out.push({role:m.role,content:[
+      {type:"text",text:curryMediaText(m)},
+      {type:"image_url",image_url:{url:u}}
+    ]});
+  }
+  return out;
+}
 function renderSummaryPage(){
   let c=contacts.find(x=>x.id===currentContact),h=convos[convoKey(currentContact)]||[],r=summaryRecord(currentContact),keep=Math.max(6,Number(summarySettings.keepRecent||20));
   $("#summaryContactTitle").textContent=`${c?.name||"角色"} · ${activeMask()?.name||"默认 User"}`;
@@ -2604,7 +2659,7 @@ function curryRealTimeContext(history=[]){
   if(last){const ms=Math.max(0,Date.now()-Number(last.createdAt||last.sentAt));const min=Math.floor(ms/60000);gap=min<1?"不到1分钟":min<60?`${min}分钟`:min<1440?`${Math.floor(min/60)}小时${min%60?min%60+"分钟":""}`:`${Math.floor(min/1440)}天${Math.floor((min%1440)/60)?Math.floor((min%1440)/60)+"小时":""}`;}
   return `[现实时间信息｜仅用于理解当前聊天时间，不要机械复述]\n当前时间：${stamp} ${weekday}\n时区：${tz}\n当前时段：${period}\n距最近一条已记录消息：${gap}`;
 }
-$("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>x.content).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let raw=await apiWithMcp([{role:"system",content:prompt(c,userText)+"\n\n"+curryRealTimeContext(h)},...contextMessagesForChat(currentContact)]),pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
+$("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>historyContent(x)).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let systemMsg={role:"system",content:prompt(c,userText)+"\n\n"+curryRealTimeContext(h)},visionCtx=await contextMessagesForChatVision(currentContact),raw;try{raw=await apiWithMcp([systemMsg,...visionCtx])}catch(visionErr){let hadVision=visionCtx.some(x=>Array.isArray(x.content));if(!hadVision)throw visionErr;console.warn("vision chat unsupported, fallback to text history",visionErr);raw=await apiWithMcp([systemMsg,...contextMessagesForChat(currentContact)])}let pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
 
 $("#mediaBtn").onclick=()=>{$("#stickerPicker").classList.remove("show");$("#mediaPicker").classList.toggle("show")};
 $("#closeMediaPicker").onclick=()=>$("#mediaPicker").classList.remove("show");
