@@ -1928,6 +1928,17 @@ let mediaApi=Object.assign({
 let imageSessionKey=mediaApi.image?.rememberKey?(mediaApi.image.key||""):"",voiceSessionKey=mediaApi.voice?.rememberKey?(mediaApi.voice.key||""):"";
 let stickers=load(K.stickers,{user:[],chars:{},charUseUser:{}}),relationNotes=load(K.relationNotes,{});
 
+/* ===== V8.8.26 已知表情包标签回填 =====
+   兼容“标签:URL”表情包清单；已导入但 mood 为空的同 URL 表情会自动补标签。 */
+const CURRY_KNOWN_STICKER_LABELS={"https://files.catbox.moe/rifquh.gif":"开心的跳舞","https://files.catbox.moe/x57pt9.gif":"收到敬礼","https://files.catbox.moe/rv50e5.gif":"好耶（飞奔）","https://files.catbox.moe/2a4qkv.gif":"呜呜（大哭）","https://files.catbox.moe/ehb859.gif":"委屈🥺","https://files.catbox.moe/slytma.gif":"送花","https://files.catbox.moe/cirfzj.gif":"开心","https://files.catbox.moe/0f5y9j.gif":"哇！真的吗","https://files.catbox.moe/bfk8cx.gif":"气嘟嘟","https://files.catbox.moe/wsqbt1.gif":"包在我身上(OK）","https://files.catbox.moe/ma1ksa.gif":"自闭","https://files.catbox.moe/kz3sxe.gif":"不开心","https://files.catbox.moe/wl0qzq.gif":"哭哭","https://files.catbox.moe/emu99k.gif":"捂脸哭(假哭）","https://files.catbox.moe/urdfkq.gif":"眼神亮晶晶","https://files.catbox.moe/9x1o38.gif":"心动","https://files.catbox.moe/xrfvlx.gif":"飞吻","https://files.catbox.moe/ltf11x.gif":"生气","https://files.catbox.moe/sodmp7.gif":"放屁","https://files.catbox.moe/9m913y.gif":"耍赖","https://files.catbox.moe/j270y8.gif":"咦！（震惊）","https://files.catbox.moe/td6tla.gif":"疑惑","https://files.catbox.moe/xp0nx5.gif":"不行 / 棒","https://files.catbox.moe/z7rstl.gif":"OK","https://files.catbox.moe/ccdwsh.gif":"打你","https://files.catbox.moe/im1fb1.jpeg":"害羞","https://files.catbox.moe/oitobi.jpeg":"灵魂出窍","https://files.catbox.moe/88rj5h.jpeg":"冒冷汗","https://files.catbox.moe/se13r7.jpeg":"思考","https://files.catbox.moe/1ym8s2.jpeg":"发怒","https://files.catbox.moe/t2sq0v.jpeg":"幸灾乐祸","https://files.catbox.moe/lyohwx.jpeg":"飞奔","https://files.catbox.moe/9tz3ri.jpeg":"飘来","https://files.catbox.moe/hbkdex.jpeg":"不愿醒来"};
+(function curryBackfillStickerLabels(){
+  let changed=false;
+  const patch=list=>{for(const x of (list||[])){let label=CURRY_KNOWN_STICKER_LABELS[String(x?.url||'').trim()];if(label&&!String(x?.mood||'').trim()){x.mood=label;changed=true}}};
+  patch(stickers.user);
+  Object.values(stickers.chars||{}).forEach(patch);
+  if(changed){try{save(K.stickers,stickers)}catch(e){console.warn('sticker label backfill save failed',e)}}
+})();
+
 
 
 let masks=load(K.masks,[]),activeMaskId=localStorage.getItem(K.activeMask)||"",worldbooks=load(K.worldbooks,[]),editingMaskId=null,pendingMaskAvatar="",currentWorldbook=null,editingWbEntryId=null,wbImportType=null;
@@ -2524,35 +2535,86 @@ function contextMessagesForChat(contactId=currentContact){
   ]
 }
 
-/* ===== V8.8.25 表情包 / 图片视觉理解 =====
-   - 历史中的媒体仍以文字摘要保存，避免每轮重复发送大量图片。
-   - 只把最近 2 张 User 表情包/图片作为真正的 image_url 发给支持视觉的模型。
-   - IndexedDB 本地媒体会临时转成 data URL；不会修改聊天记录本身。
-   - 若当前 API/模型不支持视觉，回复流程会自动回退到原来的纯文本上下文。 */
+/* ===== V8.8.26 表情包 / 图片真视觉 =====
+   1) 远程图片不再只把 URL 丢给模型：浏览器先 fetch 成真实图片字节，再转 data URL。
+   2) GIF 会取首帧转 PNG，避免很多 OpenAI-compatible 网关不支持 GIF image_url。
+   3) 视觉失败时只回退“表情标签/语义”，绝不再把裸 URL 塞给 Char，避免“我只看见链接”。
+   4) 只视觉读取最近 2 张 User 表情/图片，控制请求体大小。 */
+async function curryBlobFirstFramePng(blob){
+  let bitmap=null,obj="";
+  try{
+    if(typeof createImageBitmap==="function"){
+      bitmap=await createImageBitmap(blob);
+      let w=bitmap.width||1,h=bitmap.height||1,scale=Math.min(1,1024/Math.max(w,h));
+      let c=document.createElement("canvas");c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));
+      let ctx=c.getContext("2d",{alpha:true});ctx.drawImage(bitmap,0,0,c.width,c.height);
+      try{bitmap.close?.()}catch{}
+      return c.toDataURL("image/png");
+    }
+  }catch(e){try{bitmap?.close?.()}catch{};console.warn("createImageBitmap sticker decode failed",e)}
+  obj=URL.createObjectURL(blob);
+  try{
+    let img=await new Promise((res,rej)=>{let im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(Error("表情包图片解码失败"));im.src=obj});
+    let w=img.naturalWidth||img.width||1,h=img.naturalHeight||img.height||1,scale=Math.min(1,1024/Math.max(w,h));
+    let c=document.createElement("canvas");c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));
+    c.getContext("2d",{alpha:true}).drawImage(img,0,0,c.width,c.height);
+    return c.toDataURL("image/png");
+  }finally{try{URL.revokeObjectURL(obj)}catch{}}
+}
+async function curryVisionBlobDataUrl(blob,sourceRef=""){
+  let type=String(blob?.type||"").toLowerCase(),ref=String(sourceRef||"").toLowerCase();
+  if(type.includes("gif")||/\.gif(?:$|[?#])/i.test(ref))return await curryBlobFirstFramePng(blob);
+  if(/^image\/(?:png|jpeg|jpg|webp|avif)$/i.test(type))return await blobToDataUrl(blob);
+  /* content-type 不可靠时也尝试按图片解码并转 PNG */
+  return await curryBlobFirstFramePng(blob);
+}
 async function curryVisionUrl(ref){
   let u=String(ref||"").trim();
   if(!u)return "";
   try{
-    if(/^data:image\//i.test(u))return u;
+    if(/^data:image\//i.test(u)){
+      if(/^data:image\/gif/i.test(u)){
+        let blob=await mediaRefToBlob(u);return await curryBlobFirstFramePng(blob)
+      }
+      return u
+    }
     if(typeof isCurryMediaRef==="function"&&isCurryMediaRef(u)){
-      let blob=await mediaRefToBlob(u);
-      return await blobToDataUrl(blob);
+      let blob=await mediaRefToBlob(u);return await curryVisionBlobDataUrl(blob,u)
     }
     if(/^blob:/i.test(u)){
-      let blob=await (await fetch(u)).blob();
-      return await blobToDataUrl(blob);
+      let blob=await (await fetch(u)).blob();return await curryVisionBlobDataUrl(blob,u)
     }
-    return u;
+    if(/^https?:\/\//i.test(u)){
+      /* Catbox 等表情图支持 CORS 时，这里直接把真实字节带进请求，模型端不需要自己抓链接。 */
+      let r=await fetch(u,{mode:"cors",cache:"force-cache",credentials:"omit"});
+      if(!r.ok)throw Error("图片下载 HTTP "+r.status);
+      let blob=await r.blob();
+      if(!blob.size)throw Error("图片下载为空");
+      return await curryVisionBlobDataUrl(blob,u)
+    }
+    return ""
   }catch(e){
-    console.warn("sticker vision url failed",e);
-    return "";
+    console.warn("sticker vision materialize failed",u,e);
+    return ""
   }
+}
+function curryStickerLabel(m){
+  let mood=String(m?.mood||"").trim();
+  if(mood)return mood;
+  let known=CURRY_KNOWN_STICKER_LABELS[String(m?.url||"").trim()];
+  return known||"未标注表情包"
 }
 function curryMediaText(m){
   let prefix=m?.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";
-  if(m?.type==="sticker")return prefix+`用户发送了一张表情包。表情包标签/情绪：${m.mood||"未标注"}。请结合图片本身理解梗、动作、表情和语气，不要只复述标签。`;
-  if(m?.type==="image")return prefix+`用户发送了一张图片${m.caption?`，附言：${m.caption}`:""}。请结合图片内容理解这条消息。`;
-  return historyContent(m);
+  if(m?.type==="sticker")return prefix+`用户发送了一张表情包。标签/动作语义：${curryStickerLabel(m)}。图片内容已作为视觉输入附在本条消息后；请直接理解它的表情、动作、梗和语气，不要讨论图片链接，也不要说“看不到图”。`;
+  if(m?.type==="image")return prefix+`用户发送了一张图片${m.caption?`，附言：${m.caption}`:""}。图片内容已作为视觉输入附在本条消息后，请直接结合画面回复。`;
+  return historyContent(m)
+}
+function curryMediaFallbackText(m){
+  let prefix=m?.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";
+  if(m?.type==="sticker")return prefix+`[用户发送表情包｜标签/动作语义：${curryStickerLabel(m)}]`;
+  if(m?.type==="image")return prefix+`[用户发送图片${m.caption?`｜附言：${m.caption}`:""}]`;
+  return historyContent(m)
 }
 async function contextMessagesForChatVision(contactId=currentContact){
   let h=convos[convoKey(contactId)]||[],r=summaryRecord(contactId),summary=String(r.text||"").trim();
@@ -2561,22 +2623,23 @@ async function contextMessagesForChatVision(contactId=currentContact){
   let rich=[];
   for(let i=recent.length-1;i>=0&&rich.length<2;i--){
     let m=recent[i];
-    if(m.role==="user"&&(m.type==="sticker"||m.type==="image")&&m.url)rich.push(i);
+    if(m.role==="user"&&(m.type==="sticker"||m.type==="image")&&m.url)rich.push(i)
   }
-  let richSet=new Set(rich);
-  let out=[];
+  let richSet=new Set(rich),out=[];
   if(summary)out.push({role:"system",content:`LONG-TERM CHAT MEMORY (compressed older conversation; treat as established history, not a new user message):\n${summary}`});
   for(let i=0;i<recent.length;i++){
     let m=recent[i];
-    if(!richSet.has(i)){out.push({role:m.role,content:historyContent(m)});continue}
+    if(!richSet.has(i)){
+      out.push({role:m.role,content:(m.type==="sticker"||m.type==="image")?curryMediaFallbackText(m):historyContent(m)});continue
+    }
     let u=await curryVisionUrl(m.url);
-    if(!u){out.push({role:m.role,content:historyContent(m)});continue}
+    if(!u){out.push({role:m.role,content:curryMediaFallbackText(m)});continue}
     out.push({role:m.role,content:[
       {type:"text",text:curryMediaText(m)},
-      {type:"image_url",image_url:{url:u}}
-    ]});
+      {type:"image_url",image_url:{url:u,detail:"auto"}}
+    ]})
   }
-  return out;
+  return out
 }
 function renderSummaryPage(){
   let c=contacts.find(x=>x.id===currentContact),h=convos[convoKey(currentContact)]||[],r=summaryRecord(currentContact),keep=Math.max(6,Number(summarySettings.keepRecent||20));
@@ -2646,7 +2709,7 @@ function imagePromptForContact(scenePrompt,contactId=currentContact){
    :"";
  return [visual&&`CHARACTER VISUAL REFERENCE:\n${visual}`,lockText&&`IDENTITY CONSISTENCY:\n${lockText}`,`CURRENT IMAGE / SCENE REQUEST:\n${scene}`].filter(Boolean).join("\n\n");
 }
-function historyContent(m){if(m.recalled)return "";let prefix=m.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";if(m.type==="sticker")return prefix+`[STICKER: ${m.mood||""} | ${m.url}]`;if(m.type==="image")return prefix+`[IMAGE MESSAGE: ${m.caption||""}]`;if(m.type==="voice")return prefix+`[VOICE MESSAGE: ${m.transcript||""}]`;if(m.type==="transfer")return prefix+`[TRANSFER: ¥${Number(m.amount||0).toFixed(2)} ${m.note||""}]`;if(m.type==="takeout")return prefix+`[TAKEOUT: ${m.shop||""}; ${String(m.items||"").replace(/\n/g," / ")}; ¥${Number(m.amount||0).toFixed(2)}; ${m.note||""}]`;return prefix+(m.content||"")}
+function historyContent(m){if(m.recalled)return "";let prefix=m.replyTo?`[REPLYING TO ${m.replyTo.name}: ${m.replyTo.text}]\n`:"";if(m.type==="sticker")return prefix+`[STICKER: ${curryStickerLabel(m)}]`;if(m.type==="image")return prefix+`[IMAGE MESSAGE: ${m.caption||""}]`;if(m.type==="voice")return prefix+`[VOICE MESSAGE: ${m.transcript||""}]`;if(m.type==="transfer")return prefix+`[TRANSFER: ¥${Number(m.amount||0).toFixed(2)} ${m.note||""}]`;if(m.type==="takeout")return prefix+`[TAKEOUT: ${m.shop||""}; ${String(m.items||"").replace(/\n/g," / ")}; ¥${Number(m.amount||0).toFixed(2)}; ${m.note||""}]`;return prefix+(m.content||"")}
 async function materializeAssistantPiece(part){if(part.type==="takeout_request"){let o={id:uuid(),direction:"charToUser",contactId:currentContact,shop:part.shop||"外卖",items:part.items||"",amount:Number(part.amount)||0,note:part.note||"",status:"ordered",createdAt:Date.now(),updatedAt:Date.now(),time:takeoutTime()};takeout.orders=takeout.orders||[];takeout.orders.push(o);saveTakeout();return{role:"assistant",type:"takeout",orderId:o.id,shop:o.shop,items:o.items,amount:o.amount,note:o.note,status:o.status,direction:o.direction,time:now(),createdAt:Date.now()}}if(part.type==="voice_request"){let url=await generateVoice(part.text);return{role:"assistant",type:"voice",url,transcript:part.text,time:now(),createdAt:Date.now()}}if(part.type==="image_request"){let finalPrompt=imagePromptForContact(part.prompt,currentContact),url=await generateImage(finalPrompt,null,contactImageContext(currentContact));return{role:"assistant",type:"image",url,caption:part.prompt,time:now(),createdAt:Date.now()}}if(part.type==="transfer")return{role:"assistant",type:"transfer",amount:part.amount,note:part.note,time:now(),createdAt:Date.now()};if(part.type==="sticker")return{role:"assistant",type:"sticker",url:part.url,mood:part.mood,time:now(),createdAt:Date.now()};return{role:"assistant",content:part.content,time:now(),createdAt:Date.now()}}
 function curryRealTimeContext(history=[]){
   const d=new Date(), tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"本地时区";
@@ -2659,7 +2722,7 @@ function curryRealTimeContext(history=[]){
   if(last){const ms=Math.max(0,Date.now()-Number(last.createdAt||last.sentAt));const min=Math.floor(ms/60000);gap=min<1?"不到1分钟":min<60?`${min}分钟`:min<1440?`${Math.floor(min/60)}小时${min%60?min%60+"分钟":""}`:`${Math.floor(min/1440)}天${Math.floor((min%1440)/60)?Math.floor((min%1440)/60)+"小时":""}`;}
   return `[现实时间信息｜仅用于理解当前聊天时间，不要机械复述]\n当前时间：${stamp} ${weekday}\n时区：${tz}\n当前时段：${period}\n距最近一条已记录消息：${gap}`;
 }
-$("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>historyContent(x)).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let systemMsg={role:"system",content:prompt(c,userText)+"\n\n"+curryRealTimeContext(h)},visionCtx=await contextMessagesForChatVision(currentContact),raw;try{raw=await apiWithMcp([systemMsg,...visionCtx])}catch(visionErr){let hadVision=visionCtx.some(x=>Array.isArray(x.content));if(!hadVision)throw visionErr;console.warn("vision chat unsupported, fallback to text history",visionErr);raw=await apiWithMcp([systemMsg,...contextMessagesForChat(currentContact)])}let pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
+$("#replyBtn").onclick=async()=>{if(!currentContact)return;let c=contacts.find(x=>x.id===currentContact),k=convoKey(currentContact),h=convos[k]||[],pending=pendingUserCount(h);if(!pending)return toast("先发送一条消息");$("#replyBtn").disabled=true;$("#sendBtn").disabled=true;$("#replyBtn").textContent="等待";setPresence(currentContact,{typing:true});try{await sleep(450+Math.random()*650);let userText=h.slice(-pending).map(x=>historyContent(x)).join("\n");try{await ensureAutoSummary(currentContact)}catch(sumErr){console.warn("auto summary failed",sumErr)}let systemMsg={role:"system",content:prompt(c,userText)+"\n\n"+curryRealTimeContext(h)},visionCtx=await contextMessagesForChatVision(currentContact),raw;try{raw=await apiWithMcp([systemMsg,...visionCtx])}catch(visionErr){let hadVision=visionCtx.some(x=>Array.isArray(x.content));if(!hadVision)throw visionErr;console.warn("vision chat unsupported, fallback to text history",visionErr);raw=await apiWithMcp([systemMsg,...contextMessagesForChat(currentContact).map(x=>({role:x.role,content:(typeof x.content==="string"?x.content.replace(/\[STICKER:\s*([^\]|]+)(?:\s*\|\s*https?:\/\/[^\]]+)?\]/gi,"[STICKER: $1]"):x.content)}))])}let pieces=naturalBurstFallback(splitAssistantMessages(raw),userText);if(!pieces.length)throw Error("角色没有返回有效消息");h.slice(-pending).forEach(x=>{if(x.role==="user")x.readByChar=true});convos[k]=h;save(K.convos,convos);renderChat();for(let part of pieces){setPresence(currentContact,{typing:true});await sleep(300+Math.min(1300,(part.content||part.text||part.note||"").length*22)+Math.random()*350);try{let msg=await materializeAssistantPiece(part);h.push(msg);notifyFromChar(currentContact,msg)}catch(e){let msg={role:"assistant",content:`媒体生成失败：${e.message}`,time:now(),createdAt:Date.now()};h.push(msg);notifyFromChar(currentContact,msg)}convos[k]=h;save(K.convos,convos);renderChat()}setPresence(currentContact,{typing:false})}catch(err){setPresence(currentContact,{typing:false});let msg={role:"assistant",content:"连接失败："+err.message,time:now(),createdAt:Date.now()};h.push(msg);convos[k]=h;save(K.convos,convos);renderChat()}finally{setPresence(currentContact,{typing:false});$("#replyBtn").textContent="回复";$("#sendBtn").disabled=false;renderChat()}};
 
 $("#mediaBtn").onclick=()=>{$("#stickerPicker").classList.remove("show");$("#mediaPicker").classList.toggle("show")};
 $("#closeMediaPicker").onclick=()=>$("#mediaPicker").classList.remove("show");
@@ -2822,22 +2885,17 @@ async function readStickerDocx(file){
 function parseStickerLines(text){
   let items=[],seen=new Set();
   for(let rawLine of String(text||"").split(/\r?\n/)){
-    let line=rawLine.trim();
-    if(!line)continue;
-
-    /* Normal format: URL | 情绪 */
-    let m=line.match(/(https?:\/\/[^\s|<>"']+)/i);
-    if(!m)continue;
-
+    let line=rawLine.trim();if(!line)continue;
+    let m=line.match(/(https?:\/\/[^\s|<>"']+)/i);if(!m)continue;
     let url=m[1].replace(/[),.;，。；]+$/,"");
     let mood="";
+    /* 支持三种：URL | 标签、标签:URL、标签：URL */
     let pipe=line.indexOf("|");
     if(pipe>=0)mood=line.slice(pipe+1).trim();
-
-    if(!seen.has(url)){
-      seen.add(url);
-      items.push({url,mood});
-    }
+    if(!mood){let before=line.slice(0,m.index).trim().replace(/[|:：\-—]+$/g,"").trim();if(before)mood=before}
+    if(!mood){let after=line.slice(m.index+m[1].length).trim().replace(/^[|:：\-—]+/g,"").trim();if(after)mood=after}
+    if(!mood)mood=CURRY_KNOWN_STICKER_LABELS[url]||"";
+    if(!seen.has(url)){seen.add(url);items.push({url,mood})}
   }
   return items
 }
