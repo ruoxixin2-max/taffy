@@ -5778,4 +5778,67 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
+
+<style id="transfer-dialog-fix-style">
+#transferDialog{position:absolute;inset:0;z-index:260;display:none;align-items:flex-end;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#transferDialog.show{display:flex!important}
+#transferDialog .transferDialogCard{width:100%;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:#fafbf8;box-shadow:0 -18px 45px rgba(0,0,0,.14)}
+#transferDialog .transferDialogTitle{font-size:15px;font-weight:750;margin-bottom:14px}
+#transferDialog .transferDialogLabel{font-size:9px;color:#7c817b;margin:10px 2px 6px}
+#transferDialog .transferAmountRow{display:flex;align-items:center;border:1px solid #d2d5cf;border-radius:14px;background:#fff;padding:0 12px}
+#transferDialog .transferCurrency{font-size:22px;font-weight:700;margin-right:7px}
+#transferDialog input{width:100%;height:48px;border:0!important;outline:0!important;background:transparent!important;font-size:22px!important;padding:0!important}
+#transferDialog #transferNoteInput{font-size:15px!important}
+#transferDialog .transferDialogActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+#transferDialog .transferDialogActions button{height:43px;border-radius:13px;border:1px solid #d0d3cd;background:#fff;font-size:11px}
+#transferDialog #transferConfirm{background:#30342f;color:#fff;border-color:#30342f}
+</style>
+<div id="transferDialog" aria-hidden="true">
+  <div class="transferDialogCard">
+    <div class="transferDialogTitle">转账</div>
+    <div class="transferDialogLabel">金额</div>
+    <div class="transferAmountRow"><span class="transferCurrency">¥</span><input id="transferAmountInput" inputmode="decimal" type="text" placeholder="0.00" autocomplete="off"></div>
+    <div class="transferDialogLabel">备注</div>
+    <div class="transferAmountRow"><input id="transferNoteInput" type="text" maxlength="40" placeholder="转账" autocomplete="off"></div>
+    <div class="transferDialogActions"><button type="button" id="transferCancel">取消</button><button type="button" id="transferConfirm">确认转账</button></div>
+  </div>
+</div>
+<script id="transfer-dialog-fix-js">
+(() => {
+  const btn=document.getElementById('userTransferBtn');
+  const picker=document.getElementById('mediaPicker');
+  const dlg=document.getElementById('transferDialog');
+  const amount=document.getElementById('transferAmountInput');
+  const note=document.getElementById('transferNoteInput');
+  const cancel=document.getElementById('transferCancel');
+  const confirm=document.getElementById('transferConfirm');
+  if(!btn||!dlg||!amount||!note||!confirm)return;
+  const close=()=>{dlg.classList.remove('show');dlg.setAttribute('aria-hidden','true');amount.value='';note.value='';};
+  btn.onclick=(e)=>{
+    e.preventDefault();e.stopPropagation();
+    if(!currentContact){ if(typeof toast==='function') toast('请先进入一个聊天'); return; }
+    picker?.classList.remove('show');
+    dlg.classList.add('show');dlg.setAttribute('aria-hidden','false');
+    setTimeout(()=>amount.focus(),50);
+  };
+  cancel.onclick=(e)=>{e.preventDefault();close();};
+  dlg.onclick=(e)=>{if(e.target===dlg)close();};
+  confirm.onclick=(e)=>{
+    e.preventDefault();
+    if(!currentContact){close();return;}
+    const normalized=String(amount.value||'').trim().replace(/，/g,'.').replace(/,/g,'');
+    const value=Number(normalized);
+    if(!Number.isFinite(value)||value<=0){if(typeof toast==='function')toast('金额不正确');amount.focus();return;}
+    const finalAmount=Math.round(value*100)/100;
+    const finalNote=String(note.value||'').trim()||'转账';
+    const k=convoKey(currentContact), h=convos[k]||[];
+    h.push({role:'user',type:'transfer',amount:finalAmount,note:finalNote,time:now(),createdAt:Date.now()});
+    convos[k]=h;save(K.convos,convos);
+    close();renderChat();
+    requestAnimationFrame(()=>{const body=document.getElementById('chatBody');if(body)body.scrollTop=body.scrollHeight;});
+  };
+  amount.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();note.focus();}});
+  note.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();confirm.click();}});
+})();
+</script>
 </body></html>
