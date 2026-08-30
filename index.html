@@ -1231,6 +1231,14 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
 #curryTransferModal .curryTransferPanel{width:min(360px,calc(100vw - 36px));box-sizing:border-box;padding:18px;border:1px solid rgba(80,80,76,.14);border-radius:22px;background:#fafaf7;color:#343633;box-shadow:0 24px 70px rgba(0,0,0,.18)}
 .curryTransferHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.curryTransferEyebrow{font-size:8px;letter-spacing:.18em;color:#9a9a93}.curryTransferTitle{margin-top:3px;font-size:20px;font-weight:800}.curryTransferClose{width:34px;height:34px;border:0;border-radius:50%;background:#eeeeea;color:#676861;font-size:22px;line-height:1}.curryTransferField{display:block;margin-top:13px}.curryTransferField>span{display:block;margin:0 0 6px 2px;font-size:10px;color:#8a8b84}.curryTransferField>input,.curryTransferAmount{width:100%;box-sizing:border-box;border:1px solid #deded8;border-radius:14px;background:#fff}.curryTransferField>input{height:44px;padding:0 13px;outline:none;font-size:14px;color:#343633}.curryTransferAmount{height:54px;display:flex;align-items:center;padding:0 13px}.curryTransferAmount b{font-size:21px;margin-right:8px}.curryTransferAmount input{min-width:0;flex:1;border:0;outline:0;background:transparent;font-size:27px;font-weight:700;color:#292b28}.curryTransferActions{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin-top:18px}.curryTransferActions button{height:42px;border:0;border-radius:14px;background:#ecece7;color:#55564f;font-size:12px;font-weight:650}.curryTransferActions button.primary{background:#353733;color:#fff}
 </style>
+
+<style id="curryGlobalFontForce">
+/* V8.8.28 · 真正全局字体：仅强制 font-family，不改变原有字号/粗细/行高 */
+html,body,#root,#root *,#root *::before,#root *::after{
+  font-family:var(--app-font,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif)!important;
+}
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -1853,7 +1861,7 @@ html.safariLiveLowMem [data-page="liveStudio"] .liveDanmaku{
       <div class="field">
         <label>全局字体</label>
         <input class="input" id="fontFamilyInput" placeholder="例如：PingFang SC / Noto Sans SC">
-        <div class="help">可直接填写系统字体名称；也可以上传本地字体文件。上传字体仅保存在当前浏览器本机。</div>
+        <div class="help">可直接填写系统字体名称；也可以上传本地字体文件。应用后整台小手机（聊天、设置、顶部栏和所有 App）统一使用。上传字体仅保存在当前浏览器本机。</div>
       </div>
       <div class="field">
         <label>上传字体文件</label>
@@ -3653,14 +3661,77 @@ async function apiWithMcp(messages){
 applyChatBeauty();
 
 const CURRY_FONT_DB="curry_phone_fonts_v1",CURRY_FONT_STORE="fonts",CURRY_FONT_ID="global";
-let curryFontDbPromise=null,curryFontObjectUrl="";
+const CURRY_FONT_FALLBACK='-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+const CURRY_FONT_BOOT_GUARD="curry_font_boot_guard_v2";
+let curryFontDbPromise=null,curryFontObjectUrl="",curryFontFace=null,curryFontLoadSeq=0;
+function setCurryFontStatus(text){let el=$("#fontStatus");if(el)el.textContent=text}
 function openCurryFontDb(){if(curryFontDbPromise)return curryFontDbPromise;curryFontDbPromise=new Promise((res,rej)=>{let r=indexedDB.open(CURRY_FONT_DB,1);r.onupgradeneeded=()=>{let db=r.result;if(!db.objectStoreNames.contains(CURRY_FONT_STORE))db.createObjectStore(CURRY_FONT_STORE,{keyPath:"id"})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return curryFontDbPromise}
-async function saveCurryFont(file){let db=await openCurryFontDb();return new Promise((res,rej)=>{let tx=db.transaction(CURRY_FONT_STORE,"readwrite");tx.objectStore(CURRY_FONT_STORE).put({id:CURRY_FONT_ID,blob:file,name:file.name,type:file.type||"font/woff2"});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function saveCurryFont(file){let db=await openCurryFontDb();return new Promise((res,rej)=>{let tx=db.transaction(CURRY_FONT_STORE,"readwrite");tx.objectStore(CURRY_FONT_STORE).put({id:CURRY_FONT_ID,blob:file,name:file.name,type:file.type||"",size:Number(file.size||0),updatedAt:Date.now()});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
 async function getCurryFont(){let db=await openCurryFontDb();return new Promise((res,rej)=>{let r=db.transaction(CURRY_FONT_STORE,"readonly").objectStore(CURRY_FONT_STORE).get(CURRY_FONT_ID);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}
 async function deleteCurryFont(){let db=await openCurryFontDb();return new Promise((res,rej)=>{let tx=db.transaction(CURRY_FONT_STORE,"readwrite");tx.objectStore(CURRY_FONT_STORE).delete(CURRY_FONT_ID);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
-async function applyUploadedFont(){try{let rec=await getCurryFont();if(!rec?.blob)return false;if(curryFontObjectUrl)URL.revokeObjectURL(curryFontObjectUrl);curryFontObjectUrl=URL.createObjectURL(rec.blob);let old=document.getElementById("curryUploadedFontStyle");if(!old){old=document.createElement("style");old.id="curryUploadedFontStyle";document.head.appendChild(old)}old.textContent=`@font-face{font-family:"CurryCustomFont";src:url("${curryFontObjectUrl}");font-display:swap}`;document.documentElement.style.setProperty("--app-font",'"CurryCustomFont",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif');if($("fontStatus"))$("fontStatus").textContent=`当前上传字体：${rec.name||"自定义字体"}`;return true}catch(e){console.warn("字体加载失败",e);return false}}
-function applySystemFont(){let f=(beauty.fontFamily||"").trim();document.documentElement.style.setProperty("--app-font",f?`"${f.replace(/["\\]/g,"")}",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif`:'-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif');if($("fontStatus"))$("fontStatus").textContent=f?`当前系统字体：${f}`:"当前：默认字体"}
-async function refreshBeautyFont(){if(beauty.fontUploaded&&await applyUploadedFont())return;applySystemFont()}
+function disposeCurryFontFace(){
+  try{if(curryFontFace&&document.fonts?.delete)document.fonts.delete(curryFontFace)}catch{}
+  curryFontFace=null;
+  if(curryFontObjectUrl){try{URL.revokeObjectURL(curryFontObjectUrl)}catch{};curryFontObjectUrl=""}
+}
+function curryFontStack(name){return `"${String(name||"").replace(/["\\]/g,"")}",${CURRY_FONT_FALLBACK}`}
+async function loadCurryFontRecord(rec){
+  if(!rec?.blob)throw Error("没有已保存的字体文件");
+  if(typeof FontFace!=="function"||!document.fonts)throw Error("当前浏览器不支持 FontFace API");
+  const seq=++curryFontLoadSeq;
+  const nextUrl=URL.createObjectURL(rec.blob);
+  let nextFace;
+  try{
+    nextFace=new FontFace("CurryCustomFont",`url("${nextUrl}")`);
+    await nextFace.load();
+    if(seq!==curryFontLoadSeq){try{URL.revokeObjectURL(nextUrl)}catch{};return false}
+    if(nextFace.status!=="loaded")throw Error("浏览器没有完成字体解析");
+    document.fonts.add(nextFace);
+    /* 主动请求一批中英文常用字，避免第一次进入聊天才触发首次字体加载。 */
+    try{await document.fonts.load('16px "CurryCustomFont"','字体预览聊天消息联系人设置朋友圈转账老婆老公付常声一二三四五六七八九零ABCabc123')}
+    catch(e){console.warn("字体预热失败",e)}
+    disposeCurryFontFace();
+    curryFontFace=nextFace;
+    curryFontObjectUrl=nextUrl;
+    document.documentElement.style.setProperty("--app-font",curryFontStack("CurryCustomFont"));
+    /* 触发布局后再确认实际可用；失败就不伪装成成功。 */
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const ok=document.fonts.check('16px "CurryCustomFont"','字体ABC123');
+    if(!ok)throw Error("字体已解析但没有成功注册到页面");
+    setCurryFontStatus(`当前上传字体：${rec.name||"自定义字体"}${rec.size?` · ${(rec.size/1048576).toFixed(1)} MB`:""}`);
+    return true;
+  }catch(e){
+    try{if(nextFace&&document.fonts?.delete)document.fonts.delete(nextFace)}catch{}
+    if(nextUrl!==curryFontObjectUrl)try{URL.revokeObjectURL(nextUrl)}catch{}
+    throw e;
+  }
+}
+async function applyUploadedFont(){let rec=await getCurryFont();if(!rec?.blob)return false;return await loadCurryFontRecord(rec)}
+function applySystemFont(){
+  ++curryFontLoadSeq;disposeCurryFontFace();
+  let f=(beauty.fontFamily||"").trim();
+  document.documentElement.style.setProperty("--app-font",f?curryFontStack(f):CURRY_FONT_FALLBACK);
+  setCurryFontStatus(f?`当前系统字体：${f}`:"当前：默认字体");
+}
+async function refreshBeautyFont(opts={}){
+  if(beauty.fontUploaded){
+    try{if(await applyUploadedFont())return true}catch(e){console.error("字体加载失败",e);setCurryFontStatus("字体加载失败："+(e.message||"未知错误"));if(!opts.keepBrokenState){beauty.fontUploaded=false;save(K.beauty,beauty)}applySystemFont();return false}
+  }
+  applySystemFont();return true
+}
+async function restoreBeautyFontAtBoot(){
+  if(!beauty.fontUploaded){applySystemFont();return}
+  /* 若上一次 Safari 在字体恢复阶段硬崩，下一次启动先退回系统字体，避免无限重载。 */
+  if(sessionStorage.getItem(CURRY_FONT_BOOT_GUARD)==="1"){
+    sessionStorage.removeItem(CURRY_FONT_BOOT_GUARD);
+    beauty.fontUploaded=false;save(K.beauty,beauty);applySystemFont();
+    setCurryFontStatus("上次字体恢复异常，已安全退回默认；请重新上传字体");
+    return
+  }
+  sessionStorage.setItem(CURRY_FONT_BOOT_GUARD,"1");
+  try{let ok=await refreshBeautyFont({keepBrokenState:true});if(!ok){beauty.fontUploaded=false;save(K.beauty,beauty)}}
+  finally{sessionStorage.removeItem(CURRY_FONT_BOOT_GUARD)}
+}
 
 function applyBeauty(){
   const rootStyle=document.documentElement.style;
@@ -3717,9 +3788,21 @@ $("#iconRadius").oninput=e=>{beauty.iconRadius=Number(e.target.value);applyBeaut
 $("#iconRadius").onchange=()=>save(K.beauty,beauty);
 $("#iconOpacity").oninput=e=>{beauty.iconOpacity=Number(e.target.value);applyBeauty()};
 $("#iconOpacity").onchange=()=>save(K.beauty,beauty);
-$("#fontFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{await saveCurryFont(f);beauty.fontUploaded=true;beauty.fontFamily="";save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";await refreshBeautyFont();toast("字体已上传并应用")}catch(err){console.error(err);toast("字体保存失败")};e.target.value=""};
-$("#applyFont").onclick=async()=>{beauty.fontFamily=$("#fontFamilyInput").value.trim();beauty.fontUploaded=false;save(K.beauty,beauty);await refreshBeautyFont();toast(beauty.fontFamily?"字体已应用":"已使用默认字体")};
-$("#resetFont").onclick=async()=>{beauty.fontFamily="";beauty.fontUploaded=false;try{await deleteCurryFont()}catch{};save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";await refreshBeautyFont();toast("已恢复默认字体")};
+$("#fontFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;let status=$("#fontStatus");try{
+  if(status)status.textContent=`正在解析字体：${f.name} · ${(f.size/1048576).toFixed(1)} MB`;
+  await saveCurryFont(f);
+  /* 先真正 load + check，成功以后才写入“已启用”状态。 */
+  let rec=await getCurryFont();await loadCurryFontRecord(rec);
+  beauty.fontUploaded=true;beauty.fontFamily="";save(K.beauty,beauty);
+  if($("#fontFamilyInput"))$("#fontFamilyInput").value="";
+  toast("字体已验证并全局应用")
+}catch(err){
+  console.error(err);beauty.fontUploaded=false;save(K.beauty,beauty);applySystemFont();
+  if(status)status.textContent="字体应用失败："+(err.message||"未知错误");
+  toast("字体应用失败")
+}finally{e.target.value=""}};
+$("#applyFont").onclick=async()=>{beauty.fontFamily=$("#fontFamilyInput").value.trim();beauty.fontUploaded=false;save(K.beauty,beauty);applySystemFont();toast(beauty.fontFamily?"系统字体已全局应用":"已使用默认字体")};
+$("#resetFont").onclick=async()=>{beauty.fontFamily="";beauty.fontUploaded=false;try{await deleteCurryFont()}catch{};save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";applySystemFont();toast("已恢复默认字体")};
 $("#applyCss").onclick=()=>{beauty.customCss=$("#customCss").value;save(K.beauty,beauty);applyBeauty();toast("自定义 CSS 已应用")};
 $("#resetBeauty").onclick=()=>{
   beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",fontFamily:"",fontUploaded:false,icons:{}};
@@ -5200,6 +5283,7 @@ async function replyGroup(){let g=groups.find(x=>x.id===currentGroup),h=groupCon
 addGroupPages();
 
 applyBeauty();renderIconCustomizer();
+setTimeout(()=>restoreBeautyFontAtBoot().catch(e=>console.error("启动字体恢复失败",e)),0);
 
 })();
 
