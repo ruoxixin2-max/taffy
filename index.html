@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.28 · Live2D直播防闪退版</title>
+<title>咖喱小手机 V8.8.38 · Gemini格式增强 / 禁止世界书JSON导入</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -2113,7 +2113,7 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 <section class="page" data-page="worldbook"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">世界书</div><button class="headAction" id="addWorldbook">导入</button></header><div class="body" id="worldbookList"></div></section>
 <section class="page" data-page="worldbookDetail"><header class="head"><button class="back" data-back="worldbook">返回</button><div class="headTitle">世界书</div><button class="headAction" id="addWbEntry">加条目</button></header><div class="body" id="worldbookDetailBody"></div></section>
 <section class="page" data-page="wbEntryEditor"><header class="head"><button class="back" data-back="worldbookDetail">取消</button><div class="headTitle">世界书条目</div><button class="headAction" id="saveWbEntry">保存</button></header><div class="body"><div class="form"><div class="field"><label>条目名称 / Comment</label><input class="input" id="wbEntryName"></div><div class="field"><label>关键词（逗号分隔；留空=常驻）</label><input class="input" id="wbEntryKeys"></div><div class="field"><label>内容</label><textarea class="textarea" id="wbEntryContent"></textarea></div><div class="field"><label><input type="checkbox" id="wbEntryConstant"> 常驻条目</label></div></div></div></section>
-<div class="sheet" id="worldbookImportSheet"><h3>导入世界书</h3><div class="choices"><button class="choice" data-wb-import="json">JSON</button><button class="choice" data-wb-import="txt">TXT</button><button class="choice" data-wb-import="docx">DOCX</button><button class="choice wide" data-wb-import="manual">手动新建世界书</button><button class="choice wide" id="closeWbSheet">取消</button></div><input class="hidden" id="wbImportFile" type="file"></div>
+<div class="sheet" id="worldbookImportSheet"><h3>导入 / 新建世界书</h3><div class="choices"><button class="choice" data-wb-import="txt">TXT</button><button class="choice" data-wb-import="docx">DOCX</button><button class="choice wide" data-wb-import="manual">手动新建世界书</button><button class="choice wide" id="closeWbSheet">取消</button></div><input class="hidden" id="wbImportFile" type="file"></div>
 
 
 
@@ -3090,7 +3090,16 @@ function prompt(c,userText=""){let x=c.character,m=activeMask(),wb=matchedWorldb
 "CHAT MODE: ONLINE TEXT CHAT ONLY. This is the permanent default mode and cannot be changed. The character and user are communicating through an online messaging app. Never switch to face-to-face roleplay, scene narration, or prose action description.",
 "OUTPUT FORMAT: Text uses <message>...</message>. You may also naturally send rich messages: <voice>TEXT_TO_SPEAK</voice>, <image>PROMPT_FOR_IMAGE_GENERATOR</image>, <transfer><amount>12.34</amount><note>NOTE</note></transfer>, or when you genuinely decide to order food for the user: <takeout><shop>SHOP</shop><items>ITEMS</items><amount>12.34</amount><note>NOTE</note></takeout>. Do not overuse takeout. Use rich messages only when natural. Multiple blocks may be mixed in order.",
 replyRhythmPrompt(userText),
-x.systemPrompt,`You are ${c.name}.`,contextSummaryText(c.id)&&"A compressed long-term chat memory may be supplied as a separate system message. Treat it as established shared history.",x.description&&`Description:\n${x.description}`,x.personality&&`Personality:\n${x.personality}`,x.scenario&&`Scenario:\n${x.scenario}`,x.mesExample&&`Example dialogue:\n${x.mesExample}`,x.rawText&&`Additional character material:\n${x.rawText}`,m&&`Current user persona (${m.name}):\nUser name: ${m.userName||"user"}\n${m.prompt||""}`,wb&&`Worldbook information:\n${wb}`,anniv,food,sticker,mcp].filter(Boolean).join("\n\n")}
+x.systemPrompt,`You are ${c.name}.`,contextSummaryText(c.id)&&"A compressed long-term chat memory may be supplied as a separate system message. Treat it as established shared history.",x.description&&`Description:\n${x.description}`,x.personality&&`Personality:\n${x.personality}`,x.scenario&&`Scenario:\n${x.scenario}`,x.mesExample&&`Example dialogue:\n${x.mesExample}`,x.rawText&&`Additional character material:\n${x.rawText}`,m&&`Current user persona (${m.name}):\nUser name: ${m.userName||"user"}\n${m.prompt||""}`,wb&&`Worldbook information:\n${wb}`,anniv,food,sticker,mcp,
+`FINAL OUTPUT CONTRACT — ABSOLUTE:
+Return ONLY the final chat payload. Never expose analysis, reasoning, planning, self-checks, token/character counts, drafting notes, formatting notes, or phrases such as "Let's check", "We need", "I should", "analysis", "thinking", "draft", "final answer".
+Do not use markdown fences. Do not prefix output with arrows, bullets, labels, explanations, or quotes.
+For ordinary text, every visible chat message MUST be inside <message>...</message>.
+Allowed top-level blocks are only: <message>, <sticker>, <voice>, <image>, <transfer>, <takeout>. If and only if an MCP tool is genuinely required, output exactly one <mcp_call> block instead.
+Example valid output:
+<message>又在想怎么躲我</message>
+<message>嗯？</message>
+Anything outside the allowed blocks is invalid and must not be emitted.`].filter(Boolean).join("\n\n")}
 function chatCompletionsUrl(endpoint){let raw=String(endpoint||"").trim();if(!raw)return "";try{let u=new URL(raw),p=u.pathname.replace(/\/+$/g,"");if(/\/chat\/completions$/i.test(p)){}else if(/\/responses$/i.test(p))p=p.replace(/\/responses$/i,"/chat/completions");else if(/\/models$/i.test(p))p=p.replace(/\/models$/i,"/chat/completions");else if(/\/completions$/i.test(p))p=p.replace(/\/completions$/i,"/chat/completions");else if(/\/v\d+$/i.test(p))p+="/chat/completions";else p+="/chat/completions";u.pathname=p;return u.toString()}catch{return raw}}
 const CURRY_API_DEBUG_KEY="curry_api_debug_v1";
 let curryApiDebugRows=[];
@@ -3136,7 +3145,52 @@ async function api(messages,o=null,debugTag="api"){
 }
 $("#chatForm").onsubmit=e=>{e.preventDefault();let text=$("#chatInput").value.trim();if(!text)return;let k=convoKey(currentContact),h=convos[k]||[];h.push({msgId:uuid(),role:"user",content:text,time:now(),sentAt:Date.now(),createdAt:Date.now(),replyTo:replyTarget?{msgId:replyTarget.msgId,name:replyTarget.name,text:replyTarget.text}:undefined});convos[k]=h;save(K.convos,convos);$("#chatInput").value="";clearReplyTarget();renderChat()};
 
-function splitAssistantMessages(raw){let src=String(raw||"").trim(),out=[],re=/<message>([\s\S]*?)<\/message>|<sticker>\s*<url>([\s\S]*?)<\/url>\s*<mood>([\s\S]*?)<\/mood>\s*<\/sticker>|<voice>([\s\S]*?)<\/voice>|<image>([\s\S]*?)<\/image>|<transfer>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/transfer>|<takeout>\s*<shop>([\s\S]*?)<\/shop>\s*<items>([\s\S]*?)<\/items>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/takeout>/gi,m;while((m=re.exec(src))!==null){if(m[1]!=null)out.push({type:"text",content:m[1].trim()});else if(m[2]!=null)out.push({type:"sticker",url:m[2].trim(),mood:m[3].trim()});else if(m[4]!=null)out.push({type:"voice_request",text:m[4].trim()});else if(m[5]!=null)out.push({type:"image_request",prompt:m[5].trim()});else if(m[6]!=null)out.push({type:"transfer",amount:Number(m[6])||0,note:m[7].trim()});else out.push({type:"takeout_request",shop:m[8].trim(),items:m[9].trim(),amount:Number(m[10])||0,note:m[11].trim()})}if(out.length)return out.slice(0,12);let cleaned=src.replace(/<\/?message>/gi,"").trim();return cleaned?[{type:"text",content:cleaned}]:[]}
+function curryLooksLikeModelMeta(line){
+ let s=String(line||"").trim();
+ if(!s)return false;
+ return /^(?:[-*•>→]+\s*)?(?:let'?s\b|we\s+(?:need|should|must|can|have\s+to)\b|i\s+(?:need|should|must|will|can)\b|need\s+to\b|check(?:ing)?\b|character\s+length\b|count(?:ing)?\b|analysis\b|thinking\b|reasoning\b|draft\b|final\s+answer\b|format(?:ting)?\b|ensure\b|maybe\b|response\s*:|answer\s*:|assistant\s*:|note\s*:|plan\s*:)/i.test(s) ||
+   /(?:character|token|word)\s+(?:count|length)/i.test(s);
+}
+function curryCleanAssistantFallback(raw){
+ let src=String(raw||"").trim()
+   .replace(/^```(?:\w+)?\s*/i,"").replace(/\s*```$/i,"")
+   .replace(/^\s*(?:analysis|thinking|reasoning)\s*:\s*/i,"");
+ if(!src)return "";
+ let lines=src.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ let leak=lines.some(curryLooksLikeModelMeta) ||
+   /\b(?:Let's check|character length|token count|final answer|analysis|thinking|reasoning)\b/i.test(src);
+ if(leak){
+   lines=lines.filter(x=>!curryLooksLikeModelMeta(x));
+   /* Gemini 偶尔把真正回复包在最后一对引号里，优先取最后的短对话内容。 */
+   let joined=lines.join("\n").trim();
+   let quoted=[...joined.matchAll(/["“”]([^"“”]{1,500})["“”]/g)].map(m=>m[1].trim()).filter(Boolean);
+   if(quoted.length)joined=quoted[quoted.length-1];
+   src=joined;
+ }
+ src=src
+   .replace(/^\s*(?:->|→)\s*/gm,"")
+   .replace(/^\s*(?:Final answer|Answer|Response)\s*:\s*/i,"")
+   .replace(/^["“”']+|["“”']+$/g,"")
+   .trim();
+ return src;
+}
+function splitAssistantMessages(raw){
+ let src=String(raw||"").trim(),out=[],
+ re=/<message>([\s\S]*?)<\/message>|<sticker>\s*<url>([\s\S]*?)<\/url>\s*<mood>([\s\S]*?)<\/mood>\s*<\/sticker>|<voice>([\s\S]*?)<\/voice>|<image>([\s\S]*?)<\/image>|<transfer>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/transfer>|<takeout>\s*<shop>([\s\S]*?)<\/shop>\s*<items>([\s\S]*?)<\/items>\s*<amount>([\s\S]*?)<\/amount>\s*<note>([\s\S]*?)<\/note>\s*<\/takeout>/gi,m;
+ while((m=re.exec(src))!==null){
+  if(m[1]!=null){let c=curryCleanAssistantFallback(m[1]);if(c)out.push({type:"text",content:c})}
+  else if(m[2]!=null)out.push({type:"sticker",url:m[2].trim(),mood:m[3].trim()});
+  else if(m[4]!=null)out.push({type:"voice_request",text:m[4].trim()});
+  else if(m[5]!=null)out.push({type:"image_request",prompt:m[5].trim()});
+  else if(m[6]!=null)out.push({type:"transfer",amount:Number(m[6])||0,note:m[7].trim()});
+  else out.push({type:"takeout_request",shop:m[8].trim(),items:m[9].trim(),amount:Number(m[10])||0,note:m[11].trim()})
+ }
+ /* 只要模型给了合法标签，就彻底忽略标签外的碎碎念/思考过程。 */
+ if(out.length)return out.slice(0,12);
+ /* 没按标签来时，启用 Gemini 泄漏清洗，而不是把整段原样塞进气泡。 */
+ let cleaned=curryCleanAssistantFallback(src.replace(/<\/?message>/gi,""));
+ return cleaned?[{type:"text",content:cleaned}]:[]
+}
 function naturalBurstFallback(pieces,userText=""){
   if(!Array.isArray(pieces)||pieces.length!==1||pieces[0]?.type!=="text")return pieces;
   let s=String(pieces[0].content||"").trim();
@@ -3687,12 +3741,12 @@ function openMaskEditor(id=null){editingMaskId=id;let m=masks.find(x=>x.id===id)
 $("#addMask").onclick=()=>openMaskEditor();$("#maskAvatarFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{pendingMaskAvatar=await mediaPutFile(f);toast("头像已读取")}catch(err){console.warn("面具头像写入 IndexedDB 失败，回退 Base64",err);pendingMaskAvatar=await dataURL(f)}};$("#saveMask").onclick=async()=>{let name=$("#maskName").value.trim();if(!name)return toast("请填写面具名称");let wasEditing=!!editingMaskId,oldMasks=cp(masks),oldActive=activeMaskId;let m={id:editingMaskId||uuid(),name,userName:$("#maskUserName").value.trim()||"user",avatar:pendingMaskAvatar,prompt:$("#maskPrompt").value.trim(),note:$("#maskNote").value.trim()};if(editingMaskId)masks=masks.map(x=>x.id===editingMaskId?m:x);else{masks.push(m);activeMaskId=m.id}try{try{save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId)}catch(err){if(!/本地存储空间已满|quota/i.test(String(err?.message||err)))throw err;toast("存储较满，正在自动整理旧图片…");await migrateLegacyMedia(false);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId)}renderMasks();page("masks");toast(wasEditing?"面具已保存":"新面具已创建；已切换到空白对话")}catch(err){masks=oldMasks;activeMaskId=oldActive;console.error("面具保存失败",err);toast("保存失败："+(err?.message||"浏览器本地存储不可用"))}};
 function extractBook(raw,name){let d=raw?.spec==="chara_card_v2"?raw.data:(raw?.data||raw),book=d?.character_book||d?.characterBook||raw?.character_book;if(!book||!Array.isArray(book.entries))return null;return{id:uuid(),name:(book.name||name+" 世界书"),enabled:true,scope:"global",boundContactIds:[],source:"角色卡 · "+name,entries:book.entries.map((e,i)=>({id:uuid(),name:e.comment||e.name||`Entry ${i+1}`,keys:Array.isArray(e.keys)?e.keys:(Array.isArray(e.key)?e.key:[]),content:e.content||"",constant:!!e.constant,enabled:e.enabled!==false}))}}
 function importEmbeddedWorldbook(raw,name,contactId=null){let b=extractBook(raw,name);if(!b)return;if(contactId){b.scope="bound";b.boundContactIds=[contactId]}worldbooks.push(b);save(K.worldbooks,worldbooks);toast(contactId?"角色卡内世界书已导入并绑定此角色":"角色卡内世界书已一并导入")}
-function renderWorldbooks(){let e=$("#worldbookList");e.innerHTML=worldbooks.length?worldbooks.map(w=>`<div class="wbRow"><button class="row wbOpen" data-id="${w.id}" style="border:0;padding:0"><div><div class="name">${esc(w.name)}</div><div class="sub">${esc(w.source||"手动创建")} · ${(w.entries||[]).length} 条 · ${(w.scope||"global")==="global"?"全局":"独立绑定"}</div></div></button><button class="switch ${w.enabled!==false?"on":""} wbToggle" data-id="${w.id}"></button></div>`).join(""):'<div class="empty">还没有世界书。<br>可以导入 JSON、TXT、DOCX，角色卡内置世界书也会自动出现在这里。</div>';$$('.wbOpen').forEach(b=>b.onclick=()=>openWorldbook(b.dataset.id));$$('.wbToggle').forEach(b=>b.onclick=()=>{let w=worldbooks.find(x=>x.id===b.dataset.id);w.enabled=!w.enabled;save(K.worldbooks,worldbooks);renderWorldbooks()})}
+function renderWorldbooks(){let e=$("#worldbookList");e.innerHTML=worldbooks.length?worldbooks.map(w=>`<div class="wbRow"><button class="row wbOpen" data-id="${w.id}" style="border:0;padding:0"><div><div class="name">${esc(w.name)}</div><div class="sub">${esc(w.source||"手动创建")} · ${(w.entries||[]).length} 条 · ${(w.scope||"global")==="global"?"全局":"独立绑定"}</div></div></button><button class="switch ${w.enabled!==false?"on":""} wbToggle" data-id="${w.id}"></button></div>`).join(""):'<div class="empty">还没有世界书。<br>可以导入 TXT、DOCX，或手动新建；角色卡内置世界书仍会随角色卡读取。</div>';$$('.wbOpen').forEach(b=>b.onclick=()=>openWorldbook(b.dataset.id));$$('.wbToggle').forEach(b=>b.onclick=()=>{let w=worldbooks.find(x=>x.id===b.dataset.id);w.enabled=!w.enabled;save(K.worldbooks,worldbooks);renderWorldbooks()})}
 function openWorldbook(id){currentWorldbook=id;let w=worldbooks.find(x=>x.id===id);if(!w)return;$("#worldbookDetailBody").innerHTML=`<div class="card"><div class="cardTitle">${esc(w.source||"")}</div><div class="name">${esc(w.name)}</div><div class="actions" style="margin-top:10px"><button class="btn wbScopeBtn" type="button">${(w.scope||"global")==="global"?"作用域：全局":"作用域：独立绑定"}</button></div><div class="help">${(w.scope||"global")==="global"?"当前会对所有角色生效。":"只会对已绑定联系人生效；可在联系人详情里管理绑定。"}</div></div>`+(w.entries||[]).map(e=>`<div class="wbEntry"><div class="wbEntryHead"><div><div class="name">${esc(e.name||"Entry")}</div><div class="sub">${e.constant?"常驻":esc((e.keys||[]).join(", ")||"无关键词")}</div></div><button class="switch ${e.enabled!==false?"on":""} entryToggle" data-id="${e.id}"></button></div><div class="cardText" style="margin-top:8px">${esc(e.content)}</div><button class="btn entryEdit" data-id="${e.id}" style="margin-top:8px">编辑</button></div>`).join("");$$('.wbScopeBtn').forEach(b=>b.onclick=()=>{w.scope=(w.scope||"global")==="global"?"bound":"global";save(K.worldbooks,worldbooks);openWorldbook(id)});$$('.entryToggle').forEach(b=>b.onclick=()=>{let e=w.entries.find(x=>x.id===b.dataset.id);e.enabled=!e.enabled;save(K.worldbooks,worldbooks);openWorldbook(id)});$$('.entryEdit').forEach(b=>b.onclick=()=>openEntryEditor(b.dataset.id));page("worldbookDetail")}
 function openEntryEditor(id=null){editingWbEntryId=id;let w=worldbooks.find(x=>x.id===currentWorldbook),e=w?.entries.find(x=>x.id===id)||{name:"",keys:[],content:"",constant:false};$("#wbEntryName").value=e.name;$("#wbEntryKeys").value=(e.keys||[]).join(", ");$("#wbEntryContent").value=e.content;$("#wbEntryConstant").checked=!!e.constant;page("wbEntryEditor")}
 $("#addWbEntry").onclick=()=>openEntryEditor();$("#saveWbEntry").onclick=()=>{let w=worldbooks.find(x=>x.id===currentWorldbook);if(!w)return;let e={id:editingWbEntryId||uuid(),name:$("#wbEntryName").value.trim()||"Entry",keys:$("#wbEntryKeys").value.split(/[,，]/).map(x=>x.trim()).filter(Boolean),content:$("#wbEntryContent").value.trim(),constant:$("#wbEntryConstant").checked,enabled:true};if(editingWbEntryId){let old=w.entries.find(x=>x.id===editingWbEntryId);e.enabled=old?.enabled!==false;w.entries=w.entries.map(x=>x.id===editingWbEntryId?e:x)}else w.entries.push(e);save(K.worldbooks,worldbooks);openWorldbook(w.id);toast("条目已保存")};
-$("#addWorldbook").onclick=()=>$("#worldbookImportSheet").classList.add("show");$("#closeWbSheet").onclick=()=>$("#worldbookImportSheet").classList.remove("show");$$('[data-wb-import]').forEach(b=>b.onclick=()=>{let t=b.dataset.wbImport;$("#worldbookImportSheet").classList.remove("show");if(t==="manual"){let name=prompt("世界书名称")||"新世界书";worldbooks.push({id:uuid(),name,enabled:true,scope:"global",boundContactIds:[],source:"手动创建",entries:[]});save(K.worldbooks,worldbooks);renderWorldbooks();return}wbImportType=t;let f=$("#wbImportFile");f.value="";f.accept=t==="json"?".json":t==="txt"?".txt":".docx";f.click()});
-$("#wbImportFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let w;if(wbImportType==="json"){let o=JSON.parse(await f.text()),book=o.character_book||o.characterBook||o.data?.character_book||o;let entries=Array.isArray(book.entries)?book.entries:(Array.isArray(book)?book:[]);w={id:uuid(),name:book.name||f.name.replace(/\.json$/i,""),enabled:true,scope:"global",boundContactIds:[],source:"JSON · "+f.name,entries:entries.map((x,i)=>({id:uuid(),name:x.comment||x.name||`Entry ${i+1}`,keys:x.keys||x.key||[],content:x.content||x.text||"",constant:!!x.constant,enabled:x.enabled!==false}))}}else{let raw;if(wbImportType==="txt")raw=await f.text();else{let d=await docx(f);raw=d.character.rawText}w={id:uuid(),name:f.name.replace(/\.(txt|docx)$/i,""),enabled:true,scope:"global",boundContactIds:[],source:wbImportType.toUpperCase()+" · "+f.name,entries:[{id:uuid(),name:"全文",keys:[],content:raw,constant:true,enabled:true}]}}worldbooks.push(w);save(K.worldbooks,worldbooks);renderWorldbooks();toast("世界书已导入")}catch(err){toast("世界书导入失败："+err.message)}};
+$("#addWorldbook").onclick=()=>$("#worldbookImportSheet").classList.add("show");$("#closeWbSheet").onclick=()=>$("#worldbookImportSheet").classList.remove("show");$$('[data-wb-import]').forEach(b=>b.onclick=()=>{let t=b.dataset.wbImport;$("#worldbookImportSheet").classList.remove("show");if(t==="manual"){let name=prompt("世界书名称")||"新世界书";worldbooks.push({id:uuid(),name,enabled:true,scope:"global",boundContactIds:[],source:"手动创建",entries:[]});save(K.worldbooks,worldbooks);renderWorldbooks();return}wbImportType=t;let f=$("#wbImportFile");f.value="";f.accept=t==="txt"?".txt":".docx";f.click()});
+$("#wbImportFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{if(!["txt","docx"].includes(wbImportType))throw Error("当前版本不支持导入 JSON / 酒馆世界书 JSON");let raw;if(wbImportType==="txt")raw=await f.text();else{let d=await docx(f);raw=d.character.rawText}let w={id:uuid(),name:f.name.replace(/\.(txt|docx)$/i,""),enabled:true,scope:"global",boundContactIds:[],source:wbImportType.toUpperCase()+" · "+f.name,entries:[{id:uuid(),name:"全文",keys:[],content:raw,constant:true,enabled:true}]};worldbooks.push(w);save(K.worldbooks,worldbooks);renderWorldbooks();toast("世界书已导入")}catch(err){toast("世界书导入失败："+err.message)}};
 
 
 function maskMomentId(){return activeMaskId||"mask_default"}
@@ -6066,7 +6120,7 @@ async function borrowGenerateReply(){
  if(borrowGenerating)return;let self=borrowChar(),target=borrowFriendById(borrowTargetId,self?.id),h=borrowHistory();if(!self||!target||!h.length)return toast("先发一条消息");borrowGenerating=true;renderBorrowChat();
  try{
   let raw=await apiWithMcp([{role:"system",content:borrowPrompt(self,target,h)},{role:"user",content:`继续私聊，回应 ${self.name} 最新发来的消息。`}]);
-  let pieces=naturalBurstFallback(splitAssistantMessages(raw).filter(x=>x.type==="text"),h[h.length-1]?.content||"").slice(0,3);if(!pieces.length)pieces=[{type:"text",content:String(raw||"").trim()}];
+  let pieces=naturalBurstFallback(splitAssistantMessages(raw).filter(x=>x.type==="text"),h[h.length-1]?.content||"").slice(0,3);if(!pieces.length){let cleaned=curryCleanAssistantFallback(raw);if(cleaned)pieces=[{type:"text",content:cleaned}]}
   for(let p of pieces){let content=String(p.content||"").trim();if(!content)continue;let suspicious=/你是本人|本人吗|谁拿|谁在用|手机给谁|不像你|你今天怎么|你怎么了|被盗|拿你手机|谁啊|你谁/i.test(content);h.push({id:uuid(),senderId:target.id,content,time:now(),createdAt:Date.now(),suspicious});borrowState.convos[borrowPairKey(self.id,target.id)]=h;saveBorrow();renderBorrowChat();await sleep(180+Math.random()*300)}
  }catch(e){toast("借号聊天失败："+(e.message||e))}finally{borrowGenerating=false;renderBorrowChat();renderBorrowAccounts()}
 }
