@@ -1377,74 +1377,58 @@ body.curryMonoFull .os canvas{
 
 
 
-<style id="curry-ios-bottom-fill-v10">
-/* ===== iOS bottom fill v10 =====
-   只修底部铺满 / safe area。
-   不隐藏内部 status，不修改 head/back，不添加任何 click/touch 事件。 */
+<style id="curry-platform-isolation-v11">
+/* ===== V11 Platform isolation =====
+   iOS “添加到主屏幕”只修 viewport 背景。
+   不修改 .screen / .page / .head / .back / .body 的尺寸或点击区域。 */
 
-:root{
-  --curry-safe-bottom:env(safe-area-inset-bottom,0px);
+html.curryStandaloneIOS,
+html.curryStandaloneIOS body{
+  background-color:#e8e6e1!important;
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity))),
+      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity)))
+    ),
+    linear-gradient(var(--home-overlay),var(--home-overlay)),
+    var(--home-wallpaper),
+    linear-gradient(155deg,#f5f3ee 0%,#eeece7 52%,#e8e6e1 100%)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
 }
 
-/* iOS standalone 下不要让 JS 的 100dvh/visualViewport 短高度截掉底部。 */
-body.phoneActive,
-#root.phoneMode,
-#root.immersive,
-.fullscreenPhone #root{
-  top:0!important;
-  bottom:0!important;
-  height:100vh!important;
-  min-height:100vh!important;
-  max-height:100vh!important;
-}
-
-#root.phoneMode .shell,
-#root.immersive .shell,
-.fullscreenPhone #root .shell,
-#root.phoneMode .os,
-#root.immersive .os,
-.fullscreenPhone #root .os{
+/* 真 Fullscreen API 单独兼容标准 + WebKit。
+   这里只描述 fullscreen 元素本身，不参与 standalone 布局。 */
+:fullscreen,
+:-webkit-full-screen{
+  width:100%!important;
   height:100%!important;
-  min-height:0!important;
-  max-height:100%!important;
+  background:#e8e6e1;
 }
 
-/* 保留原本 45px 内部状态栏；只让 screen 吃完它下面的所有空间。 */
-#root.phoneMode .screen,
-#root.immersive .screen,
-.fullscreenPhone #root .screen{
-  flex:1 1 auto!important;
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-}
-
-/* 主页内容给 Home Indicator 留空间，但主页背景本身继续铺到底。 */
-#root.phoneMode .curryHomeScreen,
-#root.immersive .curryHomeScreen,
-.fullscreenPhone #root .curryHomeScreen{
-  padding-bottom:calc(104px + var(--curry-safe-bottom))!important;
-}
-
-/* Dock / 页码点只向上避让安全区，不改变任何点击区域。 */
-#root.phoneMode .curryDock,
-#root.immersive .curryDock,
-.fullscreenPhone #root .curryDock{
-  bottom:calc(14px + var(--curry-safe-bottom))!important;
-}
-#root.phoneMode .curryHomeDots,
-#root.immersive .curryHomeDots,
-.fullscreenPhone #root .curryHomeDots{
-  bottom:calc(92px + var(--curry-safe-bottom))!important;
-}
-
-/* 最外层也使用首页底色，防止 iOS 在页面边缘露出默认白色。 */
-html,
-body{
-  min-height:100vh!important;
-  background:#e8e6e1!important;
+:fullscreen #root,
+:-webkit-full-screen #root{
+  width:100vw!important;
+  height:100vh!important;
 }
 </style>
+
+<script id="curry-platform-detect-v11">
+(function(){
+  try{
+    var standalone =
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      window.navigator.standalone === true;
+    var isiOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent || "") ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if(standalone && isiOS){
+      document.documentElement.classList.add("curryStandaloneIOS");
+    }
+  }catch(e){}
+})();
+</script>
 
 </head><body>
 <div id="root"><div class="shell">
@@ -4118,12 +4102,15 @@ $("#resetBeauty").onclick=()=>{
 };
 $("#fullscreenApp").onclick=async()=>{
   try{
-    if(!document.fullscreenElement && document.documentElement.requestFullscreen){
-      await document.documentElement.requestFullscreen();
+    const fsEl=document.fullscreenElement||document.webkitFullscreenElement;
+    const requestFS=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+    const exitFS=document.exitFullscreen||document.webkitExitFullscreen;
+    if(!fsEl && requestFS){
+      await requestFS.call(document.documentElement);
       document.body.classList.add("fullscreenPhone");
       toast("已进入全屏");
-    }else if(document.fullscreenElement && document.exitFullscreen){
-      await document.exitFullscreen();
+    }else if(fsEl && exitFS){
+      await exitFS.call(document);
     }else{
       $("#root").classList.toggle("immersive");
       toast($("#root").classList.contains("immersive")?"已进入沉浸模式":"已退出沉浸模式");
@@ -4133,10 +4120,14 @@ $("#fullscreenApp").onclick=async()=>{
     toast($("#root").classList.contains("immersive")?"浏览器不允许全屏，已使用沉浸模式":"已退出沉浸模式");
   }
 };
-document.addEventListener("fullscreenchange",()=>{
-  if(!document.fullscreenElement)document.body.classList.remove("fullscreenPhone");
+function curryFullscreenChanged(){
+  if(!(document.fullscreenElement||document.webkitFullscreenElement)){
+    document.body.classList.remove("fullscreenPhone");
+  }
   syncPhoneViewport();
-});
+}
+document.addEventListener("fullscreenchange",curryFullscreenChanged);
+document.addEventListener("webkitfullscreenchange",curryFullscreenChanged);
 
 /* ===== V4.7 群聊基础设施 ===== */
 K.groups="wp2_groups_v47";K.groupConvos="wp2_group_convos_v47";
