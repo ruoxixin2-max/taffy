@@ -1377,14 +1377,16 @@ body.curryMonoFull .os canvas{
 
 
 
-<style id="curry-ios-fullheight-only">
-/* ===== iOS full-height only =====
-   只修整机铺满屏幕，不碰 status / header / back / click / touch。 */
-html,body{
-  min-height:100vh!important;
-  background:#f5f3ee!important;
+<style id="curry-ios-bottom-fill-v10">
+/* ===== iOS bottom fill v10 =====
+   只修底部铺满 / safe area。
+   不隐藏内部 status，不修改 head/back，不添加任何 click/touch 事件。 */
+
+:root{
+  --curry-safe-bottom:env(safe-area-inset-bottom,0px);
 }
 
+/* iOS standalone 下不要让 JS 的 100dvh/visualViewport 短高度截掉底部。 */
 body.phoneActive,
 #root.phoneMode,
 #root.immersive,
@@ -1405,6 +1407,42 @@ body.phoneActive,
   height:100%!important;
   min-height:0!important;
   max-height:100%!important;
+}
+
+/* 保留原本 45px 内部状态栏；只让 screen 吃完它下面的所有空间。 */
+#root.phoneMode .screen,
+#root.immersive .screen,
+.fullscreenPhone #root .screen{
+  flex:1 1 auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+}
+
+/* 主页内容给 Home Indicator 留空间，但主页背景本身继续铺到底。 */
+#root.phoneMode .curryHomeScreen,
+#root.immersive .curryHomeScreen,
+.fullscreenPhone #root .curryHomeScreen{
+  padding-bottom:calc(104px + var(--curry-safe-bottom))!important;
+}
+
+/* Dock / 页码点只向上避让安全区，不改变任何点击区域。 */
+#root.phoneMode .curryDock,
+#root.immersive .curryDock,
+.fullscreenPhone #root .curryDock{
+  bottom:calc(14px + var(--curry-safe-bottom))!important;
+}
+#root.phoneMode .curryHomeDots,
+#root.immersive .curryHomeDots,
+.fullscreenPhone #root .curryHomeDots{
+  bottom:calc(92px + var(--curry-safe-bottom))!important;
+}
+
+/* 最外层也使用首页底色，防止 iOS 在页面边缘露出默认白色。 */
+html,
+body{
+  min-height:100vh!important;
+  background:#e8e6e1!important;
 }
 </style>
 
