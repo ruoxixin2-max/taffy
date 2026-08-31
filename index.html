@@ -6165,4 +6165,114 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
+
+<style id="curry-top-safearea-fix-v8828">
+/* ===== V8.8.28 iOS 顶部安全区 / 状态栏适配 =====
+   目标：隐藏重复的小手机状态栏后，主页仍完整铺到顶部；
+   内容避开系统状态栏，背景/壁纸继续延伸到安全区。 */
+:root{
+  --curry-safe-top: env(safe-area-inset-top, 0px);
+  --curry-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 手机模式始终真正占满宿主提供的可视区域。 */
+body.phoneActive,
+body.phoneActive #root,
+#root.phoneMode,
+#root.immersive,
+.fullscreenPhone #root,
+#root.phoneMode .shell,
+#root.immersive .shell,
+.fullscreenPhone #root .shell,
+#root.phoneMode .os,
+#root.immersive .os,
+.fullscreenPhone #root .os,
+#root.phoneMode .screen,
+#root.immersive .screen,
+.fullscreenPhone #root .screen{
+  margin-top:0!important;
+  padding-top:0!important;
+  top:0!important;
+}
+
+/* 宿主 iOS 已经有状态栏，不再为内部状态栏保留 45px 空位。 */
+#root.phoneMode .status,
+#root.immersive .status,
+.fullscreenPhone #root .status{
+  display:none!important;
+  position:absolute!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  max-height:0!important;
+  flex:0 0 0!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+
+#root.phoneMode .screen,
+#root.immersive .screen,
+.fullscreenPhone #root .screen{
+  flex:1 1 100%!important;
+  height:100%!important;
+  min-height:0!important;
+}
+
+/* 主页背景本身铺满整个 screen；真正内容从安全区下方开始。 */
+#root.phoneMode .curryHome,
+#root.immersive .curryHome,
+.fullscreenPhone #root .curryHome,
+#root.phoneMode .curryHomePager,
+#root.immersive .curryHomePager,
+.fullscreenPhone #root .curryHomePager{
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  margin:0!important;
+}
+
+#root.phoneMode .curryHomeScreen,
+#root.immersive .curryHomeScreen,
+.fullscreenPhone #root .curryHomeScreen{
+  box-sizing:border-box!important;
+  padding-top:calc(18px + var(--curry-safe-top))!important;
+  padding-bottom:calc(108px + var(--curry-safe-bottom))!important;
+}
+
+#root.phoneMode .curryHomeScreenSecond,
+#root.immersive .curryHomeScreenSecond,
+.fullscreenPhone #root .curryHomeScreenSecond{
+  padding-top:calc(28px + var(--curry-safe-top))!important;
+}
+
+/* Dock 和桌面分页点也跟随底部安全区，避免 Home Indicator 挤压。 */
+#root.phoneMode .curryDock,
+#root.immersive .curryDock,
+.fullscreenPhone #root .curryDock{
+  bottom:calc(14px + var(--curry-safe-bottom))!important;
+}
+#root.phoneMode .curryHomeDots,
+#root.immersive .curryHomeDots,
+.fullscreenPhone #root .curryHomeDots{
+  bottom:calc(92px + var(--curry-safe-bottom))!important;
+}
+
+/* 部分 iOS WebView 会把未覆盖的安全区显示成 body 背景，至少保持与主页底色一致。 */
+html, body,
+body.phoneActive{
+  background-color:#f5f3ee!important;
+}
+
+@media(max-width:360px){
+  #root.phoneMode .curryHomeScreen,
+  #root.immersive .curryHomeScreen,
+  .fullscreenPhone #root .curryHomeScreen{
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+}
+</style>
+
 </body></html>
