@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.45 · Live2D纹理直解版</title>
+<title>咖喱小手机 V8.8.46 · iOS纹理黑影修复版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -4951,18 +4951,18 @@ function installCurryLive2dDirectLoader(){
          let resolved=ctx?.settings?.resolveURL?ctx.settings.resolveURL(ctx.url):ctx?.url;
          let blob=window.__curryLive2dBlobMap.get(resolved)||window.__curryLive2dBlobMap.get(ctx?.url);
          if(!blob)return next();
-         window.__curryLive2dLastAsset={kind:String(ctx.type||"resource"),url:String(resolved||ctx?.url||""),size:blob.size||0,type:blob.type||""};
+         window.__curryLive2dLastAsset={
+           kind:String(ctx.type||"resource"),
+           url:String(resolved||ctx?.url||""),
+           size:blob.size||0,
+           type:blob.type||""
+         };
          switch(String(ctx.type||"").toLowerCase()){
-           case "json":
-             ctx.result=JSON.parse(await blob.text());break;
-           case "arraybuffer":
-             ctx.result=await blob.arrayBuffer();break;
-           case "blob":
-             ctx.result=blob;break;
-           case "text":
-             ctx.result=await blob.text();break;
-           default:
-             ctx.result=blob
+           case "json": ctx.result=JSON.parse(await blob.text()); break;
+           case "arraybuffer": ctx.result=await blob.arrayBuffer(); break;
+           case "blob": ctx.result=blob; break;
+           case "text": ctx.result=await blob.text(); break;
+           default: ctx.result=blob;
          }
          return
        }catch(e){
@@ -4975,40 +4975,97 @@ function installCurryLive2dDirectLoader(){
    }
  }
 
- /* V8.8.45: Safari 对 blob: 图片偶尔会在 Texture.fromURL 内部报 Network error。
-    本地 Live2D 纹理不再走 URL 加载，直接把 IndexedDB Blob 解码后创建 PIXI.Texture。 */
+ /* V8.8.46
+    iOS Safari + Pixi 6 的 ImageBitmap 路径会出现“加载成功但 RGB 变黑，只剩 Alpha 剪影”。
+    iOS/Safari 固定走：Blob -> DataURL -> 已解码 HTMLImageElement -> PIXI.Texture。
+    非 Safari 才允许 createImageBitmap。 */
  if(!window.__curryLive2dTextureLoaderInstalled && window.PIXI?.Texture?.fromURL){
    const original=window.PIXI.Texture.fromURL.bind(window.PIXI.Texture);
    window.__curryLive2dOriginalTextureFromURL=original;
+
+   const blobToDataUrl=blob=>new Promise((resolve,reject)=>{
+     let fr=new FileReader();
+     fr.onload=()=>resolve(String(fr.result||""));
+     fr.onerror=()=>reject(fr.error||Error("纹理 FileReader 失败"));
+     fr.readAsDataURL(blob)
+   });
+
+   const decodedImageTexture=async(blob,key)=>{
+     let dataUrl=await blobToDataUrl(blob);
+     let img=new Image();
+     img.decoding="async";
+     img.src=dataUrl;
+
+     if(typeof img.decode==="function"){
+       try{await img.decode()}
+       catch(e){
+         await new Promise((resolve,reject)=>{
+           if(img.complete&&img.naturalWidth)return resolve();
+           img.onload=()=>resolve();
+           img.onerror=()=>reject(e||Error("纹理图片解码失败"))
+         })
+       }
+     }else{
+       await new Promise((resolve,reject)=>{
+         if(img.complete&&img.naturalWidth)return resolve();
+         img.onload=()=>resolve();
+         img.onerror=()=>reject(Error("纹理图片解码失败"))
+       })
+     }
+
+     if(!img.naturalWidth||!img.naturalHeight){
+       throw Error("纹理尺寸为 0："+(window.__curryLive2dAssetNameMap?.get?.(key)||key))
+     }
+
+     let tex=window.PIXI.Texture.from(img);
+     try{
+       if(tex?.baseTexture && window.PIXI?.ALPHA_MODES){
+         tex.baseTexture.alphaMode=window.PIXI.ALPHA_MODES.PMA;
+       }
+       tex?.baseTexture?.update?.()
+     }catch{}
+     return tex
+   };
+
    window.PIXI.Texture.fromURL=async function(url,opts){
-     let key=String(url||""),blob=window.__curryLive2dBlobMap.get(key);
+     let key=String(url||""),
+         blob=window.__curryLive2dBlobMap.get(key);
+
      if(!blob)return original(url,opts);
-     window.__curryLive2dLastAsset={kind:"texture",url:key,size:blob.size||0,type:blob.type||""};
+
+     window.__curryLive2dLastAsset={
+       kind:"texture",
+       url:key,
+       size:blob.size||0,
+       type:blob.type||""
+     };
+
+     if(isIOSWebKitLive2d()||isSafariLive2d()){
+       return await decodedImageTexture(blob,key)
+     }
+
      try{
        if(typeof createImageBitmap==="function"){
-         let bitmap=await createImageBitmap(blob);
+         let bitmap=await createImageBitmap(blob,{
+           premultiplyAlpha:"premultiply",
+           colorSpaceConversion:"default"
+         });
          let tex=window.PIXI.Texture.from(bitmap);
-         // ImageBitmap 不能在 Texture 建立前 close；交给 Pixi 生命周期。
+         try{
+           if(tex?.baseTexture && window.PIXI?.ALPHA_MODES){
+             tex.baseTexture.alphaMode=window.PIXI.ALPHA_MODES.PMA;
+           }
+           tex?.baseTexture?.update?.()
+         }catch{}
          return tex
        }
      }catch(err){
        console.warn("createImageBitmap Live2D texture fallback",err)
      }
 
-     /* 老 WebKit fallback：用 FileReader data URL，避免 blob: 网络层。
-        只在 createImageBitmap 不可用/失败时触发，避免平时增加 base64 内存。 */
-     let dataUrl=await new Promise((resolve,reject)=>{
-       let fr=new FileReader();
-       fr.onload=()=>resolve(String(fr.result||""));
-       fr.onerror=()=>reject(fr.error||Error("纹理解码失败"));
-       fr.readAsDataURL(blob)
-     });
-     try{
-       return await original(dataUrl,{...(opts||{}),resourceOptions:{...((opts||{}).resourceOptions||{}),crossorigin:false}})
-     }finally{
-       dataUrl=null
-     }
+     return await decodedImageTexture(blob,key)
    };
+
    window.__curryLive2dTextureLoaderInstalled=true
  }
 }
@@ -5392,7 +5449,7 @@ async function mountLive2d(modelId,retryMode=false){
    let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
    fit();setTimeout(fit,safari?180:80);
    live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");
-   if(hint){hint.textContent=safari?"Live2D 已加载 · Safari 直读模式":"Live2D 已加载";hint.classList.add("ok")}
+   if(hint){hint.textContent=safari?"Live2D 已加载 · iOS 纹理安全模式":"Live2D 已加载";hint.classList.add("ok")}
    if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),safari?1200:350);
    return true
  }catch(e){
