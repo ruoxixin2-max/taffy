@@ -1457,6 +1457,72 @@ html,body{
 }
 </style>
 
+
+<style id="curry-ios-header-hitarea-fix">
+/* ===== iOS 二级页头部点击区修复 =====
+   上一版隐藏了内部 .status，但普通页面 header 仍从 top:0 开始，
+   导致“返回”落在系统状态栏下方，视觉可见但点击被 iOS 顶栏抢走。
+   这里只把二级页 header 下移到 safe-area 下面，并同步调整正文高度。 */
+
+/* 普通二级页 */
+body.phoneActive #root .page > .head{
+  box-sizing:border-box!important;
+  height:calc(54px + env(safe-area-inset-top,0px))!important;
+  min-height:calc(54px + env(safe-area-inset-top,0px))!important;
+  padding-top:env(safe-area-inset-top,0px)!important;
+}
+
+/* 聊天页原本头部在窄屏为 58px，保留这个设计高度 */
+@media(max-width:430px){
+  body.phoneActive #root .chatPage > .head{
+    height:calc(58px + env(safe-area-inset-top,0px))!important;
+    min-height:calc(58px + env(safe-area-inset-top,0px))!important;
+  }
+}
+
+/* 小红书使用独立 header */
+body.phoneActive #root .xhsHeader{
+  box-sizing:border-box!important;
+  height:calc(54px + env(safe-area-inset-top,0px))!important;
+  min-height:calc(54px + env(safe-area-inset-top,0px))!important;
+  padding-top:env(safe-area-inset-top,0px)!important;
+}
+
+/* 返回/右侧按钮的可点击高度只保留设计本身 54px，
+   不把 safe-area 算进按钮本体，避免点击热区跑到系统栏。 */
+body.phoneActive #root .page > .head > .back,
+body.phoneActive #root .page > .head > .headAction,
+body.phoneActive #root .xhsHeader > .back,
+body.phoneActive #root .xhsHeader > .headAction{
+  height:54px!important;
+  min-height:54px!important;
+  align-self:end!important;
+  position:relative!important;
+  z-index:5!important;
+  pointer-events:auto!important;
+}
+
+/* 普通 body 原先按 54px 扣高度；现在把 safe-area 一并扣掉。 */
+body.phoneActive #root .page > .body{
+  height:calc(100% - 54px - env(safe-area-inset-top,0px))!important;
+  max-height:calc(100% - 54px - env(safe-area-inset-top,0px))!important;
+}
+
+/* 聊天 body 由 flex 接管，不强算高度。 */
+body.phoneActive #root .chatPage > .chatBody{
+  height:auto!important;
+  max-height:none!important;
+}
+
+/* 小红书自己的固定高度公式额外扣掉顶部 safe-area。 */
+body.phoneActive #root .xhsFeed{
+  height:calc(100% - 154px - env(safe-area-inset-top,0px))!important;
+}
+body.phoneActive #root .xhsDetailBody{
+  height:calc(100% - 112px - env(safe-area-inset-top,0px))!important;
+}
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
