@@ -6234,26 +6234,104 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 </script>
 
 
-<style id="curry-ios-standalone-status-spacer-v12">
-/* ===== V12 iOS standalone safe-area spacer =====
-   修复后置 chat-ui-clean-v8818 全局隐藏 .status 导致二级页顶进系统状态栏。
-   只恢复“占位高度”，不显示内部状态栏内容，不修改 head/back/click。 */
-html.curryStandaloneIOS #root.phoneMode .status,
-html.curryStandaloneIOS #root.immersive .status,
-html.curryStandaloneIOS .fullscreenPhone #root .status{
-  display:flex!important;
-  visibility:hidden!important;
-  flex:0 0 env(safe-area-inset-top,0px)!important;
-  width:100%!important;
-  height:env(safe-area-inset-top,0px)!important;
-  min-height:env(safe-area-inset-top,0px)!important;
-  max-height:env(safe-area-inset-top,0px)!important;
-  padding:0!important;
-  margin:0!important;
-  overflow:hidden!important;
-  pointer-events:none!important;
-  background:transparent!important;
+<style id="curry-ios-safe-bottom-v14">
+/* ===== V14 iOS standalone safe-area =====
+   只处理底部视觉与固定控件避让。
+   不修改 .screen / .page / .head / .back / .body 的高度或位置。 */
+
+html.curryStandaloneIOS{
+  --curry-safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+/* Dock / 页码点：只上移，不改变自身高度。 */
+html.curryStandaloneIOS .curryDock{
+  bottom:calc(14px + var(--curry-safe-bottom))!important;
+}
+html.curryStandaloneIOS .curryHomeDots{
+  bottom:calc(92px + var(--curry-safe-bottom))!important;
+}
+
+/* 聊天输入栏 */
+html.curryStandaloneIOS #root.phoneMode .chatPage>.compose,
+html.curryStandaloneIOS #root.immersive .chatPage>.compose,
+html.curryStandaloneIOS .fullscreenPhone #root .chatPage>.compose{
+  bottom:calc(8px + var(--curry-safe-bottom))!important;
+}
+
+/* 表情 / 媒体选择器 */
+html.curryStandaloneIOS .stickerPicker,
+html.curryStandaloneIOS .mediaPicker{
+  bottom:calc(84px + var(--curry-safe-bottom))!important;
+}
+
+/* 小红书评论栏 */
+html.curryStandaloneIOS .xhsComposer{
+  bottom:calc(9px + var(--curry-safe-bottom))!important;
+}
+
+/* 论坛回复栏 */
+html.curryStandaloneIOS .forumComposer{
+  bottom:calc(10px + var(--curry-safe-bottom))!important;
+}
+
+/* 直播底部控件 */
+html.curryStandaloneIOS .liveComposerV2,
+html.curryStandaloneIOS .liveComposer{
+  bottom:calc(8px + var(--curry-safe-bottom))!important;
+}
+html.curryStandaloneIOS .liveGiftMenu{
+  bottom:calc(67px + var(--curry-safe-bottom))!important;
+}
+html.curryStandaloneIOS .livePkMenu{
+  bottom:calc(70px + var(--curry-safe-bottom))!important;
+}
+
+/* Bottom sheet 只给内容留安全区，不改变整机高度。 */
+html.curryStandaloneIOS .sheet{
+  padding-bottom:calc(18px + var(--curry-safe-bottom))!important;
 }
 </style>
+
+<script id="curry-ios-back-pointerdown-v14">
+(function(){
+  const standalone =
+    window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
+  if(!standalone) return;
+
+  let lastBackPointerAt = 0;
+
+  document.addEventListener("pointerdown", function(e){
+    const btn = e.target && e.target.closest ? e.target.closest("[data-back]") : null;
+    if(!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const target = btn.dataset.back;
+    if(target && typeof page === "function"){
+      lastBackPointerAt = Date.now();
+      page(target);
+    }
+  }, {passive:false, capture:true});
+
+  /* 如果 WebKit 仍合成了 click，吞掉返回键的重复 click，避免跳两次。 */
+  document.addEventListener("click", function(e){
+    const btn = e.target && e.target.closest ? e.target.closest("[data-back]") : null;
+    if(!btn) return;
+    if(Date.now() - lastBackPointerAt < 700){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  document.querySelectorAll("[data-back]").forEach(function(el){
+    el.style.minHeight = "44px";
+    el.style.minWidth = "44px";
+    el.style.touchAction = "manipulation";
+  });
+})();
+</script>
 
 </body></html>
