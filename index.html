@@ -2,6 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#f5f3ee">
 <title>咖喱小手机 V8.8.27 · 急救启动版</title>
 <style>
@@ -6166,97 +6169,5 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
-
-<style id="curry-ios-safearea-hostsafe">
-/* ===== iOS / WKWebView 宿主安全区适配 =====
-   说明：
-   1) 当前宿主把顶部系统状态栏放在网页 viewport 外，网页无法把“图片壁纸”画进宿主原生状态栏。
-   2) 因此这里不再强开 black-translucent，避免系统顶部被强制成黑条。
-   3) 页面本身从宿主给出的 viewport 顶部开始，禁止再叠加一层 top safe-area，避免双重留白。
-*/
-:root{
-  --curry-safe-bottom:env(safe-area-inset-bottom,0px);
-}
-
-/* 宿主已经负责顶部状态栏：网页不要再次人为下移。 */
-body.phoneActive,
-#root.phoneMode,
-#root.immersive,
-.fullscreenPhone #root,
-#root.phoneMode .shell,
-#root.immersive .shell,
-.fullscreenPhone #root .shell,
-#root.phoneMode .os,
-#root.immersive .os,
-.fullscreenPhone #root .os{
-  top:0!important;
-  margin-top:0!important;
-  padding-top:0!important;
-}
-
-/* 隐藏小手机自己的伪状态栏，避免和 iOS 状态栏重复。 */
-#root.phoneMode .status,
-#root.immersive .status,
-.fullscreenPhone #root .status{
-  display:none!important;
-  height:0!important;
-  min-height:0!important;
-  max-height:0!important;
-  padding:0!important;
-  margin:0!important;
-  overflow:hidden!important;
-}
-
-/* screen / 首页从网页可用区域的第一像素开始。 */
-#root.phoneMode .screen,
-#root.immersive .screen,
-.fullscreenPhone #root .screen{
-  position:relative!important;
-  flex:1 1 auto!important;
-  height:100%!important;
-  min-height:0!important;
-  margin:0!important;
-  padding:0!important;
-}
-
-#root.phoneMode .curryHome,
-#root.immersive .curryHome,
-.fullscreenPhone #root .curryHome,
-#root.phoneMode .curryHomePager,
-#root.immersive .curryHomePager,
-.fullscreenPhone #root .curryHomePager{
-  inset:0!important;
-  top:0!important;
-  margin-top:0!important;
-  padding-top:0!important;
-}
-
-/* 只保留设计本身 18px 的顶部内边距；不再加 env(safe-area-inset-top)。 */
-#root.phoneMode .curryHomeScreen,
-#root.immersive .curryHomeScreen,
-.fullscreenPhone #root .curryHomeScreen{
-  padding-top:18px!important;
-  padding-bottom:max(108px,calc(96px + var(--curry-safe-bottom)))!important;
-}
-
-/* 第二屏原设计顶部略大。 */
-#root.phoneMode .curryHomeScreenSecond,
-#root.immersive .curryHomeScreenSecond,
-.fullscreenPhone #root .curryHomeScreenSecond{
-  padding-top:28px!important;
-}
-
-/* 底部仍尊重 Home Indicator。 */
-#root.phoneMode .curryDock,
-#root.immersive .curryDock,
-.fullscreenPhone #root .curryDock{
-  bottom:max(14px,calc(var(--curry-safe-bottom) + 8px))!important;
-}
-#root.phoneMode .curryHomeDots,
-#root.immersive .curryHomeDots,
-.fullscreenPhone #root .curryHomeDots{
-  bottom:max(92px,calc(82px + var(--curry-safe-bottom)))!important;
-}
-</style>
 
 </body></html>
