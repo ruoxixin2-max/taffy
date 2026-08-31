@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.8.27 · 黑白模式版</title>
+<title>咖喱小手机 V8.8.27 · 急救启动版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -1364,6 +1364,11 @@ body.curryMonoFull .os canvas{
 .monoModeBtn{border:1px solid var(--line);border-radius:11px;background:#f7f8f5;padding:10px 5px;font-size:9px}
 .monoModeBtn.active{background:#292929;color:#fff;border-color:#292929}
 </style>
+
+<style>
+/* Emergency build: no visual changes, only boot safety. */
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -4258,7 +4263,9 @@ async function migrateLegacyLive2dToIndexedDb(){
  }
  if(dirty)saveLive2d()
 }
-setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("Live2D 旧数据迁移失败",e)),800);
+/* 急救启动版：暂停首屏 Live2D 旧资源迁移。
+   不删除模型、不修改绑定；进入直播/Live2D 功能后仍可按原逻辑使用现有资源。 */
+// setTimeout(()=>migrateLegacyLive2dToIndexedDb().catch(e=>console.warn("Live2D 旧数据迁移失败",e)),800);
 function live2dBindingKey(type,id){return type==="user"?"user":"char:"+id}
 function boundLive2dModelId(type,id){return live2dStore.bindings?.[live2dBindingKey(type,id)]||""}
 function cleanupLive2dRuntime(){
@@ -5509,7 +5516,22 @@ async function replyGroup(){let g=groups.find(x=>x.id===currentGroup),h=groupCon
 addGroupPages();
 
 applyBeauty();renderIconCustomizer();
-setTimeout(()=>restoreBeautyFontAtBoot().catch(e=>console.error("启动字体恢复失败",e)),0);
+/* ===== EMERGENCY SAFE BOOT =====
+   启动阶段绝不解析/加载用户上传字体。
+   只关闭 fontUploaded 状态，字体文件本体仍保留在 IndexedDB，
+   避免 iOS Safari 因大字体在启动阶段内存暴涨而循环闪退。 */
+try{
+  if(beauty.fontUploaded){
+    beauty.fontUploaded=false;
+    save(K.beauty,beauty);
+  }
+  sessionStorage.removeItem(CURRY_FONT_BOOT_GUARD);
+  applySystemFont();
+  setCurryFontStatus("急救启动：已暂时禁用上传字体自动加载");
+}catch(e){
+  console.warn("急救字体回退失败",e);
+  document.documentElement.style.setProperty("--app-font",CURRY_FONT_FALLBACK);
+}
 
 })();
 
@@ -5533,7 +5555,8 @@ new MutationObserver(muts=>{
   }
 }).observe(document.body,{childList:true,subtree:true});
 
-setTimeout(()=>{if(!localStorage.getItem("wp2_media_migrated_v1"))migrateLegacyMedia(false).catch(e=>console.warn("首次媒体迁移失败",e));},1800);
+/* 急救启动版：首屏不做旧媒体批量迁移，避免启动阶段额外解码/写入。 */
+// setTimeout(()=>{if(!localStorage.getItem("wp2_media_migrated_v1"))migrateLegacyMedia(false).catch(e=>console.warn("首次媒体迁移失败",e));},1800);
 </script>
 <script>
 /* ===== V4.8 群聊消息操作 + Char 合并转发聊天记录 ===== */
