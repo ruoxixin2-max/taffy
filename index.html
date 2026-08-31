@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.8.26 · 交互锁定 / 完整图标自定义版</title>
+<title>咖喱小手机 V8.8.27 · 黑白模式版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -1297,6 +1297,73 @@ body.phoneActive label.backupFileBtn{
   -webkit-touch-callout:none!important;
 }
 </style>
+<style>
+/* ===== V8.8.27 MONOCHROME MODE ===== */
+body.curryMonoUI{
+  --bg:#ececea;--paper:#f7f7f5;--surface:#fff;--soft:#efefed;
+  --line:#d2d2cf;--text:#202020;--muted:#777;--accent:#292929;--danger:#555;
+  --icon-label:#202020;--home-overlay:rgba(246,246,244,.06);
+}
+body.curryMonoUI .os,
+body.curryMonoUI .page,
+body.curryMonoUI .head,
+body.curryMonoUI .settingBox,
+body.curryMonoUI .card,
+body.curryMonoUI .row,
+body.curryMonoUI .choice,
+body.curryMonoUI .btn,
+body.curryMonoUI .mcpServer,
+body.curryMonoUI .mcpPreset,
+body.curryMonoUI .momentCard,
+body.curryMonoUI .autoCard,
+body.curryMonoUI .autoBlock,
+body.curryMonoUI .stickerCard,
+body.curryMonoUI .relationStat,
+body.curryMonoUI .traceItem,
+body.curryMonoUI .summaryHero,
+body.curryMonoUI .summaryStat,
+body.curryMonoUI .backupSummary,
+body.curryMonoUI .wbEntry,
+body.curryMonoUI .bindingHero,
+body.curryMonoUI .relationHero{
+  border-color:#d1d1ce!important;
+}
+body.curryMonoUI .curryGreetingEyebrow,
+body.curryMonoUI .curryRecentHead button{color:#666!important}
+body.curryMonoUI .curryAppGrid .icon{
+  background:linear-gradient(145deg,#858585,#5e5e5e)!important;
+}
+body.curryMonoUI .curryDock{background:rgba(240,240,238,.72)!important}
+body.curryMonoUI .curryDock .icon{background:#dededb!important;color:#4f4f4f!important}
+body.curryMonoUI .curryDock .app:first-child .icon{background:#4b4b4b!important;color:#fff!important}
+body.curryMonoUI .curryDock .app:nth-child(2) .icon{background:#d3d3cf!important;color:#555!important}
+body.curryMonoUI .switch.on{background:#3c3c3c!important}
+body.curryMonoUI .momentBtn.active,
+body.curryMonoUI .bindTag.on,
+body.curryMonoUI .contextBadge{background:#e2e2df!important;color:#444!important}
+body.curryMonoUI .appBadge,
+body.curryMonoUI .convoUnread{background:#444!important}
+body.curryMonoUI .onlineBadge::before{background:#777!important;box-shadow:0 0 0 2px #7772!important}
+body.curryMonoUI .send{background:#292929!important}
+body.curryMonoUI .msg.user .bubble{background:#dededb!important;border-color:#cececb!important}
+body.curryMonoUI .transferBubble{background:#e9e9e6!important;border-color:#d0d0cc!important}
+
+/* 自定义 App 图标属于用户视觉素材：UI 黑白模式下不强制变灰 */
+body.curryMonoUI .icon:has(img.customAppIcon){background:transparent!important}
+
+/* 完全黑白：把图片 / 壁纸 / 自定义图标 / 头像 / 媒体内容一起去色 */
+body.curryMonoFull .os{
+  filter:grayscale(1);
+}
+body.curryMonoFull .os video,
+body.curryMonoFull .os canvas{
+  filter:grayscale(1);
+}
+
+.monoModeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.monoModeBtn{border:1px solid var(--line);border-radius:11px;background:#f7f8f5;padding:10px 5px;font-size:9px}
+.monoModeBtn.active{background:#292929;color:#fff;border-color:#292929}
+</style>
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -1906,6 +1973,21 @@ body.phoneActive label.backupFileBtn{
   </div>
 
   <div class="settingGroup">
+    <h3>MONOCHROME</h3>
+    <div class="settingBox form">
+      <div class="field">
+        <label>黑白模式</label>
+        <div class="monoModeGrid" id="monoModeGrid">
+          <button class="monoModeBtn" type="button" data-mono-mode="off">关闭</button>
+          <button class="monoModeBtn" type="button" data-mono-mode="ui">界面黑白</button>
+          <button class="monoModeBtn" type="button" data-mono-mode="full">完全黑白</button>
+        </div>
+        <div class="help">界面黑白：只把系统 UI 改成黑白灰，壁纸、头像、自定义 App 图标和内容图片保留原色。完全黑白：整台小手机的视觉内容一起去色。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settingGroup">
     <h3>ICON STYLE</h3>
     <div class="settingBox form">
       <div class="field">
@@ -2012,6 +2094,7 @@ let beauty=Object.assign({
   customCss:"",
   fontFamily:"",
   fontUploaded:false,
+  monoMode:"off",
   icons:{}
 },load(K.beauty,{}));
 let chatBeauty=Object.assign({wallpaper:"",overlay:.18,userBubble:"#dce1da",charBubble:"#ffffff",radius:15,font:11,showAvatar:false,customCss:""},load(K.chatBeauty,{}));
@@ -3860,6 +3943,10 @@ const appNames={
 
 function applyBeauty(){
   const rootStyle=document.documentElement.style;
+  const monoMode=["ui","full"].includes(beauty.monoMode)?beauty.monoMode:"off";
+  document.body.classList.toggle("curryMonoUI",monoMode==="ui"||monoMode==="full");
+  document.body.classList.toggle("curryMonoFull",monoMode==="full");
+  document.querySelectorAll("[data-mono-mode]").forEach(btn=>btn.classList.toggle("active",btn.dataset.monoMode===monoMode));
   rootStyle.setProperty("--home-wallpaper",beauty.wallpaper?`url("${beauty.wallpaper}")`:"none");
   rootStyle.setProperty("--home-wallpaper-opacity",String(beauty.wallpaperOpacity??1));
   rootStyle.setProperty("--icon-radius",(beauty.iconRadius??17)+"px");
@@ -3910,6 +3997,12 @@ function renderIconCustomizer(){
     save(K.beauty,beauty);applyBeauty();renderIconCustomizer();toast("已恢复默认图标");
   });
 }
+$$("[data-mono-mode]").forEach(btn=>btn.onclick=()=>{
+  beauty.monoMode=btn.dataset.monoMode||"off";
+  save(K.beauty,beauty);
+  applyBeauty();
+  toast(beauty.monoMode==="off"?"黑白模式已关闭":beauty.monoMode==="ui"?"已开启界面黑白":"已开启完全黑白");
+});
 $("#wallpaperFile").onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
   beauty.wallpaper=await dataURL(f);save(K.beauty,beauty);applyBeauty();e.target.value="";toast("壁纸已更换");
@@ -3938,7 +4031,7 @@ $("#applyFont").onclick=async()=>{beauty.fontFamily=$("#fontFamilyInput").value.
 $("#resetFont").onclick=async()=>{beauty.fontFamily="";beauty.fontUploaded=false;try{await deleteCurryFont()}catch{};save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";applySystemFont();toast("已恢复默认字体")};
 $("#applyCss").onclick=()=>{beauty.customCss=$("#customCss").value;save(K.beauty,beauty);applyBeauty();toast("自定义 CSS 已应用")};
 $("#resetBeauty").onclick=()=>{
-  beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",fontFamily:"",fontUploaded:false,icons:{}};
+  beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",fontFamily:"",fontUploaded:false,monoMode:"off",icons:{}};
   deleteCurryFont().catch(()=>{});save(K.beauty,beauty);applyBeauty();renderIconCustomizer();toast("已恢复默认美化");
 };
 $("#fullscreenApp").onclick=async()=>{
