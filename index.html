@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.38 · Gemini格式增强 / 禁止世界书JSON导入</title>
+<title>咖喱小手机 V8.8.39 · 借号壁纸滚动修复版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -6012,7 +6012,32 @@ async function borrowApi(systemText,userText,maxTokens=1000){
 }
 
 const borrowStyle=document.createElement("style");borrowStyle.textContent=`
-.borrowPage{background:#f4f4f1!important}.borrowBody{padding:12px 12px 90px!important}.borrowHero{padding:15px;border:1px solid var(--line);border-radius:18px;background:#fff;margin-bottom:12px}.borrowHeroTop{display:flex;align-items:center;gap:11px}.borrowAvatar{width:46px;height:46px;border-radius:50%;overflow:hidden;background:#e0e2dc;display:grid;place-items:center;font:600 15px Georgia,serif;flex:0 0 auto}.borrowAvatar img,.borrowMiniAvatar img{width:100%;height:100%;object-fit:cover}.borrowHeroName{font-size:14px;font-weight:800}.borrowHeroSub{font-size:8px;color:var(--muted);margin-top:4px}.borrowAccountSelect{width:100%;margin-top:11px;border:1px solid var(--line);border-radius:11px;background:#f8f9f6;padding:10px;font-size:11px}.borrowNotice{font-size:8px;line-height:1.65;color:#7d817c;padding:10px 12px;background:#eceeea;border-radius:12px;margin-bottom:13px}.borrowSectionHead{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:14px 2px 7px}.borrowSectionHead b{font-size:11px}.borrowSectionActions{display:flex;gap:5px;align-items:center}.borrowTinyBtn{border:1px solid var(--line);border-radius:999px;background:#fff;padding:5px 8px;font-size:7px;color:#666}.borrowTinyBtn.primary{background:#363a35;color:#fff;border-color:#363a35}.borrowTinyBtn:disabled{opacity:.45}.borrowFriend{width:100%;border:1px solid var(--line);border-radius:15px;background:#fff;padding:10px;margin-bottom:7px;display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:9px;align-items:center;text-align:left}.borrowMiniAvatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#e2e4de;display:grid;place-items:center;font:600 13px Georgia,serif}.borrowFriendName{font-size:10px;font-weight:800}.borrowFriendRel{font-size:8px;color:#8a8e88;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.borrowFriendLast{font-size:8px;color:#a0a39f;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.borrowFriendTime{font-size:7px;color:#aaa}.borrowFriendMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowChatHead{height:60px!important}.borrowIdentityChip{display:flex;align-items:center;justify-content:center;gap:4px;font-size:7px;color:#8a8f88;margin-top:2px}.borrowChatBody{height:calc(100% - 132px)!important;padding:18px 12px 95px!important}.borrowMsg{display:flex;align-items:flex-end;gap:6px;margin:8px 0}.borrowMsg.self{justify-content:flex-end}.borrowMsgBubble{max-width:76%;padding:9px 11px;border-radius:16px;border:1px solid #d7dad4;background:#fff;font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word}.borrowMsg.self .borrowMsgBubble{background:#dfe4dc}.borrowMsgMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowMsg.self .borrowMsgMeta{text-align:right}.borrowComposer{position:absolute;left:8px;right:8px;bottom:8px;display:grid;grid-template-columns:minmax(0,1fr) 42px 52px;gap:6px;padding:7px;border:1px solid rgba(201,205,198,.82);border-radius:22px;background:rgba(250,251,248,.94);box-shadow:0 10px 28px rgba(0,0,0,.08)}.borrowComposer textarea{min-height:42px;max-height:90px;resize:none;border:0;background:transparent;outline:none;padding:10px 8px;font-size:16px}.borrowComposer button{border:0;border-radius:14px;font-size:9px}.borrowSend{background:#313530;color:#fff}.borrowReply{background:#e9ece7;color:#4f554f}.borrowReply:disabled{opacity:.45}.borrowHistoryBtn{border:1px solid var(--line)!important;background:#f8f9f6!important;color:#646963!important}.borrowEmpty{text-align:center;color:#999;font-size:9px;line-height:1.7;padding:56px 25px}.borrowEmptyAction{margin-top:13px;border:0;border-radius:999px;background:#353934;color:#fff;padding:9px 14px;font-size:9px}.borrowSuspect{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:999px;background:#eee9e5;color:#876f62;font-size:6px;vertical-align:1px}.borrowGenerating{padding:18px;border:1px dashed #cfd3cc;border-radius:15px;text-align:center;color:#777;font-size:9px;background:#fafbf8}.borrowGenerating:before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;border:2px solid #80877f;border-top-color:transparent;animation:borrowSpin .8s linear infinite;vertical-align:-2px}@keyframes borrowSpin{to{transform:rotate(360deg)}}
+.borrowPage{background:#f4f4f1!important}.borrowBody{padding:12px 12px 90px!important}.borrowHero{padding:15px;border:1px solid var(--line);border-radius:18px;background:#fff;margin-bottom:12px}.borrowHeroTop{display:flex;align-items:center;gap:11px}.borrowAvatar{width:46px;height:46px;border-radius:50%;overflow:hidden;background:#e0e2dc;display:grid;place-items:center;font:600 15px Georgia,serif;flex:0 0 auto}.borrowAvatar img,.borrowMiniAvatar img{width:100%;height:100%;object-fit:cover}.borrowHeroName{font-size:14px;font-weight:800}.borrowHeroSub{font-size:8px;color:var(--muted);margin-top:4px}.borrowAccountSelect{width:100%;margin-top:11px;border:1px solid var(--line);border-radius:11px;background:#f8f9f6;padding:10px;font-size:11px}.borrowNotice{font-size:8px;line-height:1.65;color:#7d817c;padding:10px 12px;background:#eceeea;border-radius:12px;margin-bottom:13px}.borrowSectionHead{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:14px 2px 7px}.borrowSectionHead b{font-size:11px}.borrowSectionActions{display:flex;gap:5px;align-items:center}.borrowTinyBtn{border:1px solid var(--line);border-radius:999px;background:#fff;padding:5px 8px;font-size:7px;color:#666}.borrowTinyBtn.primary{background:#363a35;color:#fff;border-color:#363a35}.borrowTinyBtn:disabled{opacity:.45}.borrowFriend{width:100%;border:1px solid var(--line);border-radius:15px;background:#fff;padding:10px;margin-bottom:7px;display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:9px;align-items:center;text-align:left}.borrowMiniAvatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#e2e4de;display:grid;place-items:center;font:600 13px Georgia,serif}.borrowFriendName{font-size:10px;font-weight:800}.borrowFriendRel{font-size:8px;color:#8a8e88;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.borrowFriendLast{font-size:8px;color:#a0a39f;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.borrowFriendTime{font-size:7px;color:#aaa}.borrowFriendMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowPage[data-page="borrowChat"]{
+ display:flex;flex-direction:column;
+ background-image:linear-gradient(var(--chat-overlay),var(--chat-overlay)),var(--chat-wallpaper)!important;
+ background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+}
+.borrowChatHead{
+ height:60px!important;flex:0 0 60px;position:relative;z-index:4;
+ background:rgba(250,251,248,.82)!important;
+ backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.borrowIdentityChip{display:flex;align-items:center;justify-content:center;gap:4px;font-size:7px;color:#8a8f88;margin-top:2px}.borrowChatBody{
+ flex:1 1 auto!important;min-height:0!important;height:auto!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ padding:18px 12px calc(96px + env(safe-area-inset-bottom,0px))!important;
+ background:transparent!important;background-image:none!important;
+ -webkit-overflow-scrolling:touch!important;
+ overscroll-behavior-y:contain!important;
+ touch-action:pan-y!important;
+}.borrowMsg{display:flex;align-items:flex-end;gap:6px;margin:8px 0}.borrowMsg.self{justify-content:flex-end}.borrowMsgBubble{max-width:76%;padding:9px 11px;border-radius:var(--bubble-radius);border:1px solid #d7dad4;background:var(--char-bubble);font-size:var(--bubble-font);line-height:1.55;white-space:pre-wrap;word-break:break-word}.borrowMsg.self .borrowMsgBubble{background:var(--user-bubble)}.borrowMsgMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowMsg.self .borrowMsgMeta{text-align:right}.borrowComposer{
+ position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:6;
+ display:grid;grid-template-columns:minmax(0,1fr) 42px 52px;gap:6px;padding:7px;
+ border:1px solid rgba(201,205,198,.82);border-radius:22px;
+ background:rgba(250,251,248,.90);
+ backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+ box-shadow:0 10px 28px rgba(0,0,0,.08)
+}.borrowComposer textarea{min-height:42px;max-height:90px;resize:none;border:0;background:transparent;outline:none;padding:10px 8px;font-size:16px}.borrowComposer button{border:0;border-radius:14px;font-size:9px}.borrowSend{background:#313530;color:#fff}.borrowReply{background:#e9ece7;color:#4f554f}.borrowReply:disabled{opacity:.45}.borrowHistoryBtn{border:1px solid var(--line)!important;background:#f8f9f6!important;color:#646963!important}.borrowEmpty{text-align:center;color:#999;font-size:9px;line-height:1.7;padding:56px 25px}.borrowEmptyAction{margin-top:13px;border:0;border-radius:999px;background:#353934;color:#fff;padding:9px 14px;font-size:9px}.borrowSuspect{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:999px;background:#eee9e5;color:#876f62;font-size:6px;vertical-align:1px}.borrowGenerating{padding:18px;border:1px dashed #cfd3cc;border-radius:15px;text-align:center;color:#777;font-size:9px;background:#fafbf8}.borrowGenerating:before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;border:2px solid #80877f;border-top-color:transparent;animation:borrowSpin .8s linear infinite;vertical-align:-2px}@keyframes borrowSpin{to{transform:rotate(360deg)}}
 .curryAppGrid [data-app-key="borrowAccount"] .icon{background:linear-gradient(145deg,#8e9693,#6f7774)!important}
 `;document.head.appendChild(borrowStyle);
 
@@ -6042,12 +6067,26 @@ function renderBorrowAccounts(){
  $("#borrowAddFriendBtn").onclick=()=>borrowGenerateFriends(true)
 }
 function openBorrowAccounts(){if(!borrowState.activeCharId&&contacts[0])borrowState.activeCharId=contacts[0].id;renderBorrowAccounts();page("borrowAccounts");let c=borrowChar();if(c&&!borrowFriendList(c.id).length&&!borrowFriendGenerating)setTimeout(()=>borrowGenerateFriends(false),180)}
-function openBorrowChat(targetId){let self=borrowChar(),target=borrowFriendById(targetId,self?.id);if(!self||!target)return;borrowTargetId=targetId;$("#borrowChatTitle").textContent=target.name;$("#borrowIdentityChip").textContent=`当前：${self.name}`;renderBorrowChat();page("borrowChat")}
+function openBorrowChat(targetId){
+ let self=borrowChar(),target=borrowFriendById(targetId,self?.id);if(!self||!target)return;
+ borrowTargetId=targetId;
+ $("#borrowChatTitle").textContent=target.name;$("#borrowIdentityChip").textContent=`当前：${self.name}`;
+ page("borrowChat");
+ renderBorrowChat();
+ requestAnimationFrame(()=>renderBorrowChat())
+}
 function renderBorrowChat(){
  let self=borrowChar(),target=borrowFriendById(borrowTargetId,self?.id),h=borrowHistory();if(!self||!target)return;
+ /* 借号页使用“账号主人”自己的聊天主题，不依赖上一个打开过的聊天残留。 */
+ applyChatBeauty(effectiveChatBeauty(self.id));
  $("#borrowChatTitle").textContent=target.name;$("#borrowIdentityChip").textContent=`当前登录：${self.name} · ${target.relation||"朋友"}`;
  $("#borrowChatBody").innerHTML=h.length?h.map(m=>{let mine=m.senderId===self.id,sender=mine?self:target;return `<div class="borrowMsg ${mine?"self":""}">${mine?"":borrowAvatar(sender,"borrowMiniAvatar")}<div><div class="borrowMsgBubble">${esc(m.content||"")}${m.suspicious?'<span class="borrowSuspect">起疑</span>':""}</div><div class="borrowMsgMeta">${esc(m.time||"")}</div></div></div>`}).join(""):'<div class="borrowEmpty">还没有聊天记录。<br>点「旧聊」可以生成他们以前真实存在过的一段聊天，或者直接拿 TA 的号开始调戏。</div>';
- $("#borrowChatBody").scrollTop=$("#borrowChatBody").scrollHeight;$("#borrowReplyBtn").disabled=borrowGenerating
+ {
+  let body=$("#borrowChatBody");
+  const toBottom=()=>{if(body)body.scrollTop=body.scrollHeight};
+  toBottom();requestAnimationFrame(toBottom);setTimeout(toBottom,60);
+ }
+ $("#borrowReplyBtn").disabled=borrowGenerating
 }
 
 async function borrowGenerateFriends(addOne=false){
