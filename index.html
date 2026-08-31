@@ -6320,106 +6320,79 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 </script>
 
 
-<style id="curry-oppo-back-touch-fix">
-/* ===== OPPO / Android 左上角返回按钮触摸修复 =====
-   Android 上 env(safe-area-inset-top) 常返回 0；
-   单独给 Android 一个顶部回退安全距离，并扩大返回按钮热区。
-   不影响 iOS。 */
+<style id="curry-back-tap-fix-v2">
+/* ===== iOS + Android 返回按钮点击修复 =====
+   原文件把 body/#root/.shell/.os/.screen 全设为 touch-action:none，
+   会把后代按钮的 tap 一起限制。这里恢复 tap，同时继续禁止页面横向漂移。 */
 
-html.curryAndroid{
-  --curry-android-top-safe:28px;
+body.phoneActive,
+body.phoneActive #root,
+body.phoneActive .shell,
+body.phoneActive .os,
+body.phoneActive .screen{
+  touch-action:manipulation!important;
+  overscroll-behavior:none!important;
 }
 
-/* 普通二级页 / 小红书：Android 额外留出顶部状态栏触摸区 */
-html.curryAndroid body.phoneActive #root .page > .head{
-  height:calc(54px + var(--curry-android-top-safe))!important;
-  min-height:calc(54px + var(--curry-android-top-safe))!important;
-  padding-top:var(--curry-android-top-safe)!important;
+/* 真正需要滚动的区域仍只允许纵向滚动 */
+body.phoneActive .body,
+body.phoneActive .chatBody,
+body.phoneActive .stickerPicker,
+body.phoneActive .mediaPicker{
+  touch-action:pan-y!important;
 }
 
-html.curryAndroid body.phoneActive #root .xhsHeader{
-  height:calc(54px + var(--curry-android-top-safe))!important;
-  min-height:calc(54px + var(--curry-android-top-safe))!important;
-  padding-top:var(--curry-android-top-safe)!important;
-}
-
-@media(max-width:430px){
-  html.curryAndroid body.phoneActive #root .chatPage > .head{
-    height:calc(58px + var(--curry-android-top-safe))!important;
-    min-height:calc(58px + var(--curry-android-top-safe))!important;
-  }
-}
-
-/* 正文同步扣掉 Android 顶部 fallback，避免内容被挤出屏幕 */
-html.curryAndroid body.phoneActive #root .page > .body{
-  height:calc(100% - 54px - var(--curry-android-top-safe))!important;
-  max-height:calc(100% - 54px - var(--curry-android-top-safe))!important;
-}
-html.curryAndroid body.phoneActive #root .chatPage > .chatBody{
-  height:auto!important;
-  max-height:none!important;
-}
-
-/* 把返回按钮做成至少 68×54 的真实可点区域 */
-html.curryAndroid body.phoneActive #root .page > .head > .back,
-html.curryAndroid body.phoneActive #root .xhsHeader > .back{
-  width:68px!important;
-  min-width:68px!important;
-  height:54px!important;
-  min-height:54px!important;
-  padding:0 10px!important;
-  position:relative!important;
-  z-index:999!important;
+/* 返回按钮明确保证可点击 */
+body.phoneActive .back{
   pointer-events:auto!important;
   touch-action:manipulation!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
   -webkit-tap-highlight-color:transparent!important;
-}
-
-/* 视觉文字不变，额外扩 10px 透明命中区 */
-html.curryAndroid body.phoneActive #root .page > .head > .back::after,
-html.curryAndroid body.phoneActive #root .xhsHeader > .back::after{
-  content:"";
-  position:absolute;
-  inset:-10px;
+  position:relative!important;
+  z-index:9999!important;
 }
 </style>
 
-<script id="curry-oppo-back-touch-fix-js">
+<script id="curry-back-tap-fix-v2-js">
 (() => {
-  const isAndroid=/Android/i.test(navigator.userAgent||"");
-  if(!isAndroid)return;
-  document.documentElement.classList.add("curryAndroid");
+  /* 只给 data-back 的标准返回按钮做事件兜底。
+     原有 onclick 仍保留；若 Safari/Android 没合成 click，则 pointerup/touchend 直接执行原 onclick。 */
+  let lastFallback = 0;
 
-  /* OPPO 某些 WebView/浏览器会吞掉 button 的合成 click。
-     用 touchend 在捕获阶段直接补一次真实按钮 click。 */
-  let lastForced=0;
+  function fallbackBack(btn, ev){
+    const now = Date.now();
+    if(now - lastFallback < 450) return;
+    lastFallback = now;
+
+    /* 如果原 onclick 存在，直接调用它，避免依赖浏览器再合成一次 click。 */
+    if(typeof btn.onclick === "function"){
+      ev.preventDefault();
+      ev.stopPropagation();
+      btn.onclick.call(btn, ev);
+      return;
+    }
+
+    /* 极端情况下 onclick 尚未绑定，按 data-back 直接切页。 */
+    const target = btn.dataset.back;
+    if(target && typeof window.page === "function"){
+      ev.preventDefault();
+      ev.stopPropagation();
+      window.page(target);
+    }
+  }
+
+  document.addEventListener("pointerup", e => {
+    const btn = e.target.closest?.(".back[data-back]");
+    if(!btn) return;
+    fallbackBack(btn, e);
+  }, true);
+
+  /* 某些 iOS standalone 不稳定触发 PointerEvent，再补 touchend。 */
   document.addEventListener("touchend", e => {
-    const page=document.querySelector(".page.active");
-    if(!page)return;
-
-    const btn=
-      page.querySelector(":scope > .head > .back") ||
-      page.querySelector(":scope > .xhsHeader > .back");
-    if(!btn)return;
-
-    const t=e.changedTouches && e.changedTouches[0];
-    if(!t)return;
-
-    const r=btn.getBoundingClientRect();
-    const pad=14;
-    const hit=
-      t.clientX>=r.left-pad && t.clientX<=r.right+pad &&
-      t.clientY>=r.top-pad  && t.clientY<=r.bottom+pad;
-
-    if(!hit)return;
-
-    const now=Date.now();
-    if(now-lastForced<450)return;
-    lastForced=now;
-
-    e.preventDefault();
-    e.stopPropagation();
-    btn.click();
+    const btn = e.target.closest?.(".back[data-back]");
+    if(!btn) return;
+    fallbackBack(btn, e);
   }, {capture:true, passive:false});
 })();
 </script>
