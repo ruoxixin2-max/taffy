@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.47 · iOS纹理Canvas修复版</title>
+<title>咖喱小手机 V8.8.49 · Live2D稳定合并版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -4941,133 +4941,32 @@ function rewriteLive2dFileReferences(cfg,resolve){
  return {cfg,missingRequired,missingOptional}
 }
 function installCurryLive2dDirectLoader(){
+ if(window.__curryLive2dDirectLoaderInstalled)return;
+ let L=window.PIXI?.live2d?.Live2DLoader;
+ if(!L?.middlewares)return;
  window.__curryLive2dBlobMap=window.__curryLive2dBlobMap||new Map();
-
- if(!window.__curryLive2dDirectLoaderInstalled){
-   let L=window.PIXI?.live2d?.Live2DLoader;
-   if(L?.middlewares){
-     const direct=async(ctx,next)=>{
-       try{
-         let resolved=ctx?.settings?.resolveURL?ctx.settings.resolveURL(ctx.url):ctx?.url;
-         let blob=window.__curryLive2dBlobMap.get(resolved)||window.__curryLive2dBlobMap.get(ctx?.url);
-         if(!blob)return next();
-         window.__curryLive2dLastAsset={
-           kind:String(ctx.type||"resource"),
-           url:String(resolved||ctx?.url||""),
-           size:blob.size||0,
-           type:blob.type||""
-         };
-         switch(String(ctx.type||"").toLowerCase()){
-           case "json": ctx.result=JSON.parse(await blob.text()); break;
-           case "arraybuffer": ctx.result=await blob.arrayBuffer(); break;
-           case "blob": ctx.result=blob; break;
-           case "text": ctx.result=await blob.text(); break;
-           default: ctx.result=blob;
-         }
-         return
-       }catch(e){
-         console.warn("Curry Live2D direct loader failed",e);
-         return next()
-       }
-     };
-     L.middlewares.unshift(direct);
-     window.__curryLive2dDirectLoaderInstalled=true
+ const direct=async(ctx,next)=>{
+   try{
+     let resolved=ctx?.settings?.resolveURL?ctx.settings.resolveURL(ctx.url):ctx?.url,
+         type=String(ctx?.type||'').toLowerCase(),
+         blob=window.__curryLive2dBlobMap.get(resolved)||window.__curryLive2dBlobMap.get(ctx?.url);
+     /* Only intercept XHR-style Live2D resources. Textures are deliberately NOT handled here:
+        pixi-live2d-display loads textures through PIXI.Texture.fromURL, and the old 8.29/8.41
+        native blob URL path is the last known path that rendered correct colours on iOS. */
+     if(!blob || !['json','arraybuffer','blob','text'].includes(type))return next();
+     window.__curryLive2dLastAsset={kind:type,url:String(resolved||ctx?.url||''),size:blob.size||0,type:blob.type||''};
+     if(type==='json')ctx.result=JSON.parse(await blob.text());
+     else if(type==='arraybuffer')ctx.result=await blob.arrayBuffer();
+     else if(type==='text')ctx.result=await blob.text();
+     else ctx.result=blob;
+     return;
+   }catch(e){
+     console.warn('Curry Live2D direct resource loader failed',e);
+     throw e;
    }
- }
-
- /* V8.8.47
-    iOS/Safari 不再把 <img> 直接交给 WebGL。
-    先画到 2D Canvas，强制 WebKit 完成 RGBA 解码，再由 Pixi 上传 Canvas。
-    AlphaMode 用 UNPACK/PREMULTIPLY_ON_UPLOAD，而不是错误地标成“源像素已经 PMA”。 */
- if(!window.__curryLive2dTextureLoaderInstalled && window.PIXI?.Texture?.fromURL){
-   const original=window.PIXI.Texture.fromURL.bind(window.PIXI.Texture);
-   window.__curryLive2dOriginalTextureFromURL=original;
-
-   const blobToDataUrl=blob=>new Promise((resolve,reject)=>{
-     let fr=new FileReader();
-     fr.onload=()=>resolve(String(fr.result||""));
-     fr.onerror=()=>reject(fr.error||Error("纹理 FileReader 失败"));
-     fr.readAsDataURL(blob)
-   });
-
-   const loadImage=src=>new Promise((resolve,reject)=>{
-     let img=new Image();
-     img.decoding="sync";
-     img.onload=()=>resolve(img);
-     img.onerror=()=>reject(Error("纹理图片解码失败"));
-     img.src=src;
-   });
-
-   const canvasTexture=async(blob,key)=>{
-     let dataUrl=await blobToDataUrl(blob);
-     let img=await loadImage(dataUrl);
-     if(!img.naturalWidth||!img.naturalHeight){
-       throw Error("纹理尺寸为 0："+(window.__curryLive2dAssetNameMap?.get?.(key)||key))
-     }
-
-     let canvas=document.createElement("canvas");
-     canvas.width=img.naturalWidth;
-     canvas.height=img.naturalHeight;
-     let ctx=canvas.getContext("2d",{alpha:true,willReadFrequently:false});
-     if(!ctx)throw Error("无法创建纹理 Canvas 2D Context");
-
-     ctx.clearRect(0,0,canvas.width,canvas.height);
-     ctx.globalCompositeOperation="copy";
-     ctx.drawImage(img,0,0);
-
-     /* 做一个极轻量像素探针，确认不是 Safari 已经把 RGB 解码成全黑。 */
-     try{
-       let sx=Math.max(0,Math.floor(canvas.width/2)),
-           sy=Math.max(0,Math.floor(canvas.height/2)),
-           px=ctx.getImageData(sx,sy,1,1).data;
-       window.__curryLive2dLastTextureProbe={
-         name:window.__curryLive2dAssetNameMap?.get?.(key)||key,
-         rgba:[px[0],px[1],px[2],px[3]],
-         width:canvas.width,height:canvas.height
-       };
-     }catch{}
-
-     let tex=window.PIXI.Texture.from(canvas);
-     try{
-       if(tex?.baseTexture && window.PIXI?.ALPHA_MODES){
-         tex.baseTexture.alphaMode=
-           window.PIXI.ALPHA_MODES.UNPACK ??
-           window.PIXI.ALPHA_MODES.PREMULTIPLY_ON_UPLOAD ??
-           1;
-       }
-       tex?.baseTexture?.update?.();
-     }catch{}
-     return tex
-   };
-
-   window.PIXI.Texture.fromURL=async function(url,opts){
-     let key=String(url||""),
-         blob=window.__curryLive2dBlobMap.get(key);
-
-     if(!blob)return original(url,opts);
-
-     window.__curryLive2dLastAsset={
-       kind:"texture",
-       url:key,
-       size:blob.size||0,
-       type:blob.type||""
-     };
-
-     if(isIOSWebKitLive2d()||isSafariLive2d()){
-       return await canvasTexture(blob,key)
-     }
-
-     // 非 Safari 保留原始快速路径；失败才退 Canvas。
-     try{
-       return await original(url,opts)
-     }catch(err){
-       console.warn("Live2D texture original loader fallback to canvas",err);
-       return await canvasTexture(blob,key)
-     }
-   };
-
-   window.__curryLive2dTextureLoaderInstalled=true
- }
+ };
+ L.middlewares.unshift(direct);
+ window.__curryLive2dDirectLoaderInstalled=true;
 }
 async function ensureScript(src,test,timeoutMs=12000){
  if(test())return true;
@@ -5143,14 +5042,15 @@ async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  window.__curryLive2dBlobMap=window.__curryLive2dBlobMap||new Map();
  let urlByAsset=new Map();
 
- window.__curryLive2dAssetNameMap=window.__curryLive2dAssetNameMap||new Map();
  for(let n=0;n<assets.length;n++){
    let a=assets[n];
    if(live2dPathKey(a.rel)===modelKey)continue;
    let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);
    urlSink.push(u);
    urlByAsset.set(a,u);
+   // MOC / JSON / motion / physics 由自定义 loader 从 Blob 直接读取，不再走 XHR。
    window.__curryLive2dBlobMap.set(u,safe);
+   window.__curryLive2dAssetNameMap=window.__curryLive2dAssetNameMap||new Map();
    window.__curryLive2dAssetNameMap.set(u,String(a.rel||a.name||""));
    if((isSafariLive2d()||isIOSWebKitLive2d())&&n%6===5)await new Promise(r=>setTimeout(r,0))
  }
@@ -5417,17 +5317,16 @@ async function mountLive2d(modelId,retryMode=false){
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
  let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint"),errBox=$("#liveSafariError");
  if(errBox){errBox.style.display="none";errBox.textContent=""}
- window.__curryLive2dLastAsset=null;
  try{
    if(safari&&hint)hint.textContent=retryMode?"Safari 直读模式重试中":"Safari 正在直读模型资源";
    if(safari&&!live2dWebglPreflight())throw Error("Safari 当前没有可用的 WebGL");
    await ensureLive2dLibs();
    if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");
    let appOpts=safari
-     ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power",preserveDrawingBuffer:false,clearBeforeRender:true}
+     ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}
      : {resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2),preserveDrawingBuffer:false};
    let app=new PIXI.Application(appOpts);
-   if(safari){app.ticker.maxFPS=24;app.ticker.minFPS=10;try{app.renderer.textureGC.maxIdle=180;app.renderer.textureGC.checkCountMax=120}catch{}}
+   if(safari){app.ticker.maxFPS=30;app.ticker.minFPS=15}
    if(myGen!==live2dRuntime.loadGen){app.destroy(true);return false}
    canvasHost.innerHTML="";canvasHost.appendChild(app.view);bindLive2dTransformGestures(app.view);
    if(safari){
@@ -5449,7 +5348,7 @@ async function mountLive2d(modelId,retryMode=false){
    let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,s=Math.max(.2,Math.min(1.6,Number(currentLive?.live2dScale??.55))),y=Math.max(.45,Math.min(1.2,Number(currentLive?.live2dY??.92))),x=Math.max(0,Math.min(1,Number(currentLive?.live2dX??.5)));model.scale.set(live2dRuntime.baseScale*s);model.x=w*x;model.y=h*y};
    fit();setTimeout(fit,safari?180:80);
    live2dRuntime.app=app;live2dRuntime.model=model;live2dRuntime.fit=fit;host.classList.add("hasLive2d");
-   if(hint){hint.textContent=safari?"Live2D 已加载 · iOS Canvas 纹理模式":"Live2D 已加载";hint.classList.add("ok")}
+   if(hint){hint.textContent=safari?"Live2D 已加载 · 稳定合并模式":"Live2D 已加载";hint.classList.add("ok")}
    if(currentLive?.faceCaptureEnabled)setTimeout(()=>startLiveFaceCapture(),safari?1200:350);
    return true
  }catch(e){
@@ -5457,14 +5356,11 @@ async function mountLive2d(modelId,retryMode=false){
    cleanupLive2dRuntime();host.classList.remove("hasLive2d");
    // Low-memory mode does not auto-retry on Safari: a second full data-URL build can double peak memory.
    let failedUrl=e?.url||e?.cause?.url||"",failedStatus=e?.status??e?.cause?.status??"",
-       last=window.__curryLive2dLastAsset||null,
-       lastName=last?.url?(window.__curryLive2dAssetNameMap?.get?.(last.url)||last.url):"";
+       failedName=failedUrl?(window.__curryLive2dAssetNameMap?.get?.(failedUrl)||failedUrl):"";
    let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+
-     (failedUrl?`\n失败资源：${window.__curryLive2dAssetNameMap?.get?.(failedUrl)||failedUrl}`:"")+
-     (failedStatus!==""?`\nHTTP/资源状态：${failedStatus}`:"")+
-     (lastName?`\n最后加载：${lastName}${last?.kind?` (${last.kind})`:""}${last?.size?` · ${(last.size/1024/1024).toFixed(2)}MB`:""}`:"")+
-     (window.__curryLive2dLastTextureProbe?`\n纹理探针：${window.__curryLive2dLastTextureProbe.name} · ${window.__curryLive2dLastTextureProbe.width}×${window.__curryLive2dLastTextureProbe.height} · RGBA(${window.__curryLive2dLastTextureProbe.rgba.join(",")})`:"")+
-     (e?.stack?"\n"+e.stack:"");
+     (failedName?`\n实际失败资源：${failedName}`:"")+
+     (failedStatus!==""?`\n资源状态：${failedStatus}`:"")+
+     (e?.stack?"\n堆栈位置："+e.stack:"");
    if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
    if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
    return false
