@@ -6320,80 +6320,106 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 </script>
 
 
-<style id="curry-back-tap-fix-v2">
-/* ===== iOS + Android 返回按钮点击修复 =====
-   原文件把 body/#root/.shell/.os/.screen 全设为 touch-action:none，
-   会把后代按钮的 tap 一起限制。这里恢复 tap，同时继续禁止页面横向漂移。 */
-
-body.phoneActive,
-body.phoneActive #root,
-body.phoneActive .shell,
-body.phoneActive .os,
-body.phoneActive .screen{
-  touch-action:manipulation!important;
-  overscroll-behavior:none!important;
-}
-
-/* 真正需要滚动的区域仍只允许纵向滚动 */
-body.phoneActive .body,
-body.phoneActive .chatBody,
-body.phoneActive .stickerPicker,
-body.phoneActive .mediaPicker{
-  touch-action:pan-y!important;
-}
-
-/* 返回按钮明确保证可点击 */
-body.phoneActive .back{
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
-  -webkit-user-select:none!important;
-  user-select:none!important;
-  -webkit-tap-highlight-color:transparent!important;
-  position:relative!important;
-  z-index:9999!important;
+<style id="curry-back-hit-bridge-style">
+/* 返回键透明热区桥：不改布局，只覆盖当前真实返回按钮的实际屏幕位置 */
+#curryBackHitBridge{
+  position:fixed;
+  display:none;
+  z-index:2147483647;
+  background:transparent;
+  border:0;
+  padding:0;
+  margin:0;
+  pointer-events:auto;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
 </style>
 
-<script id="curry-back-tap-fix-v2-js">
+<button id="curryBackHitBridge" type="button" aria-label="返回"></button>
+
+<script id="curry-back-hit-bridge-js">
 (() => {
-  /* 只给 data-back 的标准返回按钮做事件兜底。
-     原有 onclick 仍保留；若 Safari/Android 没合成 click，则 pointerup/touchend 直接执行原 onclick。 */
-  let lastFallback = 0;
+  const bridge = document.getElementById("curryBackHitBridge");
+  if (!bridge) return;
 
-  function fallbackBack(btn, ev){
-    const now = Date.now();
-    if(now - lastFallback < 450) return;
-    lastFallback = now;
+  let currentBack = null;
+  let lastActivate = 0;
 
-    /* 如果原 onclick 存在，直接调用它，避免依赖浏览器再合成一次 click。 */
-    if(typeof btn.onclick === "function"){
-      ev.preventDefault();
-      ev.stopPropagation();
-      btn.onclick.call(btn, ev);
+  function findCurrentBack(){
+    const active = document.querySelector(".page.active");
+    if (!active) return null;
+
+    /* 支持标准 data-back，也支持 live/game/editor 这类只有 id 的 .back */
+    return (
+      active.querySelector(":scope > .head .back") ||
+      active.querySelector(":scope > .xhsHeader .back") ||
+      active.querySelector(".back")
+    );
+  }
+
+  function syncBridge(){
+    const btn = findCurrentBack();
+    currentBack = btn;
+
+    if (!btn || !document.body.classList.contains("phoneActive")) {
+      bridge.style.display = "none";
+      requestAnimationFrame(syncBridge);
       return;
     }
 
-    /* 极端情况下 onclick 尚未绑定，按 data-back 直接切页。 */
-    const target = btn.dataset.back;
-    if(target && typeof window.page === "function"){
-      ev.preventDefault();
-      ev.stopPropagation();
-      window.page(target);
+    const r = btn.getBoundingClientRect();
+
+    /* 按真实按钮位置覆盖，并向四周扩 12px 热区 */
+    const padX = 12;
+    const padY = 8;
+
+    bridge.style.display = "block";
+    bridge.style.left = Math.max(0, r.left - padX) + "px";
+    bridge.style.top = Math.max(0, r.top - padY) + "px";
+    bridge.style.width = Math.max(56, r.width + padX * 2) + "px";
+    bridge.style.height = Math.max(52, r.height + padY * 2) + "px";
+
+    requestAnimationFrame(syncBridge);
+  }
+
+  function activateBack(e){
+    const now = Date.now();
+    if (now - lastActivate < 350) return;
+    lastActivate = now;
+
+    const btn = currentBack || findCurrentBack();
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    /*
+      直接调用按钮原本绑定的 onclick。
+      这绕过物理 hit-test / 合成 click，但完全保留原项目自己的返回逻辑。
+    */
+    if (typeof btn.onclick === "function") {
+      btn.onclick.call(btn, new MouseEvent("click", {
+        bubbles: false,
+        cancelable: true,
+        view: window
+      }));
+    } else {
+      /* 若某个页面使用 addEventListener 而不是 onclick，程序化 click 仍能触发 */
+      btn.click();
     }
   }
 
-  document.addEventListener("pointerup", e => {
-    const btn = e.target.closest?.(".back[data-back]");
-    if(!btn) return;
-    fallbackBack(btn, e);
-  }, true);
+  bridge.addEventListener("click", activateBack, {capture:true});
+  bridge.addEventListener("pointerup", activateBack, {capture:true});
 
-  /* 某些 iOS standalone 不稳定触发 PointerEvent，再补 touchend。 */
-  document.addEventListener("touchend", e => {
-    const btn = e.target.closest?.(".back[data-back]");
-    if(!btn) return;
-    fallbackBack(btn, e);
-  }, {capture:true, passive:false});
+  /* iOS Safari 某些版本不稳定派发 pointerup，touchend 再兜底一次 */
+  bridge.addEventListener("touchend", activateBack, {
+    capture:true,
+    passive:false
+  });
+
+  requestAnimationFrame(syncBridge);
 })();
 </script>
 
