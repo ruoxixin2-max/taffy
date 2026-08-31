@@ -6253,4 +6253,96 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
+
+<style id="curry-editor-keyboard-fix-v19">
+/* iOS 联系人编辑页键盘遮挡修复：只作用于 editor 页面 */
+#root .page[data-page="editor"] > .body{
+  scroll-padding-top:18px!important;
+  scroll-padding-bottom:calc(28px + var(--editor-keyboard-space,0px))!important;
+}
+#root .page[data-page="editor"].editorKeyboardOpen > .body{
+  padding-bottom:calc(28px + var(--editor-keyboard-space,0px))!important;
+}
+#root .page[data-page="editor"] textarea,
+#root .page[data-page="editor"] input,
+#root .page[data-page="editor"] select{
+  scroll-margin-top:18px;
+  scroll-margin-bottom:28px;
+}
+</style>
+<script id="curry-editor-keyboard-fix-js-v19">
+(function(){
+  const editor=document.querySelector('.page[data-page="editor"]');
+  if(!editor)return;
+  const body=editor.querySelector(':scope > .body');
+  if(!body)return;
+
+  function keyboardSpace(){
+    const vv=window.visualViewport;
+    if(!vv)return 0;
+    const layoutH=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0);
+    const gap=Math.max(0,Math.round(layoutH-vv.height-vv.offsetTop));
+    return gap>80?gap:0;
+  }
+
+  function syncKeyboardSpace(){
+    const gap=keyboardSpace();
+    editor.style.setProperty('--editor-keyboard-space',gap+'px');
+    editor.classList.toggle('editorKeyboardOpen',gap>0 || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||''));
+  }
+
+  function reveal(el){
+    if(!el || !editor.contains(el))return;
+    syncKeyboardSpace();
+    const run=()=>{
+      try{
+        const br=body.getBoundingClientRect();
+        const er=el.getBoundingClientRect();
+        const vv=window.visualViewport;
+        const visibleBottom=Math.min(br.bottom, vv ? vv.offsetTop+vv.height : br.bottom)-16;
+        const visibleTop=Math.max(br.top, vv ? vv.offsetTop : br.top)+14;
+        if(er.bottom>visibleBottom){
+          body.scrollTop += er.bottom-visibleBottom+18;
+        }else if(er.top<visibleTop){
+          body.scrollTop -= visibleTop-er.top+12;
+        }
+      }catch(e){}
+    };
+    requestAnimationFrame(run);
+    setTimeout(run,80);
+    setTimeout(run,280);
+  }
+
+  editor.addEventListener('focusin',e=>{
+    const el=e.target.closest?.('textarea,input,select');
+    if(!el)return;
+    reveal(el);
+  });
+  editor.addEventListener('click',e=>{
+    const el=e.target.closest?.('textarea,input,select');
+    if(el)setTimeout(()=>reveal(el),40);
+  });
+  editor.addEventListener('focusout',()=>{
+    setTimeout(()=>{
+      syncKeyboardSpace();
+      if(!editor.contains(document.activeElement)){
+        editor.classList.remove('editorKeyboardOpen');
+        editor.style.setProperty('--editor-keyboard-space','0px');
+      }
+    },120);
+  });
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize',()=>{
+      syncKeyboardSpace();
+      const el=document.activeElement;
+      if(el&&editor.contains(el))reveal(el);
+    },{passive:true});
+    visualViewport.addEventListener('scroll',()=>{
+      const el=document.activeElement;
+      if(el&&editor.contains(el))reveal(el);
+    },{passive:true});
+  }
+})();
+</script>
+
 </body></html>
