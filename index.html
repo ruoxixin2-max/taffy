@@ -5884,7 +5884,70 @@ function borrowNormalizeFriend(raw,charId,index=0){
   chatStyle:String(raw?.chatStyle||"").slice(0,350),personality:String(raw?.personality||"").slice(0,600),detection:String(raw?.detection||"").slice(0,250),createdAt:Date.now()
  }
 }
-function borrowParseJson(raw){let txt=String(raw||"").replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/i,"").trim();try{return JSON.parse(txt)}catch{}let a=txt.indexOf("["),b=txt.lastIndexOf("]");if(a>=0&&b>a)try{return JSON.parse(txt.slice(a,b+1))}catch{}let o=txt.indexOf("{"),z=txt.lastIndexOf("}");if(o>=0&&z>o)try{return JSON.parse(txt.slice(o,z+1))}catch{}return null}
+function borrowBalancedJsonSlice(txt,openCh,closeCh){
+ let start=txt.indexOf(openCh);if(start<0)return "";
+ let depth=0,inStr=false,escp=false;
+ for(let i=start;i<txt.length;i++){
+  let ch=txt[i];
+  if(inStr){
+   if(escp){escp=false;continue}
+   if(ch==="\\"){escp=true;continue}
+   if(ch==='"')inStr=false;
+   continue
+  }
+  if(ch==='"'){inStr=true;continue}
+  if(ch===openCh)depth++;
+  else if(ch===closeCh){depth--;if(depth===0)return txt.slice(start,i+1)}
+ }
+ return ""
+}
+function borrowParseJson(raw){
+ let txt=String(raw||"").trim()
+  .replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/i,"")
+  .replace(/^\s*<message>\s*/i,"").replace(/\s*<\/message>\s*$/i,"").trim();
+ const attempts=[txt,borrowBalancedJsonSlice(txt,"[","]"),borrowBalancedJsonSlice(txt,"{","}")].filter(Boolean);
+ for(let s of attempts){
+  try{
+   let v=JSON.parse(s);
+   if(v&&Array.isArray(v.friends))return v.friends;
+   if(v&&Array.isArray(v.data))return v.data;
+   return v
+  }catch{}
+ }
+ /* 某些模型会在 JSON 尾部多一个逗号，做一次轻量修复。 */
+ for(let s of attempts){
+  try{
+   let fixed=s.replace(/,\s*([}\]])/g,"$1");
+   let v=JSON.parse(fixed);
+   if(v&&Array.isArray(v.friends))return v.friends;
+   if(v&&Array.isArray(v.data))return v.data;
+   return v
+  }catch{}
+ }
+ /* 如果整个数组被截断，尽量救回已经完整生成的顶层对象。 */
+ let arrStart=txt.indexOf("["),scan=arrStart>=0?txt.slice(arrStart+1):txt,objs=[],depth=0,inStr=false,escp=false,objStart=-1;
+ for(let i=0;i<scan.length;i++){
+  let ch=scan[i];
+  if(inStr){
+   if(escp){escp=false;continue}
+   if(ch==="\\"){escp=true;continue}
+   if(ch==='"')inStr=false;
+   continue
+  }
+  if(ch==='"'){inStr=true;continue}
+  if(ch==="{"){if(depth===0)objStart=i;depth++}
+  else if(ch==="}"){depth--;if(depth===0&&objStart>=0){let s=scan.slice(objStart,i+1);try{objs.push(JSON.parse(s))}catch{}objStart=-1}}
+ }
+ return objs.length?objs:null
+}
+async function borrowApi(systemText,userText,maxTokens=2600){
+ /* 借号的结构化生成不能沿用普通聊天默认 800 tokens，否则 5~10 个好友 JSON 很容易被截断。 */
+ let opts={...settings,maxTokens:Math.max(Number(settings.maxTokens||800),Number(maxTokens||2600))};
+ return await api([
+  {role:"system",content:systemText},
+  {role:"user",content:userText||"请现在按要求生成，只输出要求的 JSON。"}
+ ],opts,"borrow_generate")
+}
 
 const borrowStyle=document.createElement("style");borrowStyle.textContent=`
 .borrowPage{background:#f4f4f1!important}.borrowBody{padding:12px 12px 90px!important}.borrowHero{padding:15px;border:1px solid var(--line);border-radius:18px;background:#fff;margin-bottom:12px}.borrowHeroTop{display:flex;align-items:center;gap:11px}.borrowAvatar{width:46px;height:46px;border-radius:50%;overflow:hidden;background:#e0e2dc;display:grid;place-items:center;font:600 15px Georgia,serif;flex:0 0 auto}.borrowAvatar img,.borrowMiniAvatar img{width:100%;height:100%;object-fit:cover}.borrowHeroName{font-size:14px;font-weight:800}.borrowHeroSub{font-size:8px;color:var(--muted);margin-top:4px}.borrowAccountSelect{width:100%;margin-top:11px;border:1px solid var(--line);border-radius:11px;background:#f8f9f6;padding:10px;font-size:11px}.borrowNotice{font-size:8px;line-height:1.65;color:#7d817c;padding:10px 12px;background:#eceeea;border-radius:12px;margin-bottom:13px}.borrowSectionHead{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:14px 2px 7px}.borrowSectionHead b{font-size:11px}.borrowSectionActions{display:flex;gap:5px;align-items:center}.borrowTinyBtn{border:1px solid var(--line);border-radius:999px;background:#fff;padding:5px 8px;font-size:7px;color:#666}.borrowTinyBtn.primary{background:#363a35;color:#fff;border-color:#363a35}.borrowTinyBtn:disabled{opacity:.45}.borrowFriend{width:100%;border:1px solid var(--line);border-radius:15px;background:#fff;padding:10px;margin-bottom:7px;display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:9px;align-items:center;text-align:left}.borrowMiniAvatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#e2e4de;display:grid;place-items:center;font:600 13px Georgia,serif}.borrowFriendName{font-size:10px;font-weight:800}.borrowFriendRel{font-size:8px;color:#8a8e88;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.borrowFriendLast{font-size:8px;color:#a0a39f;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.borrowFriendTime{font-size:7px;color:#aaa}.borrowFriendMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowChatHead{height:60px!important}.borrowIdentityChip{display:flex;align-items:center;justify-content:center;gap:4px;font-size:7px;color:#8a8f88;margin-top:2px}.borrowChatBody{height:calc(100% - 132px)!important;padding:18px 12px 95px!important}.borrowMsg{display:flex;align-items:flex-end;gap:6px;margin:8px 0}.borrowMsg.self{justify-content:flex-end}.borrowMsgBubble{max-width:76%;padding:9px 11px;border-radius:16px;border:1px solid #d7dad4;background:#fff;font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word}.borrowMsg.self .borrowMsgBubble{background:#dfe4dc}.borrowMsgMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowMsg.self .borrowMsgMeta{text-align:right}.borrowComposer{position:absolute;left:8px;right:8px;bottom:8px;display:grid;grid-template-columns:minmax(0,1fr) 42px 52px;gap:6px;padding:7px;border:1px solid rgba(201,205,198,.82);border-radius:22px;background:rgba(250,251,248,.94);box-shadow:0 10px 28px rgba(0,0,0,.08)}.borrowComposer textarea{min-height:42px;max-height:90px;resize:none;border:0;background:transparent;outline:none;padding:10px 8px;font-size:16px}.borrowComposer button{border:0;border-radius:14px;font-size:9px}.borrowSend{background:#313530;color:#fff}.borrowReply{background:#e9ece7;color:#4f554f}.borrowReply:disabled{opacity:.45}.borrowHistoryBtn{border:1px solid var(--line)!important;background:#f8f9f6!important;color:#646963!important}.borrowEmpty{text-align:center;color:#999;font-size:9px;line-height:1.7;padding:56px 25px}.borrowEmptyAction{margin-top:13px;border:0;border-radius:999px;background:#353934;color:#fff;padding:9px 14px;font-size:9px}.borrowSuspect{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:999px;background:#eee9e5;color:#876f62;font-size:6px;vertical-align:1px}.borrowGenerating{padding:18px;border:1px dashed #cfd3cc;border-radius:15px;text-align:center;color:#777;font-size:9px;background:#fafbf8}.borrowGenerating:before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;border:2px solid #80877f;border-top-color:transparent;animation:borrowSpin .8s linear infinite;vertical-align:-2px}@keyframes borrowSpin{to{transform:rotate(360deg)}}
@@ -5910,7 +5973,7 @@ function renderBorrowAccounts(){
  if(!contacts.length){body.innerHTML='<div class="borrowEmpty">还没有 Char 可以登录<br>先去联系人里导入角色。</div>';return}
  let active=borrowChar()||contacts[0];if(!borrowState.activeCharId){borrowState.activeCharId=active.id;saveBorrow()}
  let friends=borrowFriendList(active.id);
- body.innerHTML=`<div class="borrowHero"><div class="borrowHeroTop">${borrowAvatar(active)}<div><div class="borrowHeroName">${esc(active.name)}</div><div class="borrowHeroSub">当前登录 · AI 会根据 TA 的完整人设建立自己的好友圈</div></div></div><select class="borrowAccountSelect" id="borrowAccountSelect">${contacts.map(c=>`<option value="${esc(c.id)}" ${c.id===active.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div><div class="borrowNotice">好友不读取「关系网」，也不会拿现有 Char 硬凑。每个账号的好友由 AI 根据角色人设生成一次并长期保存；你拿 TA 的号发消息时，越熟的好友越容易发现说话方式不对。</div><div class="borrowSectionHead"><b>TA 的好友</b><div class="borrowSectionActions"><button class="borrowTinyBtn" id="borrowAddFriendBtn" type="button" ${borrowFriendGenerating?"disabled":""}>+ 新好友</button><button class="borrowTinyBtn ${friends.length?"":"primary"}" id="borrowGenerateFriendsBtn" type="button" ${borrowFriendGenerating?"disabled":""}>${friends.length?"重生好友圈":"生成好友"}</button></div></div>${borrowFriendGenerating?'<div class="borrowGenerating">AI 正在读人设，给 TA 生朋友……</div>':friends.length?friends.map(f=>{let l=borrowLast(active.id,f.id);return `<button class="borrowFriend" data-borrow-target="${esc(f.id)}">${borrowAvatar(f,"borrowMiniAvatar")}<div><div class="borrowFriendName">${esc(f.name)}</div><div class="borrowFriendRel">${esc(f.relation||"朋友")}${f.occupation?` · ${esc(f.occupation)}`:""}</div><div class="borrowFriendMeta">${f.knownYears?esc(f.knownYears):""}${f.closeness?` · 熟悉度 ${f.closeness}/5`:""}</div><div class="borrowFriendLast">${esc(l?borrowPlain(l):"暂无聊天记录")}</div></div><div class="borrowFriendTime">${esc(l?.time||"")}</div></button>`}).join(""):'<div class="borrowEmpty">这个账号还没有好友档案。<br>点「生成好友」，AI 会只根据 TA 的人设建立 5～10 个稳定 NPC 好友。</div>'}`;
+ body.innerHTML=`<div class="borrowHero"><div class="borrowHeroTop">${borrowAvatar(active)}<div><div class="borrowHeroName">${esc(active.name)}</div><div class="borrowHeroSub">当前登录 · AI 会根据 TA 的完整人设建立自己的好友圈</div></div></div><select class="borrowAccountSelect" id="borrowAccountSelect">${contacts.map(c=>`<option value="${esc(c.id)}" ${c.id===active.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div><div class="borrowNotice">好友不读取「关系网」，也不会拿现有 Char 硬凑。每个账号的好友由 AI 根据角色人设生成一次并长期保存；你拿 TA 的号发消息时，越熟的好友越容易发现说话方式不对。${borrowState.lastError?`<br><b style="color:#9b514c">上次生成错误：${esc(borrowState.lastError)}</b>`:""}</div><div class="borrowSectionHead"><b>TA 的好友</b><div class="borrowSectionActions"><button class="borrowTinyBtn" id="borrowAddFriendBtn" type="button" ${borrowFriendGenerating?"disabled":""}>+ 新好友</button><button class="borrowTinyBtn ${friends.length?"":"primary"}" id="borrowGenerateFriendsBtn" type="button" ${borrowFriendGenerating?"disabled":""}>${friends.length?"重生好友圈":"生成好友"}</button></div></div>${borrowFriendGenerating?'<div class="borrowGenerating">AI 正在读人设，给 TA 生朋友……</div>':friends.length?friends.map(f=>{let l=borrowLast(active.id,f.id);return `<button class="borrowFriend" data-borrow-target="${esc(f.id)}">${borrowAvatar(f,"borrowMiniAvatar")}<div><div class="borrowFriendName">${esc(f.name)}</div><div class="borrowFriendRel">${esc(f.relation||"朋友")}${f.occupation?` · ${esc(f.occupation)}`:""}</div><div class="borrowFriendMeta">${f.knownYears?esc(f.knownYears):""}${f.closeness?` · 熟悉度 ${f.closeness}/5`:""}</div><div class="borrowFriendLast">${esc(l?borrowPlain(l):"暂无聊天记录")}</div></div><div class="borrowFriendTime">${esc(l?.time||"")}</div></button>`}).join(""):'<div class="borrowEmpty">这个账号还没有好友档案。<br>点「生成好友」，AI 会只根据 TA 的人设建立 5～10 个稳定 NPC 好友。</div>'}`;
  $("#borrowAccountSelect").onchange=e=>{borrowState.activeCharId=e.target.value;borrowTargetId="";saveBorrow();renderBorrowAccounts();toast(`已登录 ${borrowChar()?.name||"Char"} 的账号`)};
  $$('[data-borrow-target]').forEach(b=>b.onclick=()=>openBorrowChat(b.dataset.borrowTarget));
  $("#borrowGenerateFriendsBtn").onclick=()=>borrowGenerateFriends(false);
@@ -5933,12 +5996,21 @@ async function borrowGenerateFriends(addOne=false){
   let existingBrief=existing.map(f=>`${f.name}｜${f.relation}｜${f.occupation||""}｜${f.dynamic||""}`).join("\n");
   let sys=addOne?`根据下面角色设定，为这个人新增 1 个合理、稳定、可长期聊天的私人好友 NPC。不能重复已有好友，也不要创建原作中并无依据的强绑定关系来抢角色核心关系。好友应像一个真实的人，有自己的生活和说话习惯。\n\n角色：${self.name}\n角色设定：\n${borrowProfile(self)}\n\n已有好友：\n${existingBrief||"无"}\n\n只输出一个 JSON 对象，不要 markdown。字段：name, age, gender, occupation, relation, knownYears, howMet, closeness(1-5整数), impression, dynamic, nickname, sharedHistory, chatStyle, personality, detection。detection 描述此人对 ${self.name} 说话习惯有多熟、什么情况下会怀疑手机不是本人在用。`:
   `根据下面角色的完整设定，为 TA 生成 5～10 个合理、稳定、可长期聊天的私人好友/熟人 NPC。\n\n要求：\n- 只根据角色的人设、职业、年龄、生活环境、经历和性格推演社交圈，不读取任何外部「关系网」。\n- 不要直接把现有其他 Char 当好友，除非角色设定文本本身明确写了该人物。\n- 社交圈要有层次：可包含旧友、同事、同学、邻居、行业熟人、损友、关系淡但长期存在的人等，但必须符合该角色。\n- 不要为了热闹强行给孤僻角色塞很多密友；5～10 是上限，真正亲密的可以很少。\n- 每个 NPC 必须有独立人格和自己的生活，不是只围绕角色存在的工具人。\n- 这些人会用于「借号」玩法：User 会拿 ${self.name} 的账号给他们发消息。所以请明确他们有多熟悉 ${self.name} 的语言习惯，亲近者应更容易识破异常。\n- 不生成 User。\n\n角色：${self.name}\n角色设定：\n${borrowProfile(self)}\n\n只输出 JSON 数组，不要 markdown。每项字段：name, age, gender, occupation, relation, knownYears, howMet, closeness(1-5整数), impression, dynamic, nickname, sharedHistory, chatStyle, personality, detection。`;
-  let raw=await apiWithMcp([{role:"system",content:sys}]),data=borrowParseJson(raw),arr=addOne?(Array.isArray(data)?data.slice(0,1):[data]):data;
-  if(!Array.isArray(arr)||!arr.length)throw Error("好友格式无效");
-  let fresh=arr.filter(Boolean).slice(0,addOne?1:10).map((x,i)=>borrowNormalizeFriend(x,self.id,existing.length+i));if(!fresh.length)throw Error("没有生成有效好友");
+  let raw=await borrowApi(
+   "你是角色社交关系数据生成器。严格根据提供的人设推演真实、稳定、可长期使用的 NPC；不要输出解释、前言或 markdown。",
+   sys,
+   addOne?1400:3200
+  ),data=borrowParseJson(raw),arr=addOne?(Array.isArray(data)?data.slice(0,1):[data]):data;
+  if(!Array.isArray(arr)||!arr.length)throw Error("好友 JSON 解析失败（AI 返回格式不完整）");
+  arr=arr.filter(x=>x&&typeof x==="object"&&!Array.isArray(x)&&String(x.name||"").trim());
+  let fresh=arr.slice(0,addOne?1:10).map((x,i)=>borrowNormalizeFriend(x,self.id,existing.length+i));if(!fresh.length)throw Error("AI 没有返回带 name 的有效好友对象");
   if(addOne)borrowState.friendsByChar[self.id]=[...existing,...fresh];else borrowState.friendsByChar[self.id]=fresh;
-  saveBorrow();toast(addOne?`新增好友：${fresh[0].name}`:`已为 ${self.name} 生成 ${fresh.length} 位好友`)
- }catch(e){toast("生成好友失败："+(e.message||e))}finally{borrowFriendGenerating=false;renderBorrowAccounts()}
+  borrowState.lastError="";saveBorrow();toast(addOne?`新增好友：${fresh[0].name}`:`已为 ${self.name} 生成 ${fresh.length} 位好友`)
+ }catch(e){
+  console.error("borrow friend generation failed",e);
+  borrowState.lastError=String(e?.message||e||"未知错误");saveBorrow();
+  toast("生成好友失败："+borrowState.lastError)
+ }finally{borrowFriendGenerating=false;renderBorrowAccounts()}
 }
 
 function borrowPrompt(self,target,h){let recent=h.slice(-28).map(m=>`${m.senderId===self.id?self.name:target.name}: ${m.content}`).join("\n");return `你正在扮演 ${target.name}，通过私人即时聊天和 ${self.name} 对话。\n\n你的稳定人物档案：\n${borrowFriendProfile(target)}\n\n${self.name} 的角色设定：\n${borrowProfile(self)}\n\n重要规则：\n- 屏幕上显示的发送者就是 ${self.name}。默认把消息当作 ${self.name} 本人发来的。\n- 你不知道 User 正在操作 ${self.name} 的账号。只有当措辞、态度、称呼、知识或习惯明显不像 ${self.name}，并且按你们的熟悉程度足以察觉时，才自然产生怀疑。\n- 熟悉度 ${target.closeness||3}/5。严格依照档案中的 detection 判断敏感程度。不要每句话都怀疑，也不要无论多离谱都认不出来。\n- 保持自己的生活、立场和情绪，不要变成只会配合对方的工具 NPC。\n- 像真实手机聊天：短、自然，可以分成 1～3 条，不写动作旁白，不加引号，不解释设定。\n- 只回复 ${target.name} 的消息。\n\n最近私聊：\n${recent||"（暂无）"}`}
@@ -5953,7 +6025,11 @@ async function borrowGenerateReply(){
 async function borrowGenerateHistory(){
  if(borrowGenerating)return;let self=borrowChar(),target=borrowFriendById(borrowTargetId,self?.id),h=borrowHistory();if(!self||!target)return;if(h.length&&!confirm("已经有聊天记录了，还要再补一段更早的旧聊天吗？"))return;borrowGenerating=true;$("#borrowHistoryBtn").textContent="生成中";
  try{
-  let raw=await apiWithMcp([{role:"system",content:`根据两人的稳定设定，生成一段他们过去真实存在过的普通私人聊天。不要写初次认识，不要为了戏剧性强塞事件。\n\n账号主人：${self.name}\n${borrowProfile(self)}\n\n好友：\n${borrowFriendProfile(target)}\n\n只输出 JSON 数组，6～10 条，按时间顺序。格式：[{"sender":"${self.name}","content":"..."},{"sender":"${target.name}","content":"..."}]。实际输出必须是合法 JSON，不能有 markdown。聊天要像已认识很久的人日常发消息。`}]);
+  let raw=await borrowApi(
+   "你是私人聊天记录生成器。只生成符合人物设定的历史聊天 JSON，不输出任何解释。",
+   `根据两人的稳定设定，生成一段他们过去真实存在过的普通私人聊天。不要写初次认识，不要为了戏剧性强塞事件。\n\n账号主人：${self.name}\n${borrowProfile(self)}\n\n好友：\n${borrowFriendProfile(target)}\n\n只输出 JSON 数组，6～10 条，按时间顺序。格式：[{"sender":"${self.name}","content":"..."},{"sender":"${target.name}","content":"..."}]。实际输出必须是合法 JSON，不能有 markdown。聊天要像已认识很久的人日常发消息。`,
+   1800
+  );
   let arr=borrowParseJson(raw);if(!Array.isArray(arr)||!arr.length)throw Error("旧聊天格式无效");
   let base=Date.now()-86400000*(2+Math.floor(Math.random()*12));let old=arr.slice(0,12).map((m,i)=>({id:uuid(),senderId:String(m.sender||"").includes(target.name)?target.id:self.id,content:String(m.content||"").slice(0,500),time:new Date(base+i*60000*(2+Math.random()*15)).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}),createdAt:base+i*60000*5,historySeed:true})).filter(m=>m.content);
   borrowState.convos[borrowPairKey(self.id,target.id)]=[...old,...h];saveBorrow();renderBorrowChat();renderBorrowAccounts();toast("旧聊天已补上")
