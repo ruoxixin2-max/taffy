@@ -1373,41 +1373,60 @@ body.curryMonoFull .os canvas{
 </style>
 
 
-<style id="curry-ios-status-wallpaper-fix">
-/* ===== iOS 主屏幕网页：顶部状态栏背景与桌面连续 =====
-   只解决一件事：curryHome 的壁纸原本只画在 screen 内，
-   iOS 顶部状态栏露出的却是 html/body 的纯色背景。
-   现在把同一套桌面背景同步到最外层绘制面。
-   不改变主页内容位置、不额外增加 safe-area、不隐藏/重排任何控件。 */
+<style id="curry-ios-one-background-layer">
+/* ===== iOS 顶部连续背景：单一全屏背景层 =====
+   不改 safe-area 几何，不移动任何主页内容。
+   只把桌面壁纸从 .curryHome 提到真正的 viewport 背景层。 */
 
-html,
-body.phoneActive{
-  background-color:#f5f3ee!important;
+html, body{
+  background:transparent!important;
+}
+
+/* 整个 iOS viewport（包含状态栏可绘制区域）只画这一张背景。 */
+body.phoneActive::before{
+  content:"";
+  position:fixed;
+  top:calc(-1 * env(safe-area-inset-top, 0px));
+  right:0;
+  bottom:calc(-1 * env(safe-area-inset-bottom, 0px));
+  left:0;
+  z-index:0;
+  pointer-events:none;
+
   background-image:
+    linear-gradient(
+      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity))),
+      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity)))
+    ),
     linear-gradient(var(--home-overlay),var(--home-overlay)),
     var(--home-wallpaper),
     linear-gradient(155deg,#f5f3ee 0%,#eeece7 52%,#e8e6e1 100%)!important;
   background-size:cover!important;
   background-position:center!important;
   background-repeat:no-repeat!important;
-  background-attachment:fixed!important;
 }
 
-/* phone 根层保持透明，让 html/body 的同一张背景能一直透到系统状态栏。 */
-body.phoneActive #root,
-body.phoneActive #root > .shell,
-body.phoneActive #root > .shell > .os{
+/* 手机壳这些层以前是不透明的，会挡住最外层背景。 */
+body.phoneActive #root{
+  z-index:1!important;
+  background:transparent!important;
+}
+body.phoneActive #root .shell,
+body.phoneActive #root .os,
+body.phoneActive #root .screen{
+  background:transparent!important;
+}
+
+/* 首页不再自己重新 cover 一次，避免从 screen 顶部重新裁图造成接缝。 */
+body.phoneActive #root .curryHome{
+  background-image:none!important;
   background-color:transparent!important;
 }
-
-/* 首页自己仍沿用原来的背景逻辑；这里只保证绘制坐标与 viewport 对齐。 */
-body.phoneActive .curryHome{
-  background-size:cover!important;
-  background-position:center!important;
-  background-repeat:no-repeat!important;
+body.phoneActive #root .curryHome::before{
+  background:transparent!important;
 }
 
-/* 不碰顶部安全区几何。原文件自己的布局继续负责内容位置。 */
+/* 其他 page 原本各自有背景，不受影响。 */
 </style>
 
 </head><body>
