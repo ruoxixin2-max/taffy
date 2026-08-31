@@ -1373,6 +1373,9 @@ body.curryMonoFull .os canvas{
 </style>
 
 
+
+
+
 <style id="curry-ios-edge-to-edge-fix">
 /* iOS 主屏幕网页：只修全屏高度与安全区几何 */
 :root{
@@ -1457,51 +1460,54 @@ html,body{
 }
 </style>
 
-<style id="curry-ios-page-safearea-v15">
-/* ===== V15 iOS standalone page safe-area =====
-   保留 edge-to-edge 全屏高度链；
-   不改 .head/.back 尺寸，不改 click/touch；
-   仅让二级页面内容从系统状态栏下方开始。 */
-
-@media (display-mode: standalone) {
-  body.phoneActive #root .page:not(.home) {
+<style id="curry-ios-safe-page-v16">
+/* iOS standalone: page background remains edge-to-edge; interactive headers begin below system status bar. */
+@media (display-mode: standalone){
+  body.phoneActive #root .page:not(.home){
     box-sizing:border-box!important;
     padding-top:env(safe-area-inset-top,0px)!important;
   }
-
-  /* 原始头部保持设计尺寸 */
-  body.phoneActive #root .page:not(.home) > .head {
+  body.phoneActive #root .page:not(.home) > .head{
+    box-sizing:border-box!important;
     height:54px!important;
     min-height:54px!important;
     padding-top:0!important;
-    transform:none!important;
+    flex:0 0 54px!important;
   }
-
   body.phoneActive #root .page:not(.home) > .head > .back,
-  body.phoneActive #root .page:not(.home) > .head > .headAction {
+  body.phoneActive #root .page:not(.home) > .head > .headAction{
     height:54px!important;
     min-height:54px!important;
-    align-self:auto!important;
-    position:static!important;
-    z-index:auto!important;
   }
-
-  /* 窄屏聊天页保留原本 58px 设计高度 */
-  body.phoneActive #root .chatPage > .head {
+  body.phoneActive #root .page:not(.home) > .body{
+    height:calc(100% - 54px - env(safe-area-inset-top,0px))!important;
+    max-height:calc(100% - 54px - env(safe-area-inset-top,0px))!important;
+  }
+  body.phoneActive #root .chatPage{
+    padding-top:env(safe-area-inset-top,0px)!important;
+  }
+  body.phoneActive #root .chatPage > .head{
     height:58px!important;
     min-height:58px!important;
+    flex:0 0 58px!important;
   }
-
-  /* 小红书若使用独立 header，也只保留原设计高度 */
-  body.phoneActive #root .xhsHeader {
+  body.phoneActive #root .chatPage > .chatBody{
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    flex:1 1 auto!important;
+  }
+  body.phoneActive #root .xhsPage{
+    box-sizing:border-box!important;
+    padding-top:env(safe-area-inset-top,0px)!important;
+  }
+  body.phoneActive #root .xhsHeader{
     height:54px!important;
     min-height:54px!important;
     padding-top:0!important;
-    transform:none!important;
   }
 }
 </style>
-
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -2273,7 +2279,7 @@ if(!masks.length){masks=[{id:"mask_default",name:"默认 user",userName:"user",a
 if(!masks.some(m=>m.id===activeMaskId)){activeMaskId=masks[0].id;localStorage.setItem(K.activeMask,activeMaskId)}
 
 
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),uuid=()=>crypto.randomUUID?crypto.randomUUID():"c_"+Date.now()+"_"+Math.random().toString(36).slice(2),now=()=>new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date());
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),uuid=()=>((typeof globalThis.crypto!=="undefined"&&typeof globalThis.crypto.randomUUID==="function")?globalThis.crypto.randomUUID():"c_"+Date.now()+"_"+Math.random().toString(36).slice(2)),now=()=>new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date());
 function toast(t){let e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),1800)}
 let viewportSyncRaf=0;
 function syncPhoneViewport(){
@@ -3584,7 +3590,7 @@ $("#notes").value=localStorage.getItem(K.notes)||"";$("#notes").oninput=e=>local
 
 function renderMasks(){let e=$("#maskList");e.innerHTML=masks.map(m=>`<div class="row" style="grid-template-columns:42px 1fr auto">${m.avatar?`<div class="maskAvatar"><img src="${m.avatar}"></div>`:`<div class="maskAvatar">${esc((m.userName||"U")[0])}</div>`}<div><div class="name">${esc(m.name)}</div><div class="sub">${esc(m.userName||"user")}${m.id===activeMaskId?" · 当前面具":""}</div></div><div><button class="btn maskUse" data-id="${m.id}" style="padding:7px">${m.id===activeMaskId?"使用中":"切换"}</button><button class="btn maskEdit" data-id="${m.id}" style="padding:7px;margin-top:4px">编辑</button></div></div>`).join("");$$('.maskUse').forEach(b=>b.onclick=()=>{activeMaskId=b.dataset.id;localStorage.setItem(K.activeMask,activeMaskId);renderMasks();toast("已切换面具；对应聊天记录已恢复")});$$('.maskEdit').forEach(b=>b.onclick=()=>openMaskEditor(b.dataset.id))}
 function openMaskEditor(id=null){editingMaskId=id;let m=masks.find(x=>x.id===id)||{name:"",userName:"user",avatar:"",prompt:"",note:""};pendingMaskAvatar=m.avatar||"";$("#maskEditorTitle").textContent=id?"编辑面具":"新建面具";$("#maskName").value=m.name;$("#maskUserName").value=m.userName;$("#maskPrompt").value=m.prompt;$("#maskNote").value=m.note;page("maskEditor")}
-$("#addMask").onclick=()=>openMaskEditor();$("#maskAvatarFile").onchange=async e=>{if(e.target.files[0])pendingMaskAvatar=await dataURL(e.target.files[0])};$("#saveMask").onclick=()=>{let name=$("#maskName").value.trim();if(!name)return toast("请填写面具名称");let m={id:editingMaskId||uuid(),name,userName:$("#maskUserName").value.trim()||"user",avatar:pendingMaskAvatar,prompt:$("#maskPrompt").value.trim(),note:$("#maskNote").value.trim()};if(editingMaskId)masks=masks.map(x=>x.id===editingMaskId?m:x);else{masks.push(m);activeMaskId=m.id;localStorage.setItem(K.activeMask,activeMaskId)}save(K.masks,masks);renderMasks();page("masks");toast(editingMaskId?"面具已保存":"新面具已创建；已切换到空白对话")};
+$("#addMask").onclick=()=>openMaskEditor();$("#maskAvatarFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{pendingMaskAvatar=await mediaPutFile(f);toast("头像已读取")}catch(err){console.warn("面具头像写入 IndexedDB 失败，回退 Base64",err);pendingMaskAvatar=await dataURL(f)}};$("#saveMask").onclick=async()=>{let name=$("#maskName").value.trim();if(!name)return toast("请填写面具名称");let wasEditing=!!editingMaskId,oldMasks=cp(masks),oldActive=activeMaskId;let m={id:editingMaskId||uuid(),name,userName:$("#maskUserName").value.trim()||"user",avatar:pendingMaskAvatar,prompt:$("#maskPrompt").value.trim(),note:$("#maskNote").value.trim()};if(editingMaskId)masks=masks.map(x=>x.id===editingMaskId?m:x);else{masks.push(m);activeMaskId=m.id}try{try{save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId)}catch(err){if(!/本地存储空间已满|quota/i.test(String(err?.message||err)))throw err;toast("存储较满，正在自动整理旧图片…");await migrateLegacyMedia(false);save(K.masks,masks);localStorage.setItem(K.activeMask,activeMaskId)}renderMasks();page("masks");toast(wasEditing?"面具已保存":"新面具已创建；已切换到空白对话")}catch(err){masks=oldMasks;activeMaskId=oldActive;console.error("面具保存失败",err);toast("保存失败："+(err?.message||"浏览器本地存储不可用"))}};
 function extractBook(raw,name){let d=raw?.spec==="chara_card_v2"?raw.data:(raw?.data||raw),book=d?.character_book||d?.characterBook||raw?.character_book;if(!book||!Array.isArray(book.entries))return null;return{id:uuid(),name:(book.name||name+" 世界书"),enabled:true,scope:"global",boundContactIds:[],source:"角色卡 · "+name,entries:book.entries.map((e,i)=>({id:uuid(),name:e.comment||e.name||`Entry ${i+1}`,keys:Array.isArray(e.keys)?e.keys:(Array.isArray(e.key)?e.key:[]),content:e.content||"",constant:!!e.constant,enabled:e.enabled!==false}))}}
 function importEmbeddedWorldbook(raw,name,contactId=null){let b=extractBook(raw,name);if(!b)return;if(contactId){b.scope="bound";b.boundContactIds=[contactId]}worldbooks.push(b);save(K.worldbooks,worldbooks);toast(contactId?"角色卡内世界书已导入并绑定此角色":"角色卡内世界书已一并导入")}
 function renderWorldbooks(){let e=$("#worldbookList");e.innerHTML=worldbooks.length?worldbooks.map(w=>`<div class="wbRow"><button class="row wbOpen" data-id="${w.id}" style="border:0;padding:0"><div><div class="name">${esc(w.name)}</div><div class="sub">${esc(w.source||"手动创建")} · ${(w.entries||[]).length} 条 · ${(w.scope||"global")==="global"?"全局":"独立绑定"}</div></div></button><button class="switch ${w.enabled!==false?"on":""} wbToggle" data-id="${w.id}"></button></div>`).join(""):'<div class="empty">还没有世界书。<br>可以导入 JSON、TXT、DOCX，角色卡内置世界书也会自动出现在这里。</div>';$$('.wbOpen').forEach(b=>b.onclick=()=>openWorldbook(b.dataset.id));$$('.wbToggle').forEach(b=>b.onclick=()=>{let w=worldbooks.find(x=>x.id===b.dataset.id);w.enabled=!w.enabled;save(K.worldbooks,worldbooks);renderWorldbooks()})}
