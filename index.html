@@ -6319,4 +6319,101 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
+
+<script id="android-system-back-fix-v1">
+(() => {
+  /* Android / OPPO 浏览器系统返回键：把小手机内部页面接入 History API。 */
+  const originalPage = window.page;
+  if (typeof originalPage !== "function") return;
+
+  let restoring = false;
+  let seq = 0;
+
+  function activePage(){
+    return document.querySelector('.page.active')?.dataset.page || 'home';
+  }
+
+  function renderFor(name){
+    try{
+      if(name==='home'){ if(typeof renderHome39==='function') renderHome39(); if(typeof updateCurryHomeDots==='function') updateCurryHomeDots(); }
+      else if(name==='contacts' && typeof renderContacts==='function') renderContacts();
+      else if(name==='messages' && typeof renderConvos==='function') renderConvos();
+      else if(name==='forum' && typeof renderForum==='function') renderForum();
+      else if(name==='contactDetail' && currentContact && typeof openContact==='function') openContact(currentContact, true);
+      else if(name==='chat' && currentContact){ if(typeof renderChat==='function') renderChat(); if(typeof renderPresence==='function') renderPresence(); }
+      else if(name==='anniversary' && typeof renderAnniversary==='function') renderAnniversary();
+      else if(name==='takeout' && typeof renderTakeout==='function') renderTakeout();
+      else if(name==='liveRoom' && typeof renderLiveHome==='function') renderLiveHome();
+      else if(name==='moments' && typeof renderMoments==='function') renderMoments();
+      else if(name==='stickers' && typeof renderStickerLibraries==='function') renderStickerLibraries();
+      else if(name==='masks' && typeof renderMasks==='function') renderMasks();
+      else if(name==='worldbook' && typeof renderWorldbooks==='function') renderWorldbooks();
+      else if(name==='mcp' && typeof renderMcp==='function') renderMcp();
+      else if(name==='beautify'){ if(typeof applyBeauty==='function') applyBeauty(); if(typeof renderIconCustomizer==='function') renderIconCustomizer(); }
+      else if(name==='chatBeauty' && typeof renderThemeEditor==='function') renderThemeEditor();
+      else if(name==='gameHall' && typeof renderGameHall==='function') renderGameHall();
+      else if(name==='charNetwork' && typeof renderCharNetwork==='function') renderCharNetwork();
+      else if(name==='initiative' && typeof renderInitiative==='function') renderInitiative();
+    }catch(err){ console.warn('back render', name, err); }
+  }
+
+  /* 任何原有 page("xxx") 都记录成一层浏览器历史；popstate 恢复时不再重复入栈。 */
+  window.page = function(name){
+    const before = activePage();
+    originalPage(name);
+    if(restoring || !document.body.classList.contains('phoneActive')) return;
+    if(name === before) return;
+    seq += 1;
+    try{ history.pushState({curryPhone:true,page:name,seq}, '', location.href); }catch(e){}
+  };
+
+  function seedHomeHistory(){
+    if(!document.body.classList.contains('phoneActive')) return;
+    const name=activePage();
+    try{
+      if(!history.state?.curryPhone){
+        history.replaceState(Object.assign({},history.state,{curryPhone:true,page:name,seq:0}), '', location.href);
+      }
+    }catch(e){}
+  }
+
+  const enter=document.getElementById('enter');
+  if(enter){
+    const old=enter.onclick;
+    enter.onclick=(e)=>{ old?.call(enter,e); setTimeout(seedHomeHistory,0); };
+  }
+
+  /* OPPO/Android 底部系统返回键最终会触发这里。 */
+  window.addEventListener('popstate', (e) => {
+    if(!document.body.classList.contains('phoneActive')) return;
+    const target=e.state?.curryPhone ? (e.state.page||'home') : 'home';
+    restoring=true;
+    try{
+      originalPage(target);
+      renderFor(target);
+    }finally{
+      restoring=false;
+    }
+  });
+
+  /* 页面里的“返回”也走同一套历史，避免系统返回与页面返回各记各的。 */
+  document.querySelectorAll('[data-back]').forEach(btn=>{
+    btn.onclick=(e)=>{
+      e.preventDefault();
+      const fallback=btn.dataset.back||'home';
+      if(document.body.classList.contains('phoneActive') && history.state?.curryPhone && (history.state.seq||0)>0){
+        history.back();
+      }else{
+        restoring=true;
+        try{ originalPage(fallback); renderFor(fallback); }
+        finally{ restoring=false; }
+      }
+    };
+  });
+
+  /* 若文件本身就是直接进入 phoneActive，也补上初始状态。 */
+  setTimeout(seedHomeHistory, 0);
+})();
+</script>
+
 </body></html>
