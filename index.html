@@ -5,6 +5,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script id="curry-ios-standalone-detect-v17">
+(function(){
+  try{
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if(standalone) document.documentElement.classList.add('curryIOSStandalone');
+  }catch(e){}
+})();
+</script>
+
 <title>咖喱小手机 V8.8.27 · 急救启动版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
@@ -1460,52 +1470,60 @@ html,body{
 }
 </style>
 
-<style id="curry-ios-safe-page-v16">
-/* iOS standalone: page background remains edge-to-edge; interactive headers begin below system status bar. */
-@media (display-mode: standalone){
-  body.phoneActive #root .page:not(.home){
-    box-sizing:border-box!important;
-    padding-top:env(safe-area-inset-top,0px)!important;
-  }
-  body.phoneActive #root .page:not(.home) > .head{
-    box-sizing:border-box!important;
-    height:54px!important;
-    min-height:54px!important;
-    padding-top:0!important;
-    flex:0 0 54px!important;
-  }
-  body.phoneActive #root .page:not(.home) > .head > .back,
-  body.phoneActive #root .page:not(.home) > .head > .headAction{
-    height:54px!important;
-    min-height:54px!important;
-  }
-  body.phoneActive #root .page:not(.home) > .body{
-    height:calc(100% - 54px - env(safe-area-inset-top,0px))!important;
-    max-height:calc(100% - 54px - env(safe-area-inset-top,0px))!important;
-  }
-  body.phoneActive #root .chatPage{
-    padding-top:env(safe-area-inset-top,0px)!important;
-  }
-  body.phoneActive #root .chatPage > .head{
-    height:58px!important;
-    min-height:58px!important;
-    flex:0 0 58px!important;
-  }
-  body.phoneActive #root .chatPage > .chatBody{
-    min-height:0!important;
-    height:auto!important;
-    max-height:none!important;
-    flex:1 1 auto!important;
-  }
-  body.phoneActive #root .xhsPage{
-    box-sizing:border-box!important;
-    padding-top:env(safe-area-inset-top,0px)!important;
-  }
-  body.phoneActive #root .xhsHeader{
-    height:54px!important;
-    min-height:54px!important;
-    padding-top:0!important;
-  }
+<style id="curry-ios-safearea-v17">
+/* iOS Home Screen / standalone: JS class based, not display-mode media-query based.
+   Full-screen background stays edge-to-edge; only interactive page content starts below top safe area. */
+html.curryIOSStandalone{
+  --curry-safe-top: env(safe-area-inset-top, 0px);
+  --curry-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.curryIOSStandalone body.phoneActive #root .page:not(.home){
+  box-sizing:border-box!important;
+  padding-top:var(--curry-safe-top)!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .page:not(.home) > .head{
+  box-sizing:border-box!important;
+  height:54px!important;
+  min-height:54px!important;
+  padding-top:0!important;
+  flex:0 0 54px!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .page:not(.home) > .head > .back,
+html.curryIOSStandalone body.phoneActive #root .page:not(.home) > .head > .headAction{
+  height:54px!important;
+  min-height:54px!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .page:not(.home) > .body{
+  height:calc(100% - 54px - var(--curry-safe-top))!important;
+  max-height:calc(100% - 54px - var(--curry-safe-top))!important;
+}
+
+/* Chat keeps its later 58px visual design, but remains below safe-area. */
+html.curryIOSStandalone body.phoneActive #root .chatPage > .head{
+  height:58px!important;
+  min-height:58px!important;
+  flex:0 0 58px!important;
+}
+
+/* Xiaohongshu uses its own header/feed geometry. */
+html.curryIOSStandalone body.phoneActive #root .xhsPage{
+  box-sizing:border-box!important;
+  padding-top:var(--curry-safe-top)!important;
+}
+html.curryIOSStandalone body.phoneActive #root .xhsHeader{
+  height:54px!important;
+  min-height:54px!important;
+  padding-top:0!important;
+}
+html.curryIOSStandalone body.phoneActive #root .xhsFeed{
+  height:calc(100% - 154px - var(--curry-safe-top))!important;
+}
+html.curryIOSStandalone body.phoneActive #root .xhsDetailBody{
+  height:calc(100% - 112px - var(--curry-safe-top))!important;
 }
 </style>
 </head><body>
