@@ -4802,9 +4802,17 @@ async function safariSafeBlob(blob,rel){
  return new Blob([blob],{type})
 }
 function live2dWebglPreflight(){
- let c=document.createElement("canvas"),gl=null;
- try{gl=c.getContext("webgl2",{alpha:true})||c.getContext("webgl",{alpha:true})||c.getContext("experimental-webgl",{alpha:true})}catch{}
- return !!gl
+ // V8.8.43 iOS：预检本身也会占一个 WebGL context。检测完必须立即释放，
+ // 否则 Safari 在真正创建 Live2D renderer 时可能因为 context/显存峰值直接杀页。
+ let c=document.createElement("canvas"),gl=null,ok=false;
+ try{
+   gl=c.getContext("webgl",{alpha:true,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:"low-power"})||
+      c.getContext("experimental-webgl",{alpha:true,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false});
+   ok=!!gl;
+ }catch{}
+ try{gl?.getExtension?.("WEBGL_lose_context")?.loseContext?.()}catch{}
+ c.width=1;c.height=1;gl=null;c=null;
+ return ok
 }
 
 function rewriteModelRefs(obj,urlMap){
@@ -5139,10 +5147,10 @@ async function mountLive2d(modelId,retryMode=false){
    await ensureLive2dLibs();
    if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");
    let appOpts=safari
-     ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}
-     : {resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)};
+     ? {resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power",preserveDrawingBuffer:false,clearBeforeRender:true}
+     : {resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2),preserveDrawingBuffer:false};
    let app=new PIXI.Application(appOpts);
-   if(safari){app.ticker.maxFPS=30;app.ticker.minFPS=15}
+   if(safari){app.ticker.maxFPS=24;app.ticker.minFPS=10;try{app.renderer.textureGC.maxIdle=180;app.renderer.textureGC.checkCountMax=120}catch{}}
    if(myGen!==live2dRuntime.loadGen){app.destroy(true);return false}
    canvasHost.innerHTML="";canvasHost.appendChild(app.view);bindLive2dTransformGestures(app.view);
    if(safari){
