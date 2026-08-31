@@ -6233,4 +6233,27 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 })();
 </script>
 
+
+<style id="curry-ios-standalone-status-spacer-v12">
+/* ===== V12 iOS standalone safe-area spacer =====
+   修复后置 chat-ui-clean-v8818 全局隐藏 .status 导致二级页顶进系统状态栏。
+   只恢复“占位高度”，不显示内部状态栏内容，不修改 head/back/click。 */
+html.curryStandaloneIOS #root.phoneMode .status,
+html.curryStandaloneIOS #root.immersive .status,
+html.curryStandaloneIOS .fullscreenPhone #root .status{
+  display:flex!important;
+  visibility:hidden!important;
+  flex:0 0 env(safe-area-inset-top,0px)!important;
+  width:100%!important;
+  height:env(safe-area-inset-top,0px)!important;
+  min-height:env(safe-area-inset-top,0px)!important;
+  max-height:env(safe-area-inset-top,0px)!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  background:transparent!important;
+}
+</style>
+
 </body></html>
