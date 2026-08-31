@@ -5,7 +5,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#f5f3ee">
 <title>咖喱小手机 V8.8.27 · 急救启动版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
@@ -1371,6 +1370,44 @@ body.curryMonoFull .os canvas{
 
 <style>
 /* Emergency build: no visual changes, only boot safety. */
+</style>
+
+
+<style id="curry-ios-status-wallpaper-fix">
+/* ===== iOS 主屏幕网页：顶部状态栏背景与桌面连续 =====
+   只解决一件事：curryHome 的壁纸原本只画在 screen 内，
+   iOS 顶部状态栏露出的却是 html/body 的纯色背景。
+   现在把同一套桌面背景同步到最外层绘制面。
+   不改变主页内容位置、不额外增加 safe-area、不隐藏/重排任何控件。 */
+
+html,
+body.phoneActive{
+  background-color:#f5f3ee!important;
+  background-image:
+    linear-gradient(var(--home-overlay),var(--home-overlay)),
+    var(--home-wallpaper),
+    linear-gradient(155deg,#f5f3ee 0%,#eeece7 52%,#e8e6e1 100%)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-attachment:fixed!important;
+}
+
+/* phone 根层保持透明，让 html/body 的同一张背景能一直透到系统状态栏。 */
+body.phoneActive #root,
+body.phoneActive #root > .shell,
+body.phoneActive #root > .shell > .os{
+  background-color:transparent!important;
+}
+
+/* 首页自己仍沿用原来的背景逻辑；这里只保证绘制坐标与 viewport 对齐。 */
+body.phoneActive .curryHome{
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+
+/* 不碰顶部安全区几何。原文件自己的布局继续负责内容位置。 */
 </style>
 
 </head><body>
@@ -6168,6 +6205,5 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
   };
 })();
 </script>
-
 
 </body></html>
