@@ -1562,6 +1562,25 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 }
 </style>
 
+
+<style id="curry-ios-dock-locked-v24">
+/* ===== V24: iOS 主屏幕 Dock 固定位置 =====
+   不再使用 env(safe-area-inset-bottom) / visualViewport 计算 Dock 位置，
+   避免冷启动与运行后 WebKit 重新计算导致 Dock 上下漂移。 */
+
+html.curryIOSStandalone body.phoneActive #root .curryDock{
+  bottom:48px!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .curryHomeDots{
+  bottom:126px!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
+  padding-bottom:138px!important;
+}
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -2585,12 +2604,17 @@ $("#importChatBackup").onclick=async()=>{
   let mode=$("#backupImportMode").value;
   if(mode==="replace"&&!confirm("覆盖导入会替换当前联系人、聊天记录、User 面具、总结、主题等聊天数据。确定继续？"))return;
   try{
-    let raw=JSON.parse(await pendingBackupFile.text()),d=normalizeBackupPayload(raw),c=backupCounts(d);
-    await restoreMediaAssetsFromBackup(d.mediaAssetBackup,mode);importBackupData(d,mode);
-    $("#chatBackupStatus").textContent=`导入完成：${c.contacts} 个联系人 · ${c.chats} 组聊天 · ${c.masks} 个 User 面具 · ${c.summaries} 份长期总结\n模式：${mode==="replace"?"覆盖":"合并"}`;
+    let raw=JSON.parse(await pendingBackupFile.text());
+    let parsed=curryNormalizeChatImport(raw),d=parsed.data,c=backupCounts(d);
+    await restoreMediaAssetsFromBackup(d.mediaAssetBackup,mode);
+    importBackupData(d,mode);
+    $("#chatBackupStatus").textContent=`导入完成：${c.contacts} 个联系人 · ${c.chats} 组聊天 · ${c.masks} 个 User 面具 · ${c.summaries} 份长期总结\n来源：${parsed.type==="full"?"完整小手机备份（已自动提取聊天数据）":"聊天备份"}\n模式：${mode==="replace"?"覆盖":"合并"}`;
     pendingBackupFile=null;$("#importChatBackupFile").value="";
-    toast("聊天备份已导入")
-  }catch(e){$("#chatBackupStatus").textContent="导入失败："+e.message}
+    toast(parsed.type==="full"?"已从完整备份恢复聊天数据":"聊天备份已导入")
+  }catch(e){
+    console.error(e);
+    $("#chatBackupStatus").textContent="导入失败："+e.message
+  }
 };
 
 
@@ -6448,6 +6472,44 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
     },{passive:true});
   }
 })();
+</script>
+
+
+<script id="curry-backup-autodetect-v23">
+/* ===== V23 备份类型自动识别 =====
+   CHAT BACKUP 导入口同时接受：
+   1) web-phone-chat-backup
+   2) web-phone-full-data（自动提取聊天相关数据）
+*/
+function curryNormalizeChatImport(raw){
+  if(raw && raw.schema === CHAT_BACKUP_SCHEMA){
+    return {type:"chat", data:normalizeBackupPayload(raw)};
+  }
+  if(raw && raw.schema === PHONE_DATA_SCHEMA){
+    const p = normalizePhoneData(raw);
+    return {
+      type:"full",
+      data:{
+        contacts:p.contacts,
+        convos:p.convos,
+        masks:p.masks,
+        activeMaskId:p.activeMaskId,
+        chatSummaries:p.chatSummaries,
+        relationNotes:p.relationNotes,
+        unread:p.unread,
+        chatThemes:p.chatThemes,
+        stickers:p.stickers,
+        moments:p.moments,
+        worldbooks:p.worldbooks,
+        settings:p.settings,
+        mediaApi:p.mediaApi,
+        mcpServers:p.mcpServers,
+        mediaAssetBackup:p.mediaAssetBackup
+      }
+    };
+  }
+  throw Error("无法识别这个备份文件：请选择咖喱小手机完整备份或聊天备份 JSON");
+}
 </script>
 
 </body></html>
