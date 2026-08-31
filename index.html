@@ -1373,60 +1373,88 @@ body.curryMonoFull .os canvas{
 </style>
 
 
-<style id="curry-ios-one-background-layer">
-/* ===== iOS 顶部连续背景：单一全屏背景层 =====
-   不改 safe-area 几何，不移动任何主页内容。
-   只把桌面壁纸从 .curryHome 提到真正的 viewport 背景层。 */
-
-html, body{
-  background:transparent!important;
+<style id="curry-ios-edge-to-edge-fix">
+/* iOS 主屏幕网页：只修全屏高度与安全区几何 */
+:root{
+  --curry-safe-top:env(safe-area-inset-top,0px);
+  --curry-safe-bottom:env(safe-area-inset-bottom,0px);
 }
 
-/* 整个 iOS viewport（包含状态栏可绘制区域）只画这一张背景。 */
-body.phoneActive::before{
-  content:"";
-  position:fixed;
-  top:calc(-1 * env(safe-area-inset-top, 0px));
-  right:0;
-  bottom:calc(-1 * env(safe-area-inset-bottom, 0px));
-  left:0;
-  z-index:0;
-  pointer-events:none;
-
-  background-image:
-    linear-gradient(
-      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity))),
-      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity)))
-    ),
-    linear-gradient(var(--home-overlay),var(--home-overlay)),
-    var(--home-wallpaper),
-    linear-gradient(155deg,#f5f3ee 0%,#eeece7 52%,#e8e6e1 100%)!important;
-  background-size:cover!important;
-  background-position:center!important;
-  background-repeat:no-repeat!important;
+/* 关键：不要再用原布局的 100dvh 作为整机高度。
+   standalone + viewport-fit=cover 下它会让底部少一截。 */
+body.phoneActive,
+#root.phoneMode,
+#root.immersive,
+.fullscreenPhone #root{
+  top:0!important;
+  bottom:0!important;
+  height:100vh!important;
+  min-height:100vh!important;
+  max-height:100vh!important;
 }
 
-/* 手机壳这些层以前是不透明的，会挡住最外层背景。 */
-body.phoneActive #root{
-  z-index:1!important;
-  background:transparent!important;
-}
-body.phoneActive #root .shell,
-body.phoneActive #root .os,
-body.phoneActive #root .screen{
-  background:transparent!important;
-}
-
-/* 首页不再自己重新 cover 一次，避免从 screen 顶部重新裁图造成接缝。 */
-body.phoneActive #root .curryHome{
-  background-image:none!important;
-  background-color:transparent!important;
-}
-body.phoneActive #root .curryHome::before{
-  background:transparent!important;
+#root.phoneMode .shell,
+#root.immersive .shell,
+.fullscreenPhone #root .shell,
+#root.phoneMode .os,
+#root.immersive .os,
+.fullscreenPhone #root .os{
+  height:100%!important;
+  min-height:0!important;
+  max-height:100%!important;
 }
 
-/* 其他 page 原本各自有背景，不受影响。 */
+/* 系统已经有状态栏，隐藏小手机自己的那条；screen 吃满剩余整屏。 */
+#root.phoneMode .status,
+#root.immersive .status,
+.fullscreenPhone #root .status{
+  display:none!important;
+  flex:0 0 0!important;
+  height:0!important;
+  min-height:0!important;
+  max-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+#root.phoneMode .screen,
+#root.immersive .screen,
+.fullscreenPhone #root .screen{
+  flex:1 1 auto!important;
+  height:100%!important;
+  min-height:0!important;
+}
+
+/* 页面本身避开系统状态栏，不再让日期/大时钟顶到 13:xx 上。 */
+#root.phoneMode .curryHomeScreen,
+#root.immersive .curryHomeScreen,
+.fullscreenPhone #root .curryHomeScreen{
+  padding-top:calc(18px + var(--curry-safe-top))!important;
+  padding-bottom:calc(104px + var(--curry-safe-bottom))!important;
+}
+#root.phoneMode .curryHomeScreenSecond,
+#root.immersive .curryHomeScreenSecond,
+.fullscreenPhone #root .curryHomeScreenSecond{
+  padding-top:calc(28px + var(--curry-safe-top))!important;
+}
+
+/* 底部控件避开 Home Indicator，但页面背景本身一直铺到底。 */
+#root.phoneMode .curryDock,
+#root.immersive .curryDock,
+.fullscreenPhone #root .curryDock{
+  bottom:calc(14px + var(--curry-safe-bottom))!important;
+}
+#root.phoneMode .curryHomeDots,
+#root.immersive .curryHomeDots,
+.fullscreenPhone #root .curryHomeDots{
+  bottom:calc(92px + var(--curry-safe-bottom))!important;
+}
+
+/* 防止 html/body 自己在底部露白。 */
+html,body{
+  min-height:100vh!important;
+  background:#f5f3ee!important;
+}
 </style>
 
 </head><body>
