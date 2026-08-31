@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.39 · 借号壁纸滚动修复版</title>
+<title>咖喱小手机 V8.8.40 · 借号气泡颜色修复版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -6030,7 +6030,16 @@ const borrowStyle=document.createElement("style");borrowStyle.textContent=`
  -webkit-overflow-scrolling:touch!important;
  overscroll-behavior-y:contain!important;
  touch-action:pan-y!important;
-}.borrowMsg{display:flex;align-items:flex-end;gap:6px;margin:8px 0}.borrowMsg.self{justify-content:flex-end}.borrowMsgBubble{max-width:76%;padding:9px 11px;border-radius:var(--bubble-radius);border:1px solid #d7dad4;background:var(--char-bubble);font-size:var(--bubble-font);line-height:1.55;white-space:pre-wrap;word-break:break-word}.borrowMsg.self .borrowMsgBubble{background:var(--user-bubble)}.borrowMsgMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowMsg.self .borrowMsgMeta{text-align:right}.borrowComposer{
+}.borrowMsg{display:flex;align-items:flex-end;gap:6px;margin:8px 0}.borrowMsg.self{justify-content:flex-end}.borrowMsgBubble{max-width:76%;padding:9px 11px;border-radius:16px;border:1px solid #d7dad4;background:#fff;color:#242724;font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word}.borrowMsg.self .borrowMsgBubble{background:#dfe4dc;color:#242724}
+.borrowPage[data-page="borrowChat"] .borrowMsgBubble{
+  background:#fff!important;
+  color:#242724!important;
+}
+.borrowPage[data-page="borrowChat"] .borrowMsg.self .borrowMsgBubble{
+  background:#dfe4dc!important;
+  color:#242724!important;
+}
+.borrowMsgMeta{font-size:7px;color:#aaa;margin-top:3px}.borrowMsg.self .borrowMsgMeta{text-align:right}.borrowComposer{
  position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:6;
  display:grid;grid-template-columns:minmax(0,1fr) 42px 52px;gap:6px;padding:7px;
  border:1px solid rgba(201,205,198,.82);border-radius:22px;
