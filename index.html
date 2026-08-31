@@ -6320,99 +6320,107 @@ const _replyGroup48=replyGroup;replyGroup=async function(){await _replyGroup48()
 </script>
 
 
-<script id="android-system-back-fix-v1">
+<style id="curry-oppo-back-touch-fix">
+/* ===== OPPO / Android 左上角返回按钮触摸修复 =====
+   Android 上 env(safe-area-inset-top) 常返回 0；
+   单独给 Android 一个顶部回退安全距离，并扩大返回按钮热区。
+   不影响 iOS。 */
+
+html.curryAndroid{
+  --curry-android-top-safe:28px;
+}
+
+/* 普通二级页 / 小红书：Android 额外留出顶部状态栏触摸区 */
+html.curryAndroid body.phoneActive #root .page > .head{
+  height:calc(54px + var(--curry-android-top-safe))!important;
+  min-height:calc(54px + var(--curry-android-top-safe))!important;
+  padding-top:var(--curry-android-top-safe)!important;
+}
+
+html.curryAndroid body.phoneActive #root .xhsHeader{
+  height:calc(54px + var(--curry-android-top-safe))!important;
+  min-height:calc(54px + var(--curry-android-top-safe))!important;
+  padding-top:var(--curry-android-top-safe)!important;
+}
+
+@media(max-width:430px){
+  html.curryAndroid body.phoneActive #root .chatPage > .head{
+    height:calc(58px + var(--curry-android-top-safe))!important;
+    min-height:calc(58px + var(--curry-android-top-safe))!important;
+  }
+}
+
+/* 正文同步扣掉 Android 顶部 fallback，避免内容被挤出屏幕 */
+html.curryAndroid body.phoneActive #root .page > .body{
+  height:calc(100% - 54px - var(--curry-android-top-safe))!important;
+  max-height:calc(100% - 54px - var(--curry-android-top-safe))!important;
+}
+html.curryAndroid body.phoneActive #root .chatPage > .chatBody{
+  height:auto!important;
+  max-height:none!important;
+}
+
+/* 把返回按钮做成至少 68×54 的真实可点区域 */
+html.curryAndroid body.phoneActive #root .page > .head > .back,
+html.curryAndroid body.phoneActive #root .xhsHeader > .back{
+  width:68px!important;
+  min-width:68px!important;
+  height:54px!important;
+  min-height:54px!important;
+  padding:0 10px!important;
+  position:relative!important;
+  z-index:999!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+
+/* 视觉文字不变，额外扩 10px 透明命中区 */
+html.curryAndroid body.phoneActive #root .page > .head > .back::after,
+html.curryAndroid body.phoneActive #root .xhsHeader > .back::after{
+  content:"";
+  position:absolute;
+  inset:-10px;
+}
+</style>
+
+<script id="curry-oppo-back-touch-fix-js">
 (() => {
-  /* Android / OPPO 浏览器系统返回键：把小手机内部页面接入 History API。 */
-  const originalPage = window.page;
-  if (typeof originalPage !== "function") return;
+  const isAndroid=/Android/i.test(navigator.userAgent||"");
+  if(!isAndroid)return;
+  document.documentElement.classList.add("curryAndroid");
 
-  let restoring = false;
-  let seq = 0;
+  /* OPPO 某些 WebView/浏览器会吞掉 button 的合成 click。
+     用 touchend 在捕获阶段直接补一次真实按钮 click。 */
+  let lastForced=0;
+  document.addEventListener("touchend", e => {
+    const page=document.querySelector(".page.active");
+    if(!page)return;
 
-  function activePage(){
-    return document.querySelector('.page.active')?.dataset.page || 'home';
-  }
+    const btn=
+      page.querySelector(":scope > .head > .back") ||
+      page.querySelector(":scope > .xhsHeader > .back");
+    if(!btn)return;
 
-  function renderFor(name){
-    try{
-      if(name==='home'){ if(typeof renderHome39==='function') renderHome39(); if(typeof updateCurryHomeDots==='function') updateCurryHomeDots(); }
-      else if(name==='contacts' && typeof renderContacts==='function') renderContacts();
-      else if(name==='messages' && typeof renderConvos==='function') renderConvos();
-      else if(name==='forum' && typeof renderForum==='function') renderForum();
-      else if(name==='contactDetail' && currentContact && typeof openContact==='function') openContact(currentContact, true);
-      else if(name==='chat' && currentContact){ if(typeof renderChat==='function') renderChat(); if(typeof renderPresence==='function') renderPresence(); }
-      else if(name==='anniversary' && typeof renderAnniversary==='function') renderAnniversary();
-      else if(name==='takeout' && typeof renderTakeout==='function') renderTakeout();
-      else if(name==='liveRoom' && typeof renderLiveHome==='function') renderLiveHome();
-      else if(name==='moments' && typeof renderMoments==='function') renderMoments();
-      else if(name==='stickers' && typeof renderStickerLibraries==='function') renderStickerLibraries();
-      else if(name==='masks' && typeof renderMasks==='function') renderMasks();
-      else if(name==='worldbook' && typeof renderWorldbooks==='function') renderWorldbooks();
-      else if(name==='mcp' && typeof renderMcp==='function') renderMcp();
-      else if(name==='beautify'){ if(typeof applyBeauty==='function') applyBeauty(); if(typeof renderIconCustomizer==='function') renderIconCustomizer(); }
-      else if(name==='chatBeauty' && typeof renderThemeEditor==='function') renderThemeEditor();
-      else if(name==='gameHall' && typeof renderGameHall==='function') renderGameHall();
-      else if(name==='charNetwork' && typeof renderCharNetwork==='function') renderCharNetwork();
-      else if(name==='initiative' && typeof renderInitiative==='function') renderInitiative();
-    }catch(err){ console.warn('back render', name, err); }
-  }
+    const t=e.changedTouches && e.changedTouches[0];
+    if(!t)return;
 
-  /* 任何原有 page("xxx") 都记录成一层浏览器历史；popstate 恢复时不再重复入栈。 */
-  window.page = function(name){
-    const before = activePage();
-    originalPage(name);
-    if(restoring || !document.body.classList.contains('phoneActive')) return;
-    if(name === before) return;
-    seq += 1;
-    try{ history.pushState({curryPhone:true,page:name,seq}, '', location.href); }catch(e){}
-  };
+    const r=btn.getBoundingClientRect();
+    const pad=14;
+    const hit=
+      t.clientX>=r.left-pad && t.clientX<=r.right+pad &&
+      t.clientY>=r.top-pad  && t.clientY<=r.bottom+pad;
 
-  function seedHomeHistory(){
-    if(!document.body.classList.contains('phoneActive')) return;
-    const name=activePage();
-    try{
-      if(!history.state?.curryPhone){
-        history.replaceState(Object.assign({},history.state,{curryPhone:true,page:name,seq:0}), '', location.href);
-      }
-    }catch(e){}
-  }
+    if(!hit)return;
 
-  const enter=document.getElementById('enter');
-  if(enter){
-    const old=enter.onclick;
-    enter.onclick=(e)=>{ old?.call(enter,e); setTimeout(seedHomeHistory,0); };
-  }
+    const now=Date.now();
+    if(now-lastForced<450)return;
+    lastForced=now;
 
-  /* OPPO/Android 底部系统返回键最终会触发这里。 */
-  window.addEventListener('popstate', (e) => {
-    if(!document.body.classList.contains('phoneActive')) return;
-    const target=e.state?.curryPhone ? (e.state.page||'home') : 'home';
-    restoring=true;
-    try{
-      originalPage(target);
-      renderFor(target);
-    }finally{
-      restoring=false;
-    }
-  });
-
-  /* 页面里的“返回”也走同一套历史，避免系统返回与页面返回各记各的。 */
-  document.querySelectorAll('[data-back]').forEach(btn=>{
-    btn.onclick=(e)=>{
-      e.preventDefault();
-      const fallback=btn.dataset.back||'home';
-      if(document.body.classList.contains('phoneActive') && history.state?.curryPhone && (history.state.seq||0)>0){
-        history.back();
-      }else{
-        restoring=true;
-        try{ originalPage(fallback); renderFor(fallback); }
-        finally{ restoring=false; }
-      }
-    };
-  });
-
-  /* 若文件本身就是直接进入 phoneActive，也补上初始状态。 */
-  setTimeout(seedHomeHistory, 0);
+    e.preventDefault();
+    e.stopPropagation();
+    btn.click();
+  }, {capture:true, passive:false});
 })();
 </script>
 
