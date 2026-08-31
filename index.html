@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.44 · Live2D资源直读真修复版</title>
+<title>咖喱小手机 V8.8.45 · Live2D纹理直解版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -4524,7 +4524,7 @@ async function mountCallLive2d(){
  try{await ensureLive2dLibs();if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");let urls=[],mu=await buildLive2dModelUrlFor(rec,urls);
  let safari=isSafariLive2d()||isIOSWebKitLive2d(),app=new PIXI.Application(safari?{resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}:{resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);if(safari)await new Promise(r=>setTimeout(r,50));let model=await getLive2DModelClass().from(mu,{autoInteract:false});app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
 }
-function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{window.__curryLive2dBlobMap?.delete?.(u)}catch{};try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
+function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{window.__curryLive2dBlobMap?.delete?.(u)}catch{};try{window.__curryLive2dAssetNameMap?.delete?.(u)}catch{};try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
 async function renderCallMode(){let video=currentCall?.mode==="video";$("#callVideoStage").className="callVideoStage "+(video?"videoMode":"voiceMode");if(video)await mountCallLive2d();else{cleanupCallVideoOnly();$("#callStatusText").textContent="语音通话"}}
 async function beginCall(contactId,mode="voice",incoming=false){
  let c=callContact(contactId);if(!c)return toast("联系人不存在");cleanupCallRuntime();currentCall={id:uuid(),contactId,mode,incoming,startedAt:Date.now(),muted:false};pendingIncomingCall=null;page("activeCall");renderCallBase();startCallTimer();if(incoming)addCallLine("assistant","接通了。")
@@ -4700,6 +4700,7 @@ function cleanupLive2dRuntime(){
  }catch{}
  (old.blobUrls||[]).forEach(u=>{
    try{window.__curryLive2dBlobMap?.delete?.(u)}catch{}
+   try{window.__curryLive2dAssetNameMap?.delete?.(u)}catch{}
    try{URL.revokeObjectURL(u)}catch{}
  });
  let host=$("#liveStage");host?.classList?.remove("hasLive2d");
@@ -4940,35 +4941,76 @@ function rewriteLive2dFileReferences(cfg,resolve){
  return {cfg,missingRequired,missingOptional}
 }
 function installCurryLive2dDirectLoader(){
- if(window.__curryLive2dDirectLoaderInstalled)return;
- let L=window.PIXI?.live2d?.Live2DLoader;
- if(!L?.middlewares)return;
  window.__curryLive2dBlobMap=window.__curryLive2dBlobMap||new Map();
- const direct=async(ctx,next)=>{
-   try{
-     let resolved=ctx?.settings?.resolveURL?ctx.settings.resolveURL(ctx.url):ctx?.url;
-     let blob=window.__curryLive2dBlobMap.get(resolved)||window.__curryLive2dBlobMap.get(ctx?.url);
-     if(!blob)return next();
-     switch(String(ctx.type||"").toLowerCase()){
-       case "json":
-         ctx.result=JSON.parse(await blob.text());break;
-       case "arraybuffer":
-         ctx.result=await blob.arrayBuffer();break;
-       case "blob":
-         ctx.result=blob;break;
-       case "text":
-         ctx.result=await blob.text();break;
-       default:
-         ctx.result=blob
-     }
-     return
-   }catch(e){
-     console.warn("Curry Live2D direct loader failed",e);
-     return next()
+
+ if(!window.__curryLive2dDirectLoaderInstalled){
+   let L=window.PIXI?.live2d?.Live2DLoader;
+   if(L?.middlewares){
+     const direct=async(ctx,next)=>{
+       try{
+         let resolved=ctx?.settings?.resolveURL?ctx.settings.resolveURL(ctx.url):ctx?.url;
+         let blob=window.__curryLive2dBlobMap.get(resolved)||window.__curryLive2dBlobMap.get(ctx?.url);
+         if(!blob)return next();
+         window.__curryLive2dLastAsset={kind:String(ctx.type||"resource"),url:String(resolved||ctx?.url||""),size:blob.size||0,type:blob.type||""};
+         switch(String(ctx.type||"").toLowerCase()){
+           case "json":
+             ctx.result=JSON.parse(await blob.text());break;
+           case "arraybuffer":
+             ctx.result=await blob.arrayBuffer();break;
+           case "blob":
+             ctx.result=blob;break;
+           case "text":
+             ctx.result=await blob.text();break;
+           default:
+             ctx.result=blob
+         }
+         return
+       }catch(e){
+         console.warn("Curry Live2D direct loader failed",e);
+         return next()
+       }
+     };
+     L.middlewares.unshift(direct);
+     window.__curryLive2dDirectLoaderInstalled=true
    }
- };
- L.middlewares.unshift(direct);
- window.__curryLive2dDirectLoaderInstalled=true
+ }
+
+ /* V8.8.45: Safari 对 blob: 图片偶尔会在 Texture.fromURL 内部报 Network error。
+    本地 Live2D 纹理不再走 URL 加载，直接把 IndexedDB Blob 解码后创建 PIXI.Texture。 */
+ if(!window.__curryLive2dTextureLoaderInstalled && window.PIXI?.Texture?.fromURL){
+   const original=window.PIXI.Texture.fromURL.bind(window.PIXI.Texture);
+   window.__curryLive2dOriginalTextureFromURL=original;
+   window.PIXI.Texture.fromURL=async function(url,opts){
+     let key=String(url||""),blob=window.__curryLive2dBlobMap.get(key);
+     if(!blob)return original(url,opts);
+     window.__curryLive2dLastAsset={kind:"texture",url:key,size:blob.size||0,type:blob.type||""};
+     try{
+       if(typeof createImageBitmap==="function"){
+         let bitmap=await createImageBitmap(blob);
+         let tex=window.PIXI.Texture.from(bitmap);
+         // ImageBitmap 不能在 Texture 建立前 close；交给 Pixi 生命周期。
+         return tex
+       }
+     }catch(err){
+       console.warn("createImageBitmap Live2D texture fallback",err)
+     }
+
+     /* 老 WebKit fallback：用 FileReader data URL，避免 blob: 网络层。
+        只在 createImageBitmap 不可用/失败时触发，避免平时增加 base64 内存。 */
+     let dataUrl=await new Promise((resolve,reject)=>{
+       let fr=new FileReader();
+       fr.onload=()=>resolve(String(fr.result||""));
+       fr.onerror=()=>reject(fr.error||Error("纹理解码失败"));
+       fr.readAsDataURL(blob)
+     });
+     try{
+       return await original(dataUrl,{...(opts||{}),resourceOptions:{...((opts||{}).resourceOptions||{}),crossorigin:false}})
+     }finally{
+       dataUrl=null
+     }
+   };
+   window.__curryLive2dTextureLoaderInstalled=true
+ }
 }
 async function ensureScript(src,test,timeoutMs=12000){
  if(test())return true;
@@ -5044,14 +5086,15 @@ async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  window.__curryLive2dBlobMap=window.__curryLive2dBlobMap||new Map();
  let urlByAsset=new Map();
 
+ window.__curryLive2dAssetNameMap=window.__curryLive2dAssetNameMap||new Map();
  for(let n=0;n<assets.length;n++){
    let a=assets[n];
    if(live2dPathKey(a.rel)===modelKey)continue;
    let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);
    urlSink.push(u);
    urlByAsset.set(a,u);
-   // MOC / JSON / motion / physics 由自定义 loader 从 Blob 直接读取，不再走 XHR。
    window.__curryLive2dBlobMap.set(u,safe);
+   window.__curryLive2dAssetNameMap.set(u,String(a.rel||a.name||""));
    if((isSafariLive2d()||isIOSWebKitLive2d())&&n%6===5)await new Promise(r=>setTimeout(r,0))
  }
 
@@ -5317,6 +5360,7 @@ async function mountLive2d(modelId,retryMode=false){
  let rec=(live2dStore.models||[]).find(x=>x.id===modelId);if(!rec)return false;
  let safari=isSafariLive2d()||isIOSWebKitLive2d(),hint=host.querySelector(".liveStageHint"),errBox=$("#liveSafariError");
  if(errBox){errBox.style.display="none";errBox.textContent=""}
+ window.__curryLive2dLastAsset=null;
  try{
    if(safari&&hint)hint.textContent=retryMode?"Safari 直读模式重试中":"Safari 正在直读模型资源";
    if(safari&&!live2dWebglPreflight())throw Error("Safari 当前没有可用的 WebGL");
@@ -5355,10 +5399,13 @@ async function mountLive2d(modelId,retryMode=false){
    console.warn("Live2D mount failed",e);
    cleanupLive2dRuntime();host.classList.remove("hasLive2d");
    // Low-memory mode does not auto-retry on Safari: a second full data-URL build can double peak memory.
-   let failedUrl=e?.url||e?.cause?.url||"",failedStatus=e?.status??e?.cause?.status??"";
+   let failedUrl=e?.url||e?.cause?.url||"",failedStatus=e?.status??e?.cause?.status??"",
+       last=window.__curryLive2dLastAsset||null,
+       lastName=last?.url?(window.__curryLive2dAssetNameMap?.get?.(last.url)||last.url):"";
    let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+
-     (failedUrl?`\n失败资源：${failedUrl}`:"")+
+     (failedUrl?`\n失败资源：${window.__curryLive2dAssetNameMap?.get?.(failedUrl)||failedUrl}`:"")+
      (failedStatus!==""?`\nHTTP/资源状态：${failedStatus}`:"")+
+     (lastName?`\n最后加载：${lastName}${last?.kind?` (${last.kind})`:""}${last?.size?` · ${(last.size/1024/1024).toFixed(2)}MB`:""}`:"")+
      (e?.stack?"\n"+e.stack:"");
    if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
    if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
