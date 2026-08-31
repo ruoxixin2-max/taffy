@@ -1540,6 +1540,28 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 }
 </style>
 
+
+<style id="curry-ios-home-indicator-fallback-v22">
+/* ===== V22: iPhone Home Indicator 固定兜底 =====
+   某些 iOS standalone 环境里 env(safe-area-inset-bottom) 和 visualViewport 差值都会返回 0。
+   因此对带 Home Indicator 的 iPhone 至少保留 34px。 */
+html.curryIOSStandalone{
+  --curry-home-indicator-safe:max(env(safe-area-inset-bottom,0px),34px);
+}
+
+html.curryIOSStandalone body.phoneActive #root .curryDock{
+  bottom:calc(14px + var(--curry-home-indicator-safe))!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .curryHomeDots{
+  bottom:calc(92px + var(--curry-home-indicator-safe))!important;
+}
+
+html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
+  padding-bottom:calc(104px + var(--curry-home-indicator-safe))!important;
+}
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
