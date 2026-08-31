@@ -1001,6 +1001,7 @@ body.phoneActive .curryHomeScreen{
 
 html,body{max-width:100%;overflow-x:hidden}
 body.phoneActive{
+  background:#f6f7f4!important;
   position:fixed!important;
   inset:0!important;
   width:100%!important;
@@ -2154,7 +2155,14 @@ function syncPhoneViewport(){
   cancelAnimationFrame(viewportSyncRaf);
   viewportSyncRaf=requestAnimationFrame(()=>{
     let vv=window.visualViewport;
-    let h=Math.max(320,Math.round(vv?.height||window.innerHeight||document.documentElement.clientHeight||780));
+    // Android/Via 的 file:// 模式下 visualViewport.height 可能会比真实布局视口短一截，
+    // 若直接拿它当整机高度，底部就会露出 body 白底。这里取可用高度中的最大值。
+    let h=Math.max(
+      320,
+      Math.round(vv?.height||0),
+      Math.round(window.innerHeight||0),
+      Math.round(document.documentElement.clientHeight||0)
+    );
     document.documentElement.style.setProperty("--app-height",h+"px");
   });
 }
