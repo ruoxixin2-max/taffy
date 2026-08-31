@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.40 · 借号气泡颜色修复版</title>
+<title>咖喱小手机 V8.8.42 · Live2D网络急救版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -1216,6 +1216,12 @@ body.phoneActive{
 .curryAppGrid [data-app-key="forum"] .icon{background:linear-gradient(145deg,#9b958a,#716d65)!important}
 .forumTabs{display:flex;gap:7px;overflow:auto;padding:10px 12px;border-bottom:1px solid var(--line);background:#f5f5f2;scrollbar-width:none}.forumTabs::-webkit-scrollbar{display:none}.forumTab{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;font-size:8px}.forumTab.active{background:#5f605b;color:#fff;border-color:#5f605b}
 .forumToolbar{display:flex;gap:7px;padding:10px 12px 4px}.forumToolbar .btn{padding:9px 8px}.forumList{padding:5px 12px 90px}.forumPost{width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:13px 2px}.forumPostTop{display:flex;gap:7px;align-items:center;margin-bottom:7px}.forumBoardTag{font-size:7px;padding:3px 6px;border-radius:999px;background:#ebeae5;color:#77736b}.forumHot{font-size:7px;color:#9a665e}.forumPostTitle{font-size:12px;font-weight:780;line-height:1.45}.forumPostPreview{font-size:9px;color:var(--muted);line-height:1.55;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.forumPostMeta{font-size:7px;color:#aaa69e;margin-top:7px;display:flex;justify-content:space-between;gap:8px}.forumDetail{padding:14px 13px 90px}.forumThreadHead{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}.forumThreadTitle{font-size:17px;font-weight:800;line-height:1.4}.forumAuthor{font-size:8px;color:#8c887f;margin-top:8px}.forumContent{font-size:11px;line-height:1.75;white-space:pre-wrap;margin-top:11px}.forumReply{padding:12px 2px;border-bottom:1px solid var(--line)}.forumReplyHead{display:flex;justify-content:space-between;gap:8px;font-size:8px}.forumReplyName{font-weight:750;color:#55524c}.forumFloor{color:#aaa69e}.forumReplyText{font-size:10px;line-height:1.7;white-space:pre-wrap;margin-top:6px}.forumComposer{position:absolute;left:10px;right:10px;bottom:10px;z-index:8;display:grid;grid-template-columns:1fr 54px;gap:6px;padding:7px;border:1px solid var(--line);border-radius:18px;background:rgba(250,250,247,.95);backdrop-filter:blur(16px);box-shadow:0 8px 24px #0001}.forumComposer input{min-width:0;border:0;background:transparent;padding:9px;font-size:16px;outline:none}.forumComposer button{border:0;border-radius:13px;background:#5f605b;color:#fff;font-size:9px}.forumForm{display:grid;gap:11px}.forumIdentity{font-size:8px;color:var(--muted);padding:8px 10px;border-radius:10px;background:#f0f0ec}.forumGenStatus{font-size:8px;color:var(--muted);line-height:1.6;padding:0 12px 8px}.forumAnonMark{display:inline-block;margin-left:4px;font-size:7px;color:#999}
+.forumAnonToggle{display:flex!important;align-items:center;gap:8px!important;font-size:10px!important;color:#555!important}
+.forumAnonToggle input{width:16px;height:16px;accent-color:#5f605b}
+.forumBoardTag.treehole{background:#e5e2ea;color:#655d70}
+.forumAnonName{display:inline-flex;align-items:center;gap:4px}
+.forumAnonName::before{content:"◌";font-size:8px;color:#999}
+
 </style>
 
 <style>
@@ -1669,7 +1675,7 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 
 <section class="page" data-page="forum"><header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">论坛</div><button class="headAction" id="forumNewBtn">发帖</button></header><div class="forumTabs" id="forumTabs"></div><div class="forumToolbar"><button class="btn" id="forumAiThreadBtn">AI 刷新帖子</button><button class="btn" id="forumAiReplyBtn">AI 活跃论坛</button></div><div class="forumGenStatus" id="forumGenStatus">世界观论坛 · 内容按当前 User 面具、角色与世界书生成</div><div class="body forumList" id="forumList"></div></section>
 <section class="page" data-page="forumDetail"><header class="head"><button class="back" data-back="forum">返回</button><div class="headTitle">帖子</div><button class="headAction" id="forumAiReplyThreadBtn">AI 回帖</button></header><div class="body forumDetail" id="forumDetailBody"></div><form class="forumComposer" id="forumReplyForm"><input id="forumReplyInput" placeholder="回复这个帖子"><button type="submit">发送</button></form></section>
-<section class="page" data-page="forumEditor"><header class="head"><button class="back" data-back="forum">取消</button><div class="headTitle">发布帖子</div><button class="headAction" id="forumPublishBtn">发布</button></header><div class="body"><div class="forumForm"><div class="forumIdentity" id="forumIdentity"></div><div class="field"><label>分区</label><select class="input" id="forumBoardSelect"></select></div><div class="field"><label>标题</label><input class="input" id="forumTitleInput" maxlength="80"></div><div class="field"><label>正文</label><textarea class="textarea" id="forumContentInput" maxlength="4000"></textarea></div></div></div></section>
+<section class="page" data-page="forumEditor"><header class="head"><button class="back" data-back="forum">取消</button><div class="headTitle">发布帖子</div><button class="headAction" id="forumPublishBtn">发布</button></header><div class="body"><div class="forumForm"><div class="forumIdentity" id="forumIdentity"></div><div class="field"><label>分区</label><select class="input" id="forumBoardSelect"></select></div><div class="field"><label class="forumAnonToggle"><input id="forumAnonymous" type="checkbox"> 匿名发布</label><div class="help" id="forumAnonHelp">树洞分区会强制匿名；同一个 User 面具会长期使用同一个匿名马甲。</div></div><div class="field"><label>标题</label><input class="input" id="forumTitleInput" maxlength="80"></div><div class="field"><label>正文</label><textarea class="textarea" id="forumContentInput" maxlength="4000"></textarea></div></div></div></section>
 
 <section class="page xhsPage" data-page="xhs">
   <header class="xhsHeader"><button class="back" data-back="home">返回</button><div class="xhsTitle">小红书</div><button class="headAction" id="xhsNewBtn">发布</button></header>
@@ -3750,29 +3756,150 @@ $("#wbImportFile").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{i
 
 
 function maskMomentId(){return activeMaskId||"mask_default"}
-const FORUM_BOARDS=["全部","闲聊","都市传说","能力者","学校","求助","八卦"];
+const FORUM_BOARDS=["全部","闲聊","树洞","都市传说","能力者","学校","求助","八卦"];
 function forumMaskName(){let m=activeMask();return m?.userName||m?.name||"user"}
 function forumTime(ts=Date.now()){return new Intl.DateTimeFormat("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(ts))}
 function forumPosts(){return (forum.posts||[]).slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
+function forumHash(s){let h=2166136261;for(let i=0;i<String(s).length;i++){h^=String(s).charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+const FORUM_ANON_A=["失眠","迟到","没电","发呆","下雨","夜行","走神","困困","安静","忘带伞","凌晨","摸鱼","透明","迷路","低电量","偷懒"];
+const FORUM_ANON_B=["水母","月亮","黑猫","海盐","乌鸦","兔子","云朵","灯泡","纸船","蘑菇","麻雀","企鹅","鲸鱼","汽水","影子","毛线团"];
+function forumAnonAlias(key){
+ forum.aliases=forum.aliases||{};
+ key=String(key||"anon");
+ if(forum.aliases[key])return forum.aliases[key];
+ let h=forumHash(key),name=FORUM_ANON_A[h%FORUM_ANON_A.length]+FORUM_ANON_B[Math.floor(h/FORUM_ANON_A.length)%FORUM_ANON_B.length];
+ let used=new Set(Object.values(forum.aliases));
+ if(used.has(name))name+=String(h%97).padStart(2,"0");
+ forum.aliases[key]=name;saveForum();return name
+}
+function forumUserAnonAlias(){return forumAnonAlias("user:"+(activeMaskId||"mask_default"))}
+function forumCharAnonAlias(id){return forumAnonAlias("char:"+String(id||"unknown"))}
+function forumNpcAnonAlias(seed){return forumAnonAlias("npc:"+String(seed||uuid()))}
+function forumVisibleAuthor(x){
+ if(!x)return"匿名用户";
+ if(x.anonymous||x.board==="树洞"){
+  if(x.authorType==="user")return x.anonAlias||forumUserAnonAlias();
+  if(x.hiddenContactId)return x.anonAlias||forumCharAnonAlias(x.hiddenContactId);
+  return x.anonAlias||x.authorName||forumNpcAnonAlias(x.id||x.createdAt)
+ }
+ return x.authorName||"匿名用户"
+}
+function forumAuthorHtml(x){
+ let n=esc(forumVisibleAuthor(x));
+ return (x?.anonymous||x?.board==="树洞")?`<span class="forumAnonName">${n}</span>`:n
+}
+function forumTreeholePost(p){return p?.board==="树洞"||p?.anonymousThread===true}
 function renderForum(){
  let tabs=$("#forumTabs");tabs.innerHTML=FORUM_BOARDS.map(x=>`<button class="forumTab ${x===forumBoard?"active":""}" data-forum-board="${esc(x)}">${esc(x)}</button>`).join("");
  $$('[data-forum-board]').forEach(b=>b.onclick=()=>{forumBoard=b.dataset.forumBoard;renderForum()});
  let list=forumPosts().filter(p=>forumBoard==="全部"||p.board===forumBoard),host=$("#forumList");
- host.innerHTML=list.length?list.map(p=>`<button class="forumPost" data-forum-post="${p.id}"><div class="forumPostTop"><span class="forumBoardTag">${esc(p.board||"闲聊")}</span>${(p.replies||[]).length>=5?'<span class="forumHot">HOT</span>':""}</div><div class="forumPostTitle">${esc(p.title||"无标题")}</div><div class="forumPostPreview">${esc(p.content||"")}</div><div class="forumPostMeta"><span>${esc(p.authorName||"匿名用户")}</span><span>${(p.replies||[]).length} 回复 · ${esc(p.time||"")}</span></div></button>`).join(""):'<div class="empty">这里还没有帖子。<br>你可以自己发一帖，或者让 AI 根据世界观刷新论坛。</div>';
- $$('[data-forum-post]').forEach(b=>b.onclick=()=>openForumPost(b.dataset.forumPost))
+ host.innerHTML=list.length?list.map(p=>`<button class="forumPost" data-forum-post="${p.id}"><div class="forumPostTop"><span class="forumBoardTag ${p.board==="树洞"?"treehole":""}">${esc(p.board||"闲聊")}</span>${(p.replies||[]).length>=5?'<span class="forumHot">HOT</span>':""}</div><div class="forumPostTitle">${esc(p.title||"无标题")}</div><div class="forumPostPreview">${esc(p.content||"")}</div><div class="forumPostMeta"><span>${forumAuthorHtml(p)}</span><span>${(p.replies||[]).length} 回复 · ${esc(p.time||"")}</span></div></button>`).join(""):'<div class="empty">这里还没有帖子。<br>你可以自己发一帖，或者让 AI 根据世界观刷新论坛。</div>';
+ $$('[data-forum-post]').forEach(b=>b.onclick=()=>openForumPost(b.dataset.forumPost));
+ $("#forumGenStatus").textContent=forumBoard==="树洞"?"匿名树洞 · User、Char 和路人都只显示马甲；身份不会直接公开":"世界观论坛 · 内容按当前 User 面具、角色与世界书生成"
 }
 function openForumPost(id){currentForumPostId=id;page("forumDetail");renderForumDetail()}
-function renderForumDetail(){let p=(forum.posts||[]).find(x=>x.id===currentForumPostId),host=$("#forumDetailBody");if(!p){host.innerHTML='<div class="empty">帖子不存在。</div>';return}let rs=p.replies||[];host.innerHTML=`<div class="forumThreadHead"><span class="forumBoardTag">${esc(p.board||"闲聊")}</span><div class="forumThreadTitle">${esc(p.title)}</div><div class="forumAuthor">楼主 · ${esc(p.authorName||"匿名用户")} · ${esc(p.time||"")}</div><div class="forumContent">${esc(p.content||"")}</div></div>`+rs.map((r,i)=>`<div class="forumReply"><div class="forumReplyHead"><span class="forumReplyName">${esc(r.authorName||"匿名用户")}${r.hiddenContactId?'<span class="forumAnonMark">匿名</span>':""}</span><span class="forumFloor">${i+2}F · ${esc(r.time||"")}</span></div><div class="forumReplyText">${esc(r.content||"")}</div></div>`).join("");host.scrollTop=0}
+function renderForumDetail(){
+ let p=(forum.posts||[]).find(x=>x.id===currentForumPostId),host=$("#forumDetailBody");if(!p){host.innerHTML='<div class="empty">帖子不存在。</div>';return}
+ let rs=p.replies||[],tree=forumTreeholePost(p);
+ host.innerHTML=`<div class="forumThreadHead"><span class="forumBoardTag ${p.board==="树洞"?"treehole":""}">${esc(p.board||"闲聊")}</span><div class="forumThreadTitle">${esc(p.title)}</div><div class="forumAuthor">楼主 · ${forumAuthorHtml(p)} · ${esc(p.time||"")}</div><div class="forumContent">${esc(p.content||"")}</div></div>`+
+ rs.map((r,i)=>`<div class="forumReply"><div class="forumReplyHead"><span class="forumReplyName">${forumAuthorHtml(r)}</span><span class="forumFloor">${i+2}F · ${esc(r.time||"")}</span></div><div class="forumReplyText">${esc(r.content||"")}</div></div>`).join("");
+ $("#forumReplyInput").placeholder=tree?`以 ${forumUserAnonAlias()} 回复`:"回复这个帖子";
+ host.scrollTop=0
+}
 function saveForum(){save(K.forum,forum)}
-function userForumReply(text){let p=(forum.posts||[]).find(x=>x.id===currentForumPostId);if(!p||!text.trim())return;p.replies=p.replies||[];p.replies.push({id:uuid(),authorType:"user",authorName:forumMaskName(),content:text.trim(),createdAt:Date.now(),time:forumTime()});saveForum();renderForumDetail()}
+function userForumReply(text){
+ let p=(forum.posts||[]).find(x=>x.id===currentForumPostId);if(!p||!text.trim())return;
+ let anon=forumTreeholePost(p);
+ p.replies=p.replies||[];
+ p.replies.push({id:uuid(),authorType:"user",authorName:anon?"":forumMaskName(),anonAlias:anon?forumUserAnonAlias():"",anonymous:anon,content:text.trim(),createdAt:Date.now(),time:forumTime()});
+ saveForum();renderForumDetail()
+}
 $("#forumReplyForm").onsubmit=e=>{e.preventDefault();let x=$("#forumReplyInput"),t=x.value;x.value="";userForumReply(t)};
-$("#forumNewBtn").onclick=()=>{page("forumEditor");$("#forumIdentity").textContent=`当前身份：${forumMaskName()}`;$("#forumBoardSelect").innerHTML=FORUM_BOARDS.filter(x=>x!=="全部").map(x=>`<option>${x}</option>`).join("");$("#forumTitleInput").value="";$("#forumContentInput").value=""};
-$("#forumPublishBtn").onclick=()=>{let title=$("#forumTitleInput").value.trim(),content=$("#forumContentInput").value.trim();if(!title||!content){toast("标题和正文都要写");return}forum.posts=forum.posts||[];forum.posts.push({id:uuid(),board:$("#forumBoardSelect").value,title,content,authorType:"user",authorName:forumMaskName(),createdAt:Date.now(),time:forumTime(),replies:[]});saveForum();page("forum");renderForum();toast("帖子发布了")};
-function forumWorldContext(){let wb=worldbooks.filter(w=>w.enabled!==false).map(w=>(w.entries||[]).map(e=>e.content||e.text||"").join("\n")).join("\n").slice(0,7000);let chars=contacts.slice(0,12).map(c=>`${c.name}: ${(c.character?.description||c.character?.personality||"").slice(0,700)}`).join("\n");return `Current user persona: ${forumMaskName()}\nCharacters in this world:\n${chars||"(none)"}\nWorldbook:\n${wb||"(none)"}`}
+function syncForumAnonEditor(){
+ let board=$("#forumBoardSelect").value,force=board==="树洞",box=$("#forumAnonymous");
+ if(force){box.checked=true;box.disabled=true}else box.disabled=false;
+ let anon=force||box.checked;
+ $("#forumIdentity").textContent=anon?`匿名身份：${forumUserAnonAlias()}${force?" · 树洞强制匿名":""}`:`当前身份：${forumMaskName()}`;
+}
+$("#forumNewBtn").onclick=()=>{
+ page("forumEditor");
+ $("#forumBoardSelect").innerHTML=FORUM_BOARDS.filter(x=>x!=="全部").map(x=>`<option ${x===forumBoard?"selected":""}>${x}</option>`).join("");
+ $("#forumAnonymous").checked=forumBoard==="树洞";
+ $("#forumTitleInput").value="";$("#forumContentInput").value="";
+ syncForumAnonEditor()
+};
+$("#forumBoardSelect").onchange=syncForumAnonEditor;
+$("#forumAnonymous").onchange=syncForumAnonEditor;
+$("#forumPublishBtn").onclick=()=>{
+ let title=$("#forumTitleInput").value.trim(),content=$("#forumContentInput").value.trim(),board=$("#forumBoardSelect").value;
+ if(!title||!content){toast("标题和正文都要写");return}
+ let anon=board==="树洞"||$("#forumAnonymous").checked;
+ forum.posts=forum.posts||[];
+ forum.posts.push({id:uuid(),board,title,content,authorType:"user",authorName:anon?"":forumMaskName(),anonAlias:anon?forumUserAnonAlias():"",anonymous:anon,anonymousThread:board==="树洞",createdAt:Date.now(),time:forumTime(),replies:[]});
+ saveForum();page("forum");forumBoard=board;renderForum();toast(anon?"匿名帖子发布了":"帖子发布了")
+};
+function forumWorldContext(){
+ let wb=worldbooks.filter(w=>w.enabled!==false).map(w=>(w.entries||[]).map(e=>e.content||e.text||"").join("\n")).join("\n").slice(0,7000);
+ let chars=contacts.slice(0,12).map(c=>`${c.name}: ${(c.character?.description||c.character?.personality||"").slice(0,700)}`).join("\n");
+ return `Current user persona: ${forumMaskName()}\nCharacters in this world:\n${chars||"(none)"}\nWorldbook:\n${wb||"(none)"}`
+}
 function parseForumJson(raw){let t=String(raw||"").trim().replace(/^```(?:json)?/i,"").replace(/```$/i,"").trim();let a=t.indexOf("{"),b=t.lastIndexOf("}");if(a>=0&&b>a)t=t.slice(a,b+1);return JSON.parse(t)}
-async function aiForumThread(){if(!settings.endpoint||!settings.model){toast("请先配置 API");return}$("#forumGenStatus").textContent="正在从世界观里捞帖子…";try{let raw=await api([{role:"system",content:`You generate one believable in-universe anonymous forum thread. It must feel like ordinary residents posting online, not exposition. Use the supplied world/characters only as background. A known character may secretly be the poster, but NEVER reveal that identity in the visible username. Return strict JSON only: {"board":"闲聊|都市传说|能力者|学校|求助|八卦","title":"...","content":"...","authorName":"匿名用户名","hiddenContactName":"optional exact character name or empty"}.`},{role:"user",content:forumWorldContext()}]);let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.hiddenContactName);forum.posts=forum.posts||[];forum.posts.push({id:uuid(),board:FORUM_BOARDS.includes(o.board)?o.board:"闲聊",title:String(o.title||"无标题"),content:String(o.content||""),authorType:c?"char":"npc",authorName:String(o.authorName||"匿名用户"),hiddenContactId:c?.id||"",createdAt:Date.now(),time:forumTime(),replies:[]});saveForum();renderForum();$("#forumGenStatus").textContent="刷新完成 · 身份可能是路人 NPC，也可能是匿名 Char"}catch(e){$("#forumGenStatus").textContent="生成失败："+e.message}}
-async function aiForumReply(postId=currentForumPostId){let p=(forum.posts||[]).find(x=>x.id===postId);if(!p){toast("先打开一个帖子");return}if(!settings.endpoint||!settings.model){toast("请先配置 API");return}try{let existing=(p.replies||[]).slice(-8).map((r,i)=>`${i+2}F ${r.authorName}: ${r.content}`).join("\n");let raw=await api([{role:"system",content:`Generate ONE natural forum reply to the thread. The replier can be an ordinary NPC or one of the supplied characters posting anonymously. Never expose a known character's real identity in authorName. Return strict JSON only: {"authorName":"匿名用户名","content":"reply","hiddenContactName":"optional exact character name or empty"}. Keep it conversational and in-world.`},{role:"user",content:`${forumWorldContext()}\n\nTHREAD\n${p.title}\n${p.content}\n${existing}`}]);let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.hiddenContactName);p.replies=p.replies||[];p.replies.push({id:uuid(),authorType:c?"char":"npc",authorName:String(o.authorName||"匿名用户"),hiddenContactId:c?.id||"",content:String(o.content||""),createdAt:Date.now(),time:forumTime()});saveForum();if(document.querySelector('[data-page="forumDetail"]').classList.contains("active"))renderForumDetail();renderForum()}catch(e){toast("AI 回帖失败："+e.message)}}
-$("#forumAiThreadBtn").onclick=aiForumThread;$("#forumAiReplyBtn").onclick=()=>{let ps=forumPosts();if(!ps.length){aiForumThread();return}aiForumReply(ps[Math.floor(Math.random()*Math.min(ps.length,5))].id)};$("#forumAiReplyThreadBtn").onclick=()=>aiForumReply(currentForumPostId);
+async function aiForumThread(){
+ if(!settings.endpoint||!settings.model){toast("请先配置 API");return}
+ let tree=forumBoard==="树洞";
+ $("#forumGenStatus").textContent=tree?"正在树洞里捞一条匿名帖子…":"正在从世界观里捞帖子…";
+ try{
+  let allowed=tree?"树洞":"闲聊|树洞|都市传说|能力者|学校|求助|八卦";
+  let raw=await api([
+   {role:"system",content:tree
+    ?`Generate ONE believable in-universe anonymous treehole/confession post. It should feel private, emotionally honest, awkward, petty, lonely, funny, or quietly revealing rather than like exposition. A supplied known character MAY secretly be the poster. NEVER reveal the real identity in title/content/authorName. Return strict JSON only: {"board":"树洞","title":"...","content":"...","authorName":"temporary anonymous nickname","hiddenContactName":"optional exact character name or empty"}.`
+    :`You generate one believable in-universe forum thread. It must feel like ordinary residents posting online, not exposition. Use the supplied world/characters only as background. A known character may secretly be the poster. If board is 树洞, the post must be anonymous. NEVER reveal a secretly posting known character's identity in the visible username. Return strict JSON only: {"board":"${allowed}","title":"...","content":"...","authorName":"forum username","hiddenContactName":"optional exact character name or empty"}.`},
+   {role:"user",content:forumWorldContext()}
+  ],null,"forum_thread");
+  let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.hiddenContactName),board=tree?"树洞":(FORUM_BOARDS.includes(o.board)&&o.board!=="全部"?o.board:"闲聊"),anon=board==="树洞"||!!c;
+  let id=uuid();
+  forum.posts=forum.posts||[];
+  forum.posts.push({
+   id,board,title:String(o.title||"无标题"),content:String(o.content||""),
+   authorType:c?"char":"npc",authorName:anon?"":String(o.authorName||"论坛用户"),
+   hiddenContactId:c?.id||"",
+   anonAlias:anon?(c?forumCharAnonAlias(c.id):forumNpcAnonAlias(id)):"",
+   anonymous:anon,anonymousThread:board==="树洞",
+   createdAt:Date.now(),time:forumTime(),replies:[]
+  });
+  saveForum();renderForum();
+  $("#forumGenStatus").textContent=board==="树洞"?"树洞刷新完成 · 可能是路人，也可能是你认识的人":"刷新完成"
+ }catch(e){$("#forumGenStatus").textContent="生成失败："+e.message}
+}
+async function aiForumReply(postId=currentForumPostId){
+ let p=(forum.posts||[]).find(x=>x.id===postId);if(!p){toast("先打开一个帖子");return}
+ if(!settings.endpoint||!settings.model){toast("请先配置 API");return}
+ try{
+  let tree=forumTreeholePost(p),existing=(p.replies||[]).slice(-10).map((r,i)=>`${i+2}F ${forumVisibleAuthor(r)}: ${r.content}`).join("\n");
+  let raw=await api([
+   {role:"system",content:tree
+    ?`Generate ONE natural anonymous reply to this treehole thread. The replier may be an ordinary NPC or one supplied known character posting anonymously. Never expose a known character's real identity in authorName or content unless the thread itself has given enough clues for a natural GUESS; even then, only speculate in-character, never confirm hidden metadata. Return strict JSON only: {"authorName":"temporary anonymous nickname","content":"reply","hiddenContactName":"optional exact character name or empty"}.`
+    :`Generate ONE natural forum reply to the thread. The replier can be an ordinary NPC or one of the supplied characters posting anonymously. Never expose a secretly replying known character's real identity in authorName. Return strict JSON only: {"authorName":"forum username","content":"reply","hiddenContactName":"optional exact character name or empty"}. Keep it conversational and in-world.`},
+   {role:"user",content:`${forumWorldContext()}\n\nTHREAD\n板块：${p.board}\n楼主：${forumVisibleAuthor(p)}\n${p.title}\n${p.content}\n${existing}`}
+  ],null,"forum_reply");
+  let o=parseForumJson(raw),c=contacts.find(x=>x.name===o.hiddenContactName),id=uuid(),anon=tree||!!c;
+  p.replies=p.replies||[];
+  p.replies.push({
+   id,authorType:c?"char":"npc",
+   authorName:anon?"":String(o.authorName||"论坛用户"),
+   hiddenContactId:c?.id||"",
+   anonAlias:anon?(c?forumCharAnonAlias(c.id):forumNpcAnonAlias(id)):"",
+   anonymous:anon,
+   content:String(o.content||""),createdAt:Date.now(),time:forumTime()
+  });
+  saveForum();
+  if(document.querySelector('[data-page="forumDetail"]').classList.contains("active"))renderForumDetail();
+  renderForum()
+ }catch(e){toast("AI 回帖失败："+e.message)}
+}
+$("#forumAiThreadBtn").onclick=aiForumThread;
+$("#forumAiReplyBtn").onclick=()=>{let ps=forumPosts().filter(p=>forumBoard==="全部"||p.board===forumBoard);if(!ps.length){aiForumThread();return}aiForumReply(ps[Math.floor(Math.random()*Math.min(ps.length,5))].id)};
+$("#forumAiReplyThreadBtn").onclick=()=>aiForumReply(currentForumPostId);
 
 // ===== V4.1 小红书 =====
 const XHS_CATS=["推荐","日常","校园","穿搭","美食","摄影","吐槽","八卦"];
@@ -4686,45 +4813,57 @@ function rewriteModelRefs(obj,urlMap){
  if(typeof obj==="string"){let n=normalizeRel(obj);return urlMap[n]||obj}
  return obj
 }
-async function ensureScript(src,test){
- if(test())return;await new Promise((res,rej)=>{let s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(Error("加载脚本失败："+src));document.head.appendChild(s)})
+async function ensureScript(src,test,timeoutMs=12000){
+ if(test())return true;
+ // V8.8.42: Safari/file:// 网络急救。失败脚本立即移除，避免同 URL 的坏节点污染下一次重试。
+ let lastErr=null;
+ for(let attempt=0;attempt<2;attempt++){
+   try{
+     await new Promise((res,rej)=>{
+       let done=false,s=document.createElement("script"),timer=setTimeout(()=>finish(false,Error("加载超时："+src)),timeoutMs);
+       function finish(ok,err){if(done)return;done=true;clearTimeout(timer);s.onload=s.onerror=null;if(!ok){try{s.remove()}catch{}}ok?res():rej(err)}
+       s.src=src+(src.includes("?")?"&":"?")+"curry_retry="+attempt+"_"+Date.now();s.async=true;s.crossOrigin="anonymous";
+       s.onload=()=>finish(true);s.onerror=()=>finish(false,Error("网络加载失败："+src));document.head.appendChild(s)
+     });
+     if(test())return true;
+     throw Error("脚本已下载但运行时未初始化："+src);
+   }catch(e){lastErr=e;if(attempt===0)await new Promise(r=>setTimeout(r,350))}
+ }
+ throw lastErr||Error("加载脚本失败："+src)
+}
+async function ensureScriptFromMirrors(urls,test,label){
+ if(test())return true;let errors=[];
+ for(let src of urls){try{await ensureScript(src,test);if(test())return true}catch(e){errors.push(e?.message||String(e))}}
+ throw Error((label||"依赖")+"加载失败；已尝试 "+urls.length+" 个镜像。"+errors.slice(-2).join(" / "))
 }
 async function ensureLive2dLibs(){
- // Safari/WebKit 下 UMD 包可能直接读取 process.env；浏览器并没有 Node 的 process 全局。
- // 提前提供最小 shim，避免 cubism4.min.js 在初始化阶段直接 ReferenceError。
  if(typeof window.process==="undefined")window.process={env:{NODE_ENV:"production"}};
  else if(!window.process.env)window.process.env={NODE_ENV:"production"};
  else if(!("NODE_ENV" in window.process.env))window.process.env.NODE_ENV="production";
- // Cubism 3/4 模型除了 pixi-live2d-display，还必须先加载官方 Cubism Core。
- // v6.5 漏掉的就是这一层，因此插件脚本会在初始化阶段直接失败。
- if(!window.Live2DCubismCore){
-   let coreUrls=[
-     "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js",
-     "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/core/live2dcubismcore.js"
-   ],coreErr=null;
-   for(let src of coreUrls){
-     try{
-       await ensureScript(src,()=>!!window.Live2DCubismCore);
-       if(window.Live2DCubismCore)break
-     }catch(e){coreErr=e}
-   }
-   if(!window.Live2DCubismCore)throw coreErr||Error("Cubism Core 加载失败")
- }
- await ensureScript("https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js",()=>!!window.PIXI);
- let loaded=!!(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel);
- if(!loaded){
-   let urls=[
-     "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",
-     "https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism4.min.js"
-   ],lastErr=null;
-   for(let src of urls){
-     try{
-       await ensureScript(src,()=>!!(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel));
-       if(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel){loaded=true;break}
-     }catch(e){lastErr=e}
-   }
-   if(!loaded)throw lastErr||Error("pixi-live2d-display 加载失败")
- }
+
+ // V8.8.42：不再押宝单个 CDN。iOS Safari 任一节点抽风会自动换源。
+ await ensureScriptFromMirrors([
+   "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js",
+   "https://cdn.jsdelivr.net/npm/live2dy@1.0.2/live2dcubismcore.min.js",
+   "https://fastly.jsdelivr.net/npm/live2dy@1.0.2/live2dcubismcore.min.js",
+   "https://gcore.jsdelivr.net/npm/live2dy@1.0.2/live2dcubismcore.min.js"
+ ],()=>!!window.Live2DCubismCore,"Cubism Core");
+
+ await ensureScriptFromMirrors([
+   "https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js",
+   "https://fastly.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js",
+   "https://gcore.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js",
+   "https://unpkg.com/pixi.js@6.5.10/dist/browser/pixi.min.js"
+ ],()=>!!window.PIXI,"PixiJS");
+
+ let hasModel=()=>!!(window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel);
+ await ensureScriptFromMirrors([
+   "https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism4.min.js",
+   "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",
+   "https://fastly.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",
+   "https://gcore.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"
+ ],hasModel,"pixi-live2d-display");
+
  window.PIXI.live2d=window.PIXI.live2d||{};
  if(!window.PIXI.live2d.Live2DModel)window.PIXI.live2d.Live2DModel=window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel;
  if(!window.PIXI.live2d.Live2DModel)throw Error("Live2DModel 未初始化")
