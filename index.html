@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.42 · Live2D网络急救版</title>
+<title>咖喱小手机 V8.8.44 · Live2D资源直读真修复版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -4524,7 +4524,7 @@ async function mountCallLive2d(){
  try{await ensureLive2dLibs();if(!getLive2DModelClass())throw Error("Live2DModel 渲染类未加载");let urls=[],mu=await buildLive2dModelUrlFor(rec,urls);
  let safari=isSafariLive2d()||isIOSWebKitLive2d(),app=new PIXI.Application(safari?{resizeTo:canvasHost,backgroundAlpha:0,antialias:false,autoDensity:false,resolution:1,powerPreference:"low-power"}:{resizeTo:canvasHost,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(devicePixelRatio||1,2)});canvasHost.innerHTML="";canvasHost.appendChild(app.view);if(safari)await new Promise(r=>setTimeout(r,50));let model=await getLive2DModelClass().from(mu,{autoInteract:false});app.stage.addChild(model);let fit=()=>{let w=canvasHost.clientWidth||300,h=canvasHost.clientHeight||300,b=model.getBounds(),s=Math.min(w/(b.width||w),h/(b.height||h))*.94;model.scale.set(s);model.x=w/2;model.y=h*.98;model.anchor?.set?.(.5,1)};fit();setTimeout(fit,70);callRuntime.app=app;callRuntime.model=model;callRuntime.blobUrls=urls;$("#callStatusText").textContent="Live2D 已连接";return true}catch(e){console.warn("call live2d",e);$("#callStatusText").textContent="Live2D 加载失败，使用头像";return false}
 }
-function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
+function cleanupCallVideoOnly(){try{callRuntime.model?.destroy?.({children:true})}catch{};try{callRuntime.app?.destroy?.(true,{children:true,texture:true,baseTexture:true})}catch{};(callRuntime.blobUrls||[]).forEach(u=>{try{window.__curryLive2dBlobMap?.delete?.(u)}catch{};try{URL.revokeObjectURL(u)}catch{}});callRuntime.app=null;callRuntime.model=null;callRuntime.blobUrls=[]}
 async function renderCallMode(){let video=currentCall?.mode==="video";$("#callVideoStage").className="callVideoStage "+(video?"videoMode":"voiceMode");if(video)await mountCallLive2d();else{cleanupCallVideoOnly();$("#callStatusText").textContent="语音通话"}}
 async function beginCall(contactId,mode="voice",incoming=false){
  let c=callContact(contactId);if(!c)return toast("联系人不存在");cleanupCallRuntime();currentCall={id:uuid(),contactId,mode,incoming,startedAt:Date.now(),muted:false};pendingIncomingCall=null;page("activeCall");renderCallBase();startCallTimer();if(incoming)addCallLine("assistant","接通了。")
@@ -4698,7 +4698,10 @@ function cleanupLive2dRuntime(){
    // iOS Safari tends to retain old WebGL contexts. Explicitly lose the dead context.
    let lose=gl?.getExtension?.("WEBGL_lose_context");lose?.loseContext?.()
  }catch{}
- (old.blobUrls||[]).forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+ (old.blobUrls||[]).forEach(u=>{
+   try{window.__curryLive2dBlobMap?.delete?.(u)}catch{}
+   try{URL.revokeObjectURL(u)}catch{}
+ });
  let host=$("#liveStage");host?.classList?.remove("hasLive2d");
  if(isSafariLive2d()||isIOSWebKitLive2d())setTimeout(()=>{try{window.gc?.()}catch{}},0)
 }
@@ -4725,14 +4728,20 @@ async function importLive2dZip(file){
  let modelEntries=all.filter(x=>/\.model3\.json$/i.test(x.name));
  if(!modelEntries.length)throw Error("ZIP 里没有找到 .model3.json");
  modelEntries.sort((a,b)=>a.name.split("/").length-b.name.split("/").length||a.name.length-b.name.length);
- let modelFile=modelEntries[0],modelPath=normalizeRel(modelFile.name),root=modelPath.replace(/[^/]+$/,""),assets=[];
+ let modelFile=modelEntries[0],modelPath=normalizeRel(modelFile.name);
+ let usable=all.map(z=>normalizeRel(z.name)).filter(p=>p&&!p.startsWith("__MACOSX/"));
+ // 新导入不再只保存 model3.json 所在子目录；保留 ZIP 的共同根目录，兼容 ../shared/xxx 资源。
+ let segs=usable.map(p=>p.split("/")),common=[];
+ if(segs.length){for(let i=0;i<Math.min(...segs.map(x=>x.length-1));i++){let v=segs[0][i];if(segs.every(x=>x[i]===v))common.push(v);else break}}
+ let archiveRoot=common.length?common.join("/")+"/":"",assets=[];
  for(let z of all){
-   let full=normalizeRel(z.name);if(full.startsWith("__MACOSX/")||!full.startsWith(root))continue;
-   let rel=normalizeRel(full.slice(root.length));if(!rel)continue;
+   let full=normalizeRel(z.name);if(full.startsWith("__MACOSX/"))continue;
+   let rel=archiveRoot&&full.startsWith(archiveRoot)?full.slice(archiveRoot.length):full;
+   rel=normalizeRel(rel);if(!rel)continue;
    let blob=await z.async("blob");if(!blob.type)blob=new Blob([blob],{type:guessMime(rel)});
    assets.push({rel,name:rel.split("/").pop(),type:blob.type||guessMime(rel),blob})
  }
- let modelRel=normalizeRel(modelPath.slice(root.length)),raw=new TextDecoder("utf-8").decode(await modelFile.async("uint8array")),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||file.name.replace(/\.zip$/i,"")||modelRel.replace(/\.model3\.json$/i,""));
+ let modelRel=normalizeRel(archiveRoot&&modelPath.startsWith(archiveRoot)?modelPath.slice(archiveRoot.length):modelPath),raw=new TextDecoder("utf-8").decode(await modelFile.async("uint8array")),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||file.name.replace(/\.zip$/i,"")||modelRel.replace(/\.model3\.json$/i,""));
  await idbPutLive2dAssets(id,assets);
  live2dStore.models=live2dStore.models||[];
  live2dStore.models.push({id,name,modelJsonRel:modelRel,modelConfig:cfg,fileList:assets.map(a=>a.rel),assetStore:"indexeddb",assetCount:assets.length,createdAt:Date.now(),source:"zip",sourceName:file.name});
@@ -4742,9 +4751,11 @@ async function importLive2dZip(file){
 
 async function importLive2dFolder(files){
  let arr=[...files],modelFile=arr.find(f=>/\.model3\.json$/i.test(f.name));if(!modelFile)throw Error("文件夹里没有找到 .model3.json");
- let rootPath=(modelFile.webkitRelativePath||modelFile.name).replace(/[^/]+$/,""),assets=[];
- for(let f of arr){let rel=normalizeRel((f.webkitRelativePath||f.name).replace(rootPath,""));assets.push({rel,name:f.name,type:f.type||guessMime(f.name),blob:f})}
- let raw=await modelFile.text(),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||modelFile.name.replace(/\.model3\.json$/i,"")),modelRel=normalizeRel((modelFile.webkitRelativePath||modelFile.name).replace(rootPath,""));
+ // webkitRelativePath 第一段是用户选择的文件夹名；只剥这一层，保留内部子目录关系与 ../ 引用能力。
+ let paths=arr.map(f=>normalizeRel(f.webkitRelativePath||f.name)),first=paths[0]?.split("/")[0]||"",folderRoot=first&&paths.every(p=>p===first||p.startsWith(first+"/"))?first+"/":"",assets=[];
+ for(let i=0;i<arr.length;i++){let f=arr[i],full=paths[i],rel=normalizeRel(folderRoot&&full.startsWith(folderRoot)?full.slice(folderRoot.length):full);assets.push({rel,name:f.name,type:f.type||guessMime(f.name),blob:f})}
+ let modelFull=normalizeRel(modelFile.webkitRelativePath||modelFile.name),modelRel=normalizeRel(folderRoot&&modelFull.startsWith(folderRoot)?modelFull.slice(folderRoot.length):modelFull);
+ let raw=await modelFile.text(),cfg=JSON.parse(raw),id=uuid(),name=(cfg.Name||modelFile.name.replace(/\.model3\.json$/i,""));
  await idbPutLive2dAssets(id,assets);
  live2dStore.models=live2dStore.models||[];
  live2dStore.models.push({id,name,modelJsonRel:modelRel,modelConfig:cfg,fileList:assets.map(a=>a.rel),assetStore:"indexeddb",assetCount:assets.length,createdAt:Date.now(),source:"folder"});
@@ -4815,11 +4826,149 @@ function live2dWebglPreflight(){
  return ok
 }
 
-function rewriteModelRefs(obj,urlMap){
- if(Array.isArray(obj))return obj.map(v=>rewriteModelRefs(v,urlMap));
- if(obj&&typeof obj==="object"){let o={};for(let [k,v] of Object.entries(obj))o[k]=rewriteModelRefs(v,urlMap);return o}
- if(typeof obj==="string"){let n=normalizeRel(obj);return urlMap[n]||obj}
- return obj
+function live2dPathKey(p){
+ let s=String(p||"").trim().replace(/\\/g,"/");
+ if(!s)return "";
+ if(/^(?:blob:|data:|https?:|file:)/i.test(s))return s;
+ s=s.split("#")[0].split("?")[0];
+ try{s=decodeURIComponent(s)}catch{}
+ s=s.replace(/^\.\/+/,"").replace(/^\/+/,"");
+ let out=[];
+ for(let part of s.split("/")){
+   if(!part||part===".")continue;
+   if(part===".."){if(out.length)out.pop();continue}
+   out.push(part)
+ }
+ return out.join("/")
+}
+function live2dJoinFromModel(modelRel,ref){
+ let r=String(ref||"").replace(/\\/g,"/");
+ if(/^(?:blob:|data:|https?:|file:)/i.test(r))return r;
+ let base=live2dPathKey(modelRel),dir=base.includes("/")?base.replace(/[^/]+$/,""):"";
+ return live2dPathKey(dir+r)
+}
+function live2dAssetResolver(assets,modelRel,urlByAsset){
+ let exact=new Map(),lower=new Map(),byBase=new Map(),dupBase=new Set();
+ for(let a of assets||[]){
+   let raw=String(a?.rel||""),k=live2dPathKey(raw),u=urlByAsset.get(a);
+   if(!k||!u)continue;
+   exact.set(k,u);lower.set(k.toLowerCase(),u);
+   let b=k.split("/").pop().toLowerCase();
+   if(byBase.has(b))dupBase.add(b);else byBase.set(b,u)
+ }
+ return ref=>{
+   let raw=String(ref||"").trim();
+   if(!raw)return "";
+   if(/^(?:blob:|data:)/i.test(raw))return raw;
+   let candidates=[live2dPathKey(raw),live2dJoinFromModel(modelRel,raw)].filter(Boolean);
+   for(let k of candidates){
+     let u=exact.get(k)||lower.get(k.toLowerCase());
+     if(u)return u
+   }
+   let b=live2dPathKey(raw).split("/").pop()?.toLowerCase();
+   if(b&&!dupBase.has(b)&&byBase.has(b))return byBase.get(b);
+   return ""
+ }
+}
+function rewriteLive2dFileReferences(cfg,resolve){
+ let refs=cfg?.FileReferences;
+ if(!refs||typeof refs!=="object")throw Error("model3.json 缺少 FileReferences");
+ let missingRequired=[],missingOptional=[];
+ const mapRequired=(raw,label)=>{
+   if(typeof raw!=="string"||!raw.trim()){missingRequired.push(label+" → 空路径");return raw}
+   let u=resolve(raw);
+   if(!u)missingRequired.push(label+" → "+raw);
+   return u||raw
+ };
+ const mapOptional=(raw,label)=>{
+   if(typeof raw!=="string"||!raw.trim())return raw;
+   let u=resolve(raw);
+   if(!u)missingOptional.push(label+" → "+raw);
+   return u||raw
+ };
+
+ refs.Moc=mapRequired(refs.Moc,"Moc");
+ if(Array.isArray(refs.Textures)){
+   refs.Textures=refs.Textures.map((v,i)=>mapRequired(v,`Textures[${i}]`))
+ }else missingRequired.push("Textures → 未找到纹理列表");
+
+ for(let key of ["Physics","Pose","UserData","DisplayInfo"]){
+   if(typeof refs[key]==="string"){
+     let old=refs[key],u=resolve(old);
+     if(u)refs[key]=u;
+     else{
+       missingOptional.push(`${key} → ${old}`);
+       // 可选文件缺失不要让运行时继续发一个必失败 XHR。
+       delete refs[key]
+     }
+   }
+ }
+
+ if(Array.isArray(refs.Expressions)){
+   refs.Expressions=refs.Expressions.filter(Boolean).map((x,i)=>{
+     let y={...x};
+     if(typeof y.File==="string"){
+       let u=resolve(y.File);
+       if(u)y.File=u;
+       else{missingOptional.push(`Expressions[${i}] → ${y.File}`);return null}
+     }
+     return y
+   }).filter(Boolean)
+ }
+
+ if(refs.Motions&&typeof refs.Motions==="object"){
+   let motions={};
+   for(let [group,list] of Object.entries(refs.Motions)){
+     if(!Array.isArray(list))continue;
+     motions[group]=list.filter(Boolean).map((x,i)=>{
+       let y={...x};
+       if(typeof y.File==="string"){
+         let u=resolve(y.File);
+         if(u)y.File=u;
+         else{missingOptional.push(`Motions.${group}[${i}].File → ${y.File}`);return null}
+       }
+       if(typeof y.Sound==="string"){
+         let u=resolve(y.Sound);
+         if(u)y.Sound=u;
+         else{missingOptional.push(`Motions.${group}[${i}].Sound → ${y.Sound}`);delete y.Sound}
+       }
+       return y
+     }).filter(Boolean)
+   }
+   refs.Motions=motions
+ }
+ return {cfg,missingRequired,missingOptional}
+}
+function installCurryLive2dDirectLoader(){
+ if(window.__curryLive2dDirectLoaderInstalled)return;
+ let L=window.PIXI?.live2d?.Live2DLoader;
+ if(!L?.middlewares)return;
+ window.__curryLive2dBlobMap=window.__curryLive2dBlobMap||new Map();
+ const direct=async(ctx,next)=>{
+   try{
+     let resolved=ctx?.settings?.resolveURL?ctx.settings.resolveURL(ctx.url):ctx?.url;
+     let blob=window.__curryLive2dBlobMap.get(resolved)||window.__curryLive2dBlobMap.get(ctx?.url);
+     if(!blob)return next();
+     switch(String(ctx.type||"").toLowerCase()){
+       case "json":
+         ctx.result=JSON.parse(await blob.text());break;
+       case "arraybuffer":
+         ctx.result=await blob.arrayBuffer();break;
+       case "blob":
+         ctx.result=blob;break;
+       case "text":
+         ctx.result=await blob.text();break;
+       default:
+         ctx.result=blob
+     }
+     return
+   }catch(e){
+     console.warn("Curry Live2D direct loader failed",e);
+     return next()
+   }
+ };
+ L.middlewares.unshift(direct);
+ window.__curryLive2dDirectLoaderInstalled=true
 }
 async function ensureScript(src,test,timeoutMs=12000){
  if(test())return true;
@@ -4874,28 +5023,55 @@ async function ensureLive2dLibs(){
 
  window.PIXI.live2d=window.PIXI.live2d||{};
  if(!window.PIXI.live2d.Live2DModel)window.PIXI.live2d.Live2DModel=window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel;
- if(!window.PIXI.live2d.Live2DModel)throw Error("Live2DModel 未初始化")
+ if(!window.PIXI.live2d.Live2DModel)throw Error("Live2DModel 未初始化");
+ installCurryLive2dDirectLoader()
 }
 function getLive2DModelClass(){return window.PIXI?.live2d?.Live2DModel||window.PIXI_LIVE2D_DISPLAY?.Live2DModel||window.Live2DModel||null}
 async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
- let assets=await idbGetLive2dAssets(modelRec.id);if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
- let urlMap={},entry=assets.find(a=>normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel));
- let cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
- if(!cfg){if(!entry)throw Error("模型 JSON 丢失");cfg=JSON.parse(await entry.blob.text());modelRec.modelConfig=cfg;saveLive2d()}
- // V8.8.28 iOS 直播防闪退：所有纹理/动作/物理资源统一使用带正确 MIME 的 blob URL。
- // 旧 Safari 路径会把每个大纹理转成 base64 Data URL，并把这些超长字符串再次写进 model3 JSON；
- // base64 + JS 字符串 + encodeURIComponent 会制造数倍瞬时内存峰值，最容易在直播刚开场时被 WebKit 直接杀页。
+ let assets=await idbGetLive2dAssets(modelRec.id);
+ if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
+
+ let modelKey=live2dPathKey(modelRec.modelJsonRel),
+     entry=assets.find(a=>live2dPathKey(a.rel)===modelKey),
+     cfg=modelRec.modelConfig?cloneJson(modelRec.modelConfig):null;
+
+ if(!cfg){
+   if(!entry)throw Error("模型 JSON 丢失，请重新导入 Live2D");
+   cfg=JSON.parse(await entry.blob.text());
+   modelRec.modelConfig=cfg;saveLive2d()
+ }
+
+ window.__curryLive2dBlobMap=window.__curryLive2dBlobMap||new Map();
+ let urlByAsset=new Map();
+
  for(let n=0;n<assets.length;n++){
-   let a=assets[n];if(normalizeRel(a.rel)===normalizeRel(modelRec.modelJsonRel))continue;
+   let a=assets[n];
+   if(live2dPathKey(a.rel)===modelKey)continue;
    let safe=await safariSafeBlob(a.blob,a.rel),u=URL.createObjectURL(safe);
-   urlSink.push(u);urlMap[normalizeRel(a.rel)]=u;
-   // 给 iOS 一点事件循环时间，避免一次性注册大量大纹理 URL 时阻塞主线程。
+   urlSink.push(u);
+   urlByAsset.set(a,u);
+   // MOC / JSON / motion / physics 由自定义 loader 从 Blob 直接读取，不再走 XHR。
+   window.__curryLive2dBlobMap.set(u,safe);
    if((isSafariLive2d()||isIOSWebKitLive2d())&&n%6===5)await new Promise(r=>setTimeout(r,0))
  }
- assets=null;entry=null;
- cfg=rewriteModelRefs(cfg,urlMap);urlMap=null;
- let json=JSON.stringify(cfg);cfg=null;
- let u=URL.createObjectURL(new Blob([json],{type:"application/json;charset=utf-8"}));urlSink.push(u);return u
+
+ let resolve=live2dAssetResolver(assets,modelRec.modelJsonRel,urlByAsset),
+     rewritten=rewriteLive2dFileReferences(cfg,resolve);
+
+ if(rewritten.missingRequired.length){
+   // 老版本导入器会丢掉 model3.json 上级目录中的 ../ 资源，这种情况只能重导一次恢复原 ZIP 内容。
+   throw Error("Live2D 必需资源未匹配：\n"+rewritten.missingRequired.slice(0,8).join("\n")+
+     (rewritten.missingRequired.length>8?`\n……另有 ${rewritten.missingRequired.length-8} 项`:"")+
+     "\n\n如果这是旧版导入的模型，请在此版本重新导入一次原 ZIP / 文件夹。")
+ }
+ if(rewritten.missingOptional.length)console.warn("Live2D 可选资源未匹配，已跳过：",rewritten.missingOptional);
+
+ cfg=rewritten.cfg;
+ // 直接把配置对象交给 pixi-live2d-display，避免它先 XHR 一个 blob:model3.json。
+ // 所有实际文件引用都已经改成绝对 blob URL，因此这里只需要一个合法 base URL。
+ cfg.url=location.href;
+ modelRec._lastResolvedAssetCount=urlByAsset.size;
+ return cfg
 }
 async function buildLive2dModelUrl(modelRec){live2dRuntime.blobUrls=[];return await buildLive2dModelUrlFor(modelRec,live2dRuntime.blobUrls)}
 
@@ -5179,7 +5355,11 @@ async function mountLive2d(modelId,retryMode=false){
    console.warn("Live2D mount failed",e);
    cleanupLive2dRuntime();host.classList.remove("hasLive2d");
    // Low-memory mode does not auto-retry on Safari: a second full data-URL build can double peak memory.
-   let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+(e?.stack?"\n"+e.stack:"");
+   let failedUrl=e?.url||e?.cause?.url||"",failedStatus=e?.status??e?.cause?.status??"";
+   let fullMsg=(e?.name?e.name+": ":"")+String(e?.message||e||"Safari/WebGL 错误")+
+     (failedUrl?`\n失败资源：${failedUrl}`:"")+
+     (failedStatus!==""?`\nHTTP/资源状态：${failedStatus}`:"")+
+     (e?.stack?"\n"+e.stack:"");
    if(hint)hint.textContent="Live2D 加载失败：请打开主播工具查看详情";
    if(errBox){errBox.style.display="block";errBox.textContent="Safari Live2D 错误："+fullMsg}
    return false
