@@ -1596,44 +1596,6 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 }
 </style>
 
-
-<style id="curry-ios-root-wallpaper-v27">
-/* V27：把主页壁纸提升到根画布，覆盖 iOS standalone 顶部根背景。
-   主页自身不再重复绘制第二张 cover 壁纸，避免顶部/正文断层。 */
-html.curryIOSStandalone,
-html.curryIOSStandalone body{
-  background-color:#f5f3ee!important;
-  background-image:
-    linear-gradient(
-      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity))),
-      rgba(255,255,255,calc(1 - var(--home-wallpaper-opacity)))
-    ),
-    linear-gradient(var(--home-overlay),var(--home-overlay)),
-    var(--home-wallpaper),
-    linear-gradient(155deg,#f5f3ee 0%,#eeece7 52%,#e8e6e1 100%)!important;
-  background-size:cover!important;
-  background-position:center!important;
-  background-repeat:no-repeat!important;
-}
-
-/* 主屏幕沿用根画布的一整张壁纸，避免从状态栏下方重新开始 cover。 */
-html.curryIOSStandalone body.phoneActive #root .curryHome{
-  background:transparent!important;
-  background-image:none!important;
-}
-html.curryIOSStandalone body.phoneActive #root .curryHome::before{
-  background:transparent!important;
-}
-
-/* Phone 外壳保持透明，让根层壁纸可以连续透出来。 */
-html.curryIOSStandalone body.phoneActive #root,
-html.curryIOSStandalone body.phoneActive #root .shell,
-html.curryIOSStandalone body.phoneActive #root .os,
-html.curryIOSStandalone body.phoneActive #root .screen{
-  background-color:transparent!important;
-}
-</style>
-
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
