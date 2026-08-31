@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>咖喱小手机 V8.8.25 · 表情包视觉理解版</title>
+<title>咖喱小手机 V8.8.26 · 交互锁定 / 完整图标自定义版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -1239,6 +1239,64 @@ html,body,#root,#root *,#root *::before,#root *::after{
 }
 </style>
 
+<style>
+/* ===== V8.8.26 App-like Selection Lock =====
+   默认把界面当 App：导航、图标、标题、按钮、设置标签等不可被拖蓝选中。
+   只有聊天正文 / 长文本内容 / 编辑输入区允许选择复制。 */
+body.phoneActive .os,
+body.phoneActive .os *{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+/* 输入与编辑区始终可正常选字、复制、粘贴 */
+body.phoneActive input,
+body.phoneActive textarea,
+body.phoneActive [contenteditable="true"]{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+  -webkit-touch-callout:default!important;
+}
+
+/* 真正属于“内容”的文本允许选择复制 */
+body.phoneActive .bubble,
+body.phoneActive .cardText,
+body.phoneActive .momentText,
+body.phoneActive .forumContent,
+body.phoneActive .forumReplyText,
+body.phoneActive .forumPostTitle,
+body.phoneActive .forumPostPreview,
+body.phoneActive .xhsCardTitle,
+body.phoneActive .xhsDetailTitle,
+body.phoneActive .xhsDetailText,
+body.phoneActive .xhsCommentText,
+body.phoneActive .traceText,
+body.phoneActive .summaryArea,
+body.phoneActive .relationNote,
+body.phoneActive .note,
+body.phoneActive pre,
+body.phoneActive code,
+body.phoneActive .selectableText{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+  -webkit-touch-callout:default!important;
+}
+
+/* 图片 / App 图标不再触发网页式拖拽 */
+body.phoneActive .os img,
+body.phoneActive .os svg,
+body.phoneActive .app,
+body.phoneActive .icon{
+  -webkit-user-drag:none;
+  user-drag:none;
+}
+
+body.phoneActive label.fileBtn,
+body.phoneActive label.backupFileBtn{
+  -webkit-touch-callout:none!important;
+}
+</style>
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
@@ -1844,7 +1902,7 @@ html,body,#root,#root *,#root *::before,#root *::after{
   <div class="settingGroup">
     <h3>HOME ICONS</h3>
     <div class="iconCustomizeGrid" id="iconCustomizeGrid"></div>
-    <div class="help" style="margin:8px 2px 0">每个 App 都可以单独上传 PNG / JPG / WEBP 图标。清除后恢复默认字母图标。</div>
+    <div class="help" style="margin:8px 2px 0">当前桌面与 Dock 中的 App 都可以单独上传 PNG / JPG / WEBP 图标；新加入的 App 也已纳入这里。清除后恢复默认图标。</div>
   </div>
 
   <div class="settingGroup">
@@ -3787,6 +3845,19 @@ async function restoreBeautyFontAtBoot(){
   finally{sessionStorage.removeItem(CURRY_FONT_BOOT_GUARD)}
 }
 
+const appDefaults={
+  messages:"M",contacts:"C",moments:"D",forum:"F",xhs:"X",mcp:"P",
+  worldbook:"L",masks:"U",stickers:"E",chatBeauty:"T",beautify:"B",
+  anniversary:"♡",takeout:"外",gameHall:"游",liveRoom:"播",charNetwork:"网",
+  initiative:"动",notes:"N",settings:"S",fullscreen:"F",web:"W"
+};
+const appNames={
+  messages:"消息",contacts:"联系人",moments:"朋友圈",forum:"论坛",xhs:"小红书",mcp:"MCP",
+  worldbook:"世界书",masks:"User面具",stickers:"表情包",chatBeauty:"聊天美化",beautify:"桌面美化",
+  anniversary:"纪念日",takeout:"外卖",gameHall:"游戏大厅",liveRoom:"直播",charNetwork:"关系网",
+  initiative:"主动行为",notes:"备忘录",settings:"设置",fullscreen:"全屏",web:"返回网页"
+};
+
 function applyBeauty(){
   const rootStyle=document.documentElement.style;
   rootStyle.setProperty("--home-wallpaper",beauty.wallpaper?`url("${beauty.wallpaper}")`:"none");
@@ -3799,8 +3870,7 @@ function applyBeauty(){
     if(src){
       slot.innerHTML=`<img class="customAppIcon" src="${src}" alt="">`;
     }else{
-      const defaults={messages:"M",contacts:"C",anniversary:"♡",takeout:"外",gameHall:"游",liveRoom:"播",charNetwork:"网",initiative:"动",notes:"N",settings:"S",beautify:"B",masks:"U",worldbook:"L",fullscreen:"F",web:"W"};
-      slot.textContent=defaults[key]||key.slice(0,1).toUpperCase();
+      slot.textContent=appDefaults[key]||key.slice(0,1).toUpperCase();
     }
   });
   if($("#wallpaperOpacity"))$("#wallpaperOpacity").value=beauty.wallpaperOpacity??1;
@@ -3808,14 +3878,23 @@ function applyBeauty(){
   if($("#iconOpacity"))$("#iconOpacity").value=beauty.iconOpacity??.66;
   if($("#customCss"))$("#customCss").value=beauty.customCss||"";
 }
-const appNames={messages:"消息",contacts:"联系人",anniversary:"纪念日",takeout:"外卖",gameHall:"游戏大厅",liveRoom:"直播",charNetwork:"关系网",initiative:"主动行为",notes:"备忘录",settings:"设置",beautify:"美化",masks:"User面具",worldbook:"世界书",fullscreen:"全屏",web:"返回网页"};
+
 function renderIconCustomizer(){
   const box=$("#iconCustomizeGrid");if(!box)return;
-  box.innerHTML=Object.keys(appNames).map(k=>`
+
+  const visibleKeys=[...new Set(
+    [...document.querySelectorAll("[data-icon-slot]")]
+      .map(el=>el.dataset.iconSlot)
+      .filter(Boolean)
+  )];
+
+  box.innerHTML=visibleKeys.map(k=>`
     <div class="iconCustomizeItem">
       <div class="iconCustomizeHead">
-        <div class="miniIcon">${beauty.icons?.[k]?`<img src="${beauty.icons[k]}" alt="">`:k.slice(0,1).toUpperCase()}</div>
-        <span>${appNames[k]}</span>
+        <div class="miniIcon">${beauty.icons?.[k]
+          ?`<img src="${beauty.icons[k]}" alt="">`
+          :esc(appDefaults[k]||k.slice(0,1).toUpperCase())}</div>
+        <span>${esc(appNames[k]||k)}</span>
       </div>
       <label class="fileBtn">更换图标<input type="file" accept="image/*" data-icon-upload="${k}"></label>
       <button class="btn" style="width:100%;margin-top:6px" type="button" data-icon-clear="${k}">恢复默认</button>
