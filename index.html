@@ -991,6 +991,208 @@ body.phoneActive .curryHomeScreen{
   .curryHomeScreen{padding-left:14px;padding-right:14px}
 }
 
+
+/* ===== V8.8.51 桌面小组件 + 图标拖动 ===== */
+.curryWidgetZone{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin:0 0 16px;
+}
+.curryWidgetZone:empty{display:none}
+.curryWidget{
+  position:relative;
+  min-width:0;
+  min-height:86px;
+  border:1px solid rgba(255,255,255,.68);
+  border-radius:20px;
+  background:rgba(246,245,242,.68);
+  box-shadow:0 7px 22px rgba(45,43,38,.06);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  padding:12px;
+  overflow:hidden;
+  color:#34332f;
+  text-align:left;
+}
+.curryWidget.wide{grid-column:1/-1}
+.curryWidgetClockTime{font:600 31px/1 Georgia,"Times New Roman",serif;letter-spacing:-.045em}
+.curryWidgetClockDate,.curryWidgetMeta{margin-top:5px;font-size:8px;color:#8c8880}
+.curryWidgetTitle{font-size:8px;letter-spacing:.12em;color:#918a7e;font-weight:800}
+.curryWidgetText{margin-top:7px;font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.curryWidgetProfile{display:flex;align-items:center;gap:10px}
+.curryWidgetAvatar{width:42px;height:42px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#dedad1;font:600 14px Georgia,serif;flex:0 0 auto}
+.curryWidgetAvatar img{width:100%;height:100%;object-fit:cover;display:block}
+.curryWidgetRemove,.curryWidgetMove{
+  position:absolute;top:7px;width:23px;height:23px;border:0;border-radius:50%;
+  background:rgba(44,44,42,.82);color:#fff;font-size:13px;display:none;place-items:center;z-index:3;
+}
+.curryWidgetRemove{right:7px}
+.curryWidgetMove{right:35px;font-size:10px}
+.curryHome.homeEditMode .curryWidgetRemove,
+.curryHome.homeEditMode .curryWidgetMove{display:grid}
+.curryHome.homeEditMode .curryWidget,
+.curryHome.homeEditMode .curryAppGrid .app{animation:curryJiggle .18s ease-in-out infinite alternate}
+.curryHome.homeEditMode .curryAppGrid .app:nth-child(even),
+.curryHome.homeEditMode .curryWidget:nth-child(even){animation-direction:alternate-reverse}
+@keyframes curryJiggle{from{transform:rotate(-.7deg)}to{transform:rotate(.7deg)}}
+.curryHomeEditBar{
+  position:absolute;left:50%;top:8px;transform:translateX(-50%);
+  z-index:30;display:none;align-items:center;gap:6px;padding:6px 7px;
+  border:1px solid rgba(255,255,255,.78);border-radius:999px;
+  background:rgba(245,244,240,.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 6px 20px #0001;
+}
+.curryHome.homeEditMode .curryHomeEditBar{display:flex}
+.curryHomeEditBar button{border:0;border-radius:999px;background:#e6e3dc;color:#55514a;padding:7px 10px;font-size:8px}
+.curryHomeEditBar,.curryHomeEditBar *{pointer-events:auto!important;touch-action:manipulation!important}
+.curryWidgetPicker{z-index:160!important}
+.curryWidgetPicker .choice{min-height:44px;font-size:10px;touch-action:manipulation!important}
+.curryWidgetPickerHint{font-size:8px;color:var(--muted);line-height:1.6;margin:-5px 0 12px}
+.curryHomeEditBar .primary{background:#555650;color:#fff}
+.curryHome.homeEditMode .curryHomePager{scroll-snap-type:none}
+.curryHome.homeEditMode .curryAppGrid .app{touch-action:none!important;cursor:grab}
+.curryHome.homeEditMode .curryAppGrid .app.curryDragging{opacity:.25;animation:none}
+.curryDragGhost{
+  position:fixed!important;z-index:999999!important;pointer-events:none!important;
+  margin:0!important;transform:translate(-50%,-50%) scale(1.06)!important;
+  opacity:.94!important;filter:drop-shadow(0 10px 16px #0003);animation:none!important;
+}
+
+.curryDropHint{outline:1.5px dashed rgba(90,87,79,.5);outline-offset:5px;border-radius:16px}
+.curryHomeScreen.curryPageDrop{box-shadow:inset 0 0 0 2px rgba(90,87,79,.22)}
+/* ===== V8.8.52 Desktop Free Position Grid ===== */
+.curryAppGridPage1,.curryAppGridPage2{
+  position:relative;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:repeat(6,72px);
+  grid-auto-rows:72px;
+  align-items:start;
+  min-height:462px;
+}
+.curryAppGridPage1>.app,.curryAppGridPage2>.app{
+  align-self:start;justify-self:stretch;min-width:0;
+}
+.curryHome.homeEditMode .curryAppGridPage1,
+.curryHome.homeEditMode .curryAppGridPage2{
+  background-image:radial-gradient(circle,rgba(70,68,62,.10) 1px,transparent 1.5px);
+  background-size:25% 72px;
+  background-position:12.5% 35px;
+  border-radius:18px;
+}
+.curryGridSlotHint{
+  position:absolute;z-index:1;pointer-events:none;border:1.5px dashed rgba(74,72,66,.46);
+  border-radius:17px;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+  transition:left .06s,top .06s,width .06s,height .06s;
+}
+.curryHome:not(.homeEditMode) .curryGridSlotHint{display:none!important}
+@media(max-width:360px){
+  .curryAppGridPage1,.curryAppGridPage2{grid-template-rows:repeat(6,68px);grid-auto-rows:68px;min-height:438px}
+  .curryHome.homeEditMode .curryAppGridPage1,.curryHome.homeEditMode .curryAppGridPage2{background-size:25% 68px;background-position:12.5% 33px}
+}
+
+.curryWidgetSettingsList{display:grid;gap:8px;margin-top:10px}
+.curryWidgetSettingRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:9px;background:#f8f9f6}
+.curryWidgetSettingName{font-size:10px;font-weight:700}
+.curryWidgetSettingMeta{font-size:8px;color:var(--muted);margin-top:3px}
+.curryWidgetSettingActions{display:flex;gap:5px}
+.curryWidgetSettingActions button{padding:6px 8px!important;flex:0 0 auto!important}
+.curryHomeEditHelp{
+  position:absolute;left:50%;bottom:92px;transform:translateX(-50%);z-index:29;
+  display:none;white-space:nowrap;padding:6px 9px;border-radius:999px;
+  background:rgba(45,45,43,.82);color:#fff;font-size:7px;pointer-events:none
+}
+.curryHome.homeEditMode .curryHomeEditHelp{display:block}
+body.curryMonoUI .curryWidget{background:rgba(242,242,239,.74)!important;color:#333!important}
+@media(max-width:360px){
+  .curryWidgetZone{gap:7px}
+  .curryWidget{padding:10px;min-height:80px;border-radius:18px}
+  .curryWidgetClockTime{font-size:28px}
+}
+
+
+/* ===== V8.8.52 高级桌面小组件 / 音乐组件 ===== */
+.curryWidgetZone{
+  gap:10px;
+  margin-bottom:18px;
+}
+.curryWidget{
+  border:1px solid rgba(255,255,255,.54);
+  background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(239,238,233,.48));
+  box-shadow:0 12px 28px rgba(38,36,31,.08),inset 0 1px 0 rgba(255,255,255,.5);
+  backdrop-filter:blur(24px) saturate(118%);
+  -webkit-backdrop-filter:blur(24px) saturate(118%);
+  border-radius:24px;
+  min-height:92px;
+  padding:13px 14px;
+}
+.curryWidget::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(125deg,rgba(255,255,255,.22),transparent 42%);
+}
+.curryWidget > *{position:relative;z-index:1}
+.curryWidget.large{min-height:166px}
+.curryWidgetTitle{font-size:7px;letter-spacing:.18em;color:rgba(72,69,63,.56);font-weight:800}
+.curryWidgetText{font-size:11px;line-height:1.48;color:#302f2b}
+.curryWidgetMeta,.curryWidgetClockDate{font-size:7.5px;color:rgba(66,64,59,.53)}
+.curryWidgetClockTime{font:500 36px/1 Georgia,"Times New Roman",serif;color:#272622;letter-spacing:-.055em}
+.curryWidgetAvatar{border:1px solid rgba(255,255,255,.7);box-shadow:0 5px 14px #0001}
+.curryWidgetRemove,.curryWidgetMove,.curryWidgetEdit{
+  position:absolute;top:8px;width:24px;height:24px;border:0;border-radius:50%;
+  background:rgba(38,38,36,.78);color:#fff;font-size:12px;display:none;place-items:center;z-index:4;
+  box-shadow:0 4px 12px #0002;
+}
+.curryWidgetRemove{right:8px}.curryWidgetMove{right:38px;font-size:10px}.curryWidgetEdit{right:68px;font-size:10px}
+.curryHome.homeEditMode .curryWidgetEdit{display:grid}
+
+/* 音乐小组件：只做界面与本地播放，不依赖任何生图能力 */
+.curryMusicWidget{--music-accent:#2c2c2a;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+.curryMusicWidget.theme-dark{
+  color:#f7f7f4;background:linear-gradient(145deg,rgba(38,38,37,.94),rgba(68,67,63,.82));
+  border-color:rgba(255,255,255,.12);box-shadow:0 15px 35px rgba(0,0,0,.18)
+}
+.curryMusicWidget.theme-dark .curryMusicArtist,.curryMusicWidget.theme-dark .curryMusicCaption,.curryMusicWidget.theme-dark .curryMusicTime{color:rgba(255,255,255,.56)}
+.curryMusicWidget.theme-dark .curryMusicTitle{color:#fff}
+.curryMusicWidget.theme-dark .curryMusicControl{background:rgba(255,255,255,.12);color:#fff}
+.curryMusicWidget.theme-dark .curryMusicControl.play{background:#f5f5f1;color:#242421}
+.curryMusicWidget.theme-pearl{background:linear-gradient(150deg,rgba(250,249,246,.83),rgba(221,220,215,.64));}
+.curryMusicWidget.theme-glass{background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.28));}
+.curryMusicTop{display:flex;align-items:center;gap:12px;min-width:0}
+.curryMusicCover{
+  width:68px;height:68px;flex:0 0 68px;border-radius:18px;overflow:hidden;position:relative;
+  background:linear-gradient(145deg,#cac8c2,#9b9993);display:grid;place-items:center;
+  box-shadow:0 8px 20px rgba(24,23,21,.14);border:1px solid rgba(255,255,255,.48)
+}
+.curryMusicWidget.large .curryMusicCover{width:92px;height:92px;flex-basis:92px;border-radius:22px}
+.curryMusicCover img{width:100%;height:100%;object-fit:cover;display:block}
+.curryMusicCoverFallback{font:600 22px/1 Georgia,serif;color:rgba(255,255,255,.86)}
+.curryMusicInfo{min-width:0;flex:1;padding-right:4px}
+.curryMusicCaption{font-size:7px;letter-spacing:.17em;color:rgba(63,61,57,.48);font-weight:800;margin-bottom:7px}
+.curryMusicTitle{font-size:14px;line-height:1.25;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#292824}
+.curryMusicArtist{font-size:8px;color:rgba(63,61,57,.56);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.curryMusicProgress{height:3px;border-radius:999px;background:rgba(90,88,82,.14);overflow:hidden;cursor:pointer;touch-action:none}
+.curryMusicProgressFill{height:100%;width:0;border-radius:inherit;background:var(--music-accent);transition:width .1s linear}
+.curryMusicBottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.curryMusicTime{font-size:7px;color:rgba(63,61,57,.48);min-width:58px}
+.curryMusicControls{display:flex;align-items:center;gap:7px;margin-left:auto}
+.curryMusicControl{width:28px;height:28px;border:0;border-radius:50%;background:rgba(65,64,60,.09);color:#3f3d39;display:grid;place-items:center;font-size:10px;padding:0}
+.curryMusicControl.play{width:34px;height:34px;background:var(--music-accent);color:#fff;font-size:11px}
+.curryMusicControl:disabled{opacity:.32}
+.curryMusicWidget.is-playing .curryMusicCover img{animation:curryMusicFloat 3.8s ease-in-out infinite alternate}
+@keyframes curryMusicFloat{from{transform:scale(1.01)}to{transform:scale(1.055)}}
+.curryMusicWidget audio{display:none!important}
+
+.curryMusicEditorPreview{border:1px solid var(--line);border-radius:18px;padding:12px;background:linear-gradient(145deg,#f7f6f2,#e8e7e2);margin-bottom:12px}
+.curryMusicEditorGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.curryMusicFileStatus{font-size:8px;color:var(--muted);line-height:1.5;word-break:break-all;margin-top:5px}
+.curryWidgetPicker .choice[data-add-home-widget="music"]{grid-column:1/-1;background:#33332f;color:#fff;border-color:#33332f}
+body.curryMonoUI .curryMusicWidget.theme-dark{background:linear-gradient(145deg,#2e2e2e,#4a4a48)!important}
+@media(max-width:360px){
+  .curryMusicCover{width:62px;height:62px;flex-basis:62px}
+  .curryMusicWidget.large .curryMusicCover{width:82px;height:82px;flex-basis:82px}
+  .curryMusicTitle{font-size:13px}
+}
+
 .recalledMessage{opacity:.58;font-style:italic;font-size:.92em}.msgMenu{z-index:99999;touch-action:manipulation}
 
 /* ===== V8.8 小红书：AI 配图工具恢复 ===== */
@@ -1000,6 +1202,47 @@ body.phoneActive .curryHomeScreen{
 .xhsImageTools button.danger{color:#a55}
 .xhsImageToolStatus{width:100%;font-size:8px;color:#999;line-height:1.45}
 
+</style>
+
+<style>
+/* ===== V8.8.53 图片系桌面小组件库 ===== */
+.curryWidgetPicker .choice[data-add-home-widget="photo"],
+.curryWidgetPicker .choice[data-add-home-widget="duo"],
+.curryWidgetPicker .choice[data-add-home-widget="quad"],
+.curryWidgetPicker .choice[data-add-home-widget="polaroid"],
+.curryWidgetPicker .choice[data-add-home-widget="banner"],
+.curryWidgetPicker .choice[data-add-home-widget="portrait"],
+.curryWidgetPicker .choice[data-add-home-widget="album"]{background:rgba(255,255,255,.72)}
+#curryWidgetPickerSheet{max-height:calc(100% - 18px);overflow:auto;-webkit-overflow-scrolling:touch}
+.curryImageWidget{padding:0!important;min-height:112px;background:rgba(244,243,239,.62);isolation:isolate}
+.curryImageWidget.large{min-height:176px}
+.curryImageWidget.visual-paper{background:#f4f1e9}
+.curryImageWidget.visual-dark{background:#282826;color:#f8f7f3;border-color:rgba(255,255,255,.12)}
+.curryImageWidget.visual-dark .curryVisualSubtitle,.curryImageWidget.visual-dark .curryVisualEyebrow{color:rgba(255,255,255,.6)}
+.curryVisualMedia{position:absolute!important;inset:0;z-index:0!important;overflow:hidden;border-radius:inherit;background:linear-gradient(145deg,#d9d7d1,#b8b5ae)}
+.curryVisualMedia img{width:100%;height:100%;display:block;object-fit:var(--visual-fit,cover)}
+.curryVisualShade{position:absolute!important;inset:0;z-index:1!important;background:linear-gradient(180deg,transparent 30%,rgba(18,18,17,.58));pointer-events:none}
+.curryVisualCopy{position:absolute!important;left:13px;right:13px;bottom:12px;z-index:2!important;color:white;text-shadow:0 2px 12px #0006}
+.curryVisualEyebrow{font-size:6px;letter-spacing:.18em;font-weight:800;color:rgba(255,255,255,.72);margin-bottom:4px}
+.curryVisualTitle{font-size:13px;line-height:1.2;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.curryVisualSubtitle{font-size:7px;line-height:1.4;color:rgba(255,255,255,.74);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.curryVisualPlaceholder{width:100%;height:100%;display:grid;place-items:center;font:500 28px/1 Georgia,serif;color:rgba(255,255,255,.72);background:linear-gradient(145deg,#c9c6bf,#a7a49d)}
+.curryVisualGrid2,.curryVisualGrid4{position:absolute!important;inset:0;z-index:0!important;display:grid;gap:3px;background:#efeee9}
+.curryVisualGrid2{grid-template-columns:1fr 1fr}.curryVisualGrid4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.curryVisualGridCell{min-width:0;min-height:0;overflow:hidden;background:#c9c7c0}
+.curryVisualGridCell img{width:100%;height:100%;display:block;object-fit:var(--visual-fit,cover)}
+.curryPolaroidWidget{padding:10px 10px 30px!important;background:#f5f1e7!important;box-shadow:0 12px 28px #00000014;transform:rotate(-.4deg)}
+.curryPolaroidWidget .curryVisualMedia{position:relative!important;height:118px;border-radius:15px;background:#d6d2c8}
+.curryPolaroidWidget.large .curryVisualMedia{height:160px}
+.curryPolaroidWidget .curryVisualCopy{left:12px;right:12px;bottom:8px;color:#37342f;text-shadow:none}
+.curryPolaroidWidget .curryVisualShade{display:none}.curryPolaroidWidget .curryVisualTitle{font:600 12px/1.2 Georgia,"Songti SC",serif}.curryPolaroidWidget .curryVisualSubtitle{color:#8a857c}
+.curryBannerWidget{min-height:96px}.curryBannerWidget.large{min-height:142px}
+.curryPortraitWidget{padding:12px!important;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(231,229,223,.55))}
+.curryPortraitInner{display:grid;justify-items:center;text-align:center;gap:7px;width:100%}.curryPortraitPic{width:64px;height:64px;border-radius:50%;overflow:hidden;background:#cac7c0;border:2px solid rgba(255,255,255,.8);box-shadow:0 7px 18px #0002}.curryPortraitWidget.large .curryPortraitPic{width:88px;height:88px}.curryPortraitPic img{width:100%;height:100%;object-fit:var(--visual-fit,cover)}.curryPortraitWidget .curryVisualTitle{color:inherit;font-size:11px}.curryPortraitWidget .curryVisualSubtitle{color:#817d75;font-size:7px}.curryPortraitWidget.visual-dark .curryVisualSubtitle{color:#aaa}
+.curryAlbumWidget{padding:11px!important;background:linear-gradient(145deg,rgba(255,255,255,.73),rgba(227,225,218,.61))}.curryAlbumInner{display:flex;gap:10px;align-items:center;height:100%}.curryAlbumCover{width:76px;height:76px;flex:0 0 76px;border-radius:16px;overflow:hidden;background:#bbb8b0;box-shadow:0 8px 18px #0002}.curryAlbumWidget.large .curryAlbumCover{width:104px;height:104px;flex-basis:104px}.curryAlbumCover img{width:100%;height:100%;object-fit:var(--visual-fit,cover)}.curryAlbumDisc{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at center,#cfcfc9 0 8%,#333 9% 19%,#181818 20% 100%);box-shadow:0 8px 18px #0003;margin-left:-31px;z-index:-1}.curryAlbumText{min-width:0;margin-left:2px}.curryAlbumText .curryVisualEyebrow{color:#8d887f;text-shadow:none}.curryAlbumText .curryVisualTitle{color:inherit;text-shadow:none}.curryAlbumText .curryVisualSubtitle{color:#827e76;text-shadow:none}.curryAlbumWidget.visual-dark .curryAlbumText .curryVisualEyebrow,.curryAlbumWidget.visual-dark .curryAlbumText .curryVisualSubtitle{color:#aaa}
+#curryImageWidgetSheet{z-index:175!important;max-height:calc(100% - 18px);overflow:auto;-webkit-overflow-scrolling:touch}.curryImageWidgetSlots{display:grid;grid-template-columns:1fr 1fr;gap:9px}.curryImageSlot{border:1px solid var(--line);border-radius:12px;padding:9px;background:#f8f8f5}.curryImageSlot[hidden]{display:none!important}.curryImageSlot .fileBtn{margin-top:7px}.curryImageWidget .curryWidgetEdit,.curryImageWidget .curryWidgetMove,.curryImageWidget .curryWidgetRemove{z-index:8!important}
+body.curryMonoUI .curryImageWidget:not(.visual-dark){background:rgba(241,241,238,.75)!important}
+@media(max-width:360px){.curryImageWidgetSlots{grid-template-columns:1fr}.curryAlbumCover{width:66px;height:66px;flex-basis:66px}.curryAlbumDisc{width:50px;height:50px}}
 </style>
 <style id="customThemeStyle"></style>
 <style id="chatCustomThemeStyle"></style>
@@ -1627,7 +1870,8 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
       <div class="curryRecentHead"><span>最近聊天</span><button type="button" data-open="messages">全部</button></div>
       <div class="curryRecent" id="curryRecent"></div>
 
-      <div class="grid curryAppGrid curryAppGridPage1">
+      <div class="curryWidgetZone" id="curryWidgetZone0" data-widget-page="0"></div>
+      <div class="grid curryAppGrid curryAppGridPage1" data-app-page="0">
         <button class="app" data-open="messages" data-app-key="messages"><span class="appBadge" id="messagesBadge"></span><div class="icon" data-icon-slot="messages">M</div><div class="label">消息</div></button>
         <button class="app" data-open="contacts" data-app-key="contacts"><div class="icon" data-icon-slot="contacts">C</div><div class="label">联系人</div></button>
         <button class="app" data-open="moments" data-app-key="moments"><span class="appBadge" id="momentsBadge"></span><div class="icon" data-icon-slot="moments">D</div><div class="label">朋友圈</div></button>
@@ -1648,7 +1892,8 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
     <div class="curryHomeScreen curryHomeScreenSecond">
       <div class="currySecondEyebrow">CURRY PHONE</div>
       <div class="currySecondTitle">更多</div>
-      <div class="grid curryAppGrid curryAppGridPage2">
+      <div class="curryWidgetZone" id="curryWidgetZone1" data-widget-page="1"></div>
+      <div class="grid curryAppGrid curryAppGridPage2" data-app-page="1">
         <button class="app" data-open="anniversary" data-app-key="anniversary"><div class="icon" data-icon-slot="anniversary">♡</div><div class="label">纪念日</div></button>
         <button class="app" data-open="takeout" data-app-key="takeout"><div class="icon" data-icon-slot="takeout">外</div><div class="label">外卖</div></button>
         <button class="app" data-open="gameHall" data-app-key="gameHall"><div class="icon" data-icon-slot="gameHall">游</div><div class="label">游戏大厅</div></button>
@@ -1662,6 +1907,13 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
     </div>
 
   </div>
+
+  <div class="curryHomeEditBar" id="curryHomeEditBar">
+    <button type="button" id="curryAddWidgetBtn">+ 小组件</button>
+    <button type="button" id="curryResetLayoutBtn">重置布局</button>
+    <button type="button" class="primary" id="curryDoneEditBtn">完成</button>
+  </div>
+  <div class="curryHomeEditHelp">拖到任意空格自由摆放 · 占用格自动交换 · 边缘可跨页</div>
 
   <div class="curryHomeDots" id="curryHomeDots" aria-label="桌面分页">
     <button type="button" class="curryHomeDot active" data-home-screen="0" aria-label="第一页"></button>
@@ -2215,6 +2467,42 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
   </div>
 
   <div class="settingGroup">
+    <h3>DESKTOP WIDGETS & LAYOUT</h3>
+    <div class="settingBox form">
+      <div class="help">长按桌面 App 可进入编辑模式并拖动换位。图标可跨两页移动，顺序会自动保存。</div>
+      <div class="actions">
+        <button class="btn" id="addClockWidget" type="button">+ 时钟</button>
+        <button class="btn" id="addNoteWidget" type="button">+ 便签</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="addProfileWidget" type="button">+ User 卡片</button>
+        <button class="btn" id="addRecentWidget" type="button">+ 最近聊天</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="addPhotoWidget" type="button">+ 照片卡片</button>
+        <button class="btn" id="addDuoWidget" type="button">+ 双图拼贴</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="addQuadWidget" type="button">+ 四宫格</button>
+        <button class="btn" id="addPolaroidWidget" type="button">+ 拍立得</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="addBannerWidget" type="button">+ 横幅图片</button>
+        <button class="btn" id="addPortraitWidget" type="button">+ 人物卡片</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="addAlbumWidget" type="button">+ 专辑展示</button>
+        <button class="btn primary" id="addMusicWidget" type="button">+ 音乐播放器</button>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="enterHomeEditBtn" type="button">进入桌面编辑</button>
+        <button class="btn" id="resetHomeLayoutBtn" type="button">重置图标顺序</button>
+      </div>
+      <div class="curryWidgetSettingsList" id="curryWidgetSettingsList"></div>
+    </div>
+  </div>
+
+  <div class="settingGroup">
     <h3>MONOCHROME</h3>
     <div class="settingBox form">
       <div class="field">
@@ -2278,6 +2566,42 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 </div>
 </section>
 
+<div class="sheet curryWidgetPicker" id="curryWidgetPickerSheet"><h3>添加桌面小组件</h3><div class="curryWidgetPickerHint">添加到当前桌面页。之后可以在编辑模式里换页、编辑或删除。</div><div class="choices"><button class="choice" type="button" data-add-home-widget="clock">时钟</button><button class="choice" type="button" data-add-home-widget="note">便签</button><button class="choice" type="button" data-add-home-widget="profile">User 卡片</button><button class="choice" type="button" data-add-home-widget="recent">最近聊天</button><button class="choice" type="button" data-add-home-widget="photo">照片卡片</button><button class="choice" type="button" data-add-home-widget="duo">双图拼贴</button><button class="choice" type="button" data-add-home-widget="quad">四宫格照片</button><button class="choice" type="button" data-add-home-widget="polaroid">拍立得</button><button class="choice" type="button" data-add-home-widget="banner">横幅图片</button><button class="choice" type="button" data-add-home-widget="portrait">人物卡片</button><button class="choice" type="button" data-add-home-widget="album">专辑展示</button><button class="choice wide" type="button" data-add-home-widget="music">音乐播放器 · 可自定义</button><button class="choice wide" type="button" id="closeCurryWidgetPicker">取消</button></div></div>
+<div class="sheet" id="curryMusicWidgetSheet"><h3>音乐小组件</h3><div class="curryWidgetPickerHint">封面、歌名、歌手、音频与样式都可以自己改。封面和本地音频只保存在你的设备里。</div><div class="form">
+  <input type="hidden" id="curryMusicWidgetId">
+  <div class="field"><label>歌名</label><input class="input" id="curryMusicTitle" maxlength="80" placeholder="One Kiss"></div>
+  <div class="field"><label>歌手</label><input class="input" id="curryMusicArtist" maxlength="80" placeholder="Artist"></div>
+  <div class="field"><label>封面图片 URL（可留空）</label><input class="input" id="curryMusicCoverUrl" placeholder="https://..."></div>
+  <div class="field"><label>或上传封面</label><label class="fileBtn">选择封面<input id="curryMusicCoverFile" type="file" accept="image/*"></label><div class="curryMusicFileStatus" id="curryMusicCoverStatus"></div></div>
+  <div class="field"><label>音频 URL（mp3 / m4a / ogg 等，可留空）</label><input class="input" id="curryMusicAudioUrl" placeholder="https://..."></div>
+  <div class="field"><label>或上传本地音频</label><label class="fileBtn">选择音频<input id="curryMusicAudioFile" type="file" accept="audio/*"></label><div class="curryMusicFileStatus" id="curryMusicAudioStatus"></div></div>
+  <div class="curryMusicEditorGrid">
+    <div class="field"><label>卡片样式</label><select class="input" id="curryMusicTheme"><option value="glass">透亮玻璃</option><option value="pearl">珍珠灰</option><option value="dark">深色唱片</option></select></div>
+    <div class="field"><label>卡片尺寸</label><select class="input" id="curryMusicSize"><option value="normal">横向</option><option value="large">大卡片</option></select></div>
+  </div>
+  <div class="field"><label>按钮强调色</label><input class="input" id="curryMusicAccent" type="color" value="#2c2c2a"></div>
+  <div class="actions"><button class="btn" id="cancelCurryMusicWidget" type="button">取消</button><button class="btn primary" id="saveCurryMusicWidget" type="button">保存</button></div>
+</div></div>
+<div class="sheet" id="curryImageWidgetSheet"><h3 id="curryImageWidgetSheetTitle">图片小组件</h3><div class="curryWidgetPickerHint">所有图片只使用你自己上传的文件或图片 URL。上传图片会保存在当前设备的本地媒体库。</div><div class="form">
+  <input type="hidden" id="curryImageWidgetId">
+  <div class="field"><label>标题</label><input class="input" id="curryImageWidgetTitle" maxlength="80" placeholder="标题"></div>
+  <div class="field"><label>副标题 / 签名</label><input class="input" id="curryImageWidgetSubtitle" maxlength="140" placeholder="一句话"></div>
+  <div class="curryImageWidgetSlots">
+    <div class="field curryImageSlot" data-image-slot="0"><label>图片 1 URL</label><input class="input curryImageUrl" data-image-url="0" placeholder="https://..."><label class="fileBtn">上传图片 1<input class="curryImageFile" data-image-file="0" type="file" accept="image/*"></label><div class="curryMusicFileStatus" data-image-status="0"></div></div>
+    <div class="field curryImageSlot" data-image-slot="1"><label>图片 2 URL</label><input class="input curryImageUrl" data-image-url="1" placeholder="https://..."><label class="fileBtn">上传图片 2<input class="curryImageFile" data-image-file="1" type="file" accept="image/*"></label><div class="curryMusicFileStatus" data-image-status="1"></div></div>
+    <div class="field curryImageSlot" data-image-slot="2"><label>图片 3 URL</label><input class="input curryImageUrl" data-image-url="2" placeholder="https://..."><label class="fileBtn">上传图片 3<input class="curryImageFile" data-image-file="2" type="file" accept="image/*"></label><div class="curryMusicFileStatus" data-image-status="2"></div></div>
+    <div class="field curryImageSlot" data-image-slot="3"><label>图片 4 URL</label><input class="input curryImageUrl" data-image-url="3" placeholder="https://..."><label class="fileBtn">上传图片 4<input class="curryImageFile" data-image-file="3" type="file" accept="image/*"></label><div class="curryMusicFileStatus" data-image-status="3"></div></div>
+  </div>
+  <div class="curryMusicEditorGrid">
+    <div class="field"><label>图片裁切</label><select class="input" id="curryImageWidgetFit"><option value="cover">铺满裁切</option><option value="contain">完整显示</option></select></div>
+    <div class="field"><label>卡片风格</label><select class="input" id="curryImageWidgetTheme"><option value="glass">透亮玻璃</option><option value="paper">奶油白</option><option value="dark">深色</option></select></div>
+  </div>
+  <div class="curryMusicEditorGrid">
+    <div class="field"><label>宽度</label><select class="input" id="curryImageWidgetWide"><option value="wide">横跨两列</option><option value="half">半宽卡片</option></select></div>
+    <div class="field"><label>高度</label><select class="input" id="curryImageWidgetSize"><option value="normal">标准</option><option value="large">大卡片</option></select></div>
+  </div>
+  <div class="actions"><button class="btn danger" id="clearCurryImageWidgetImages" type="button">清空图片</button><button class="btn" id="cancelCurryImageWidget" type="button">取消</button><button class="btn primary" id="saveCurryImageWidget" type="button">保存</button></div>
+</div></div>
 <div class="sheet" id="importSheet"><h3>创建联系人</h3><div class="choices"><button class="choice" data-import="png">导入 PNG 角色卡</button><button class="choice" data-import="json">导入 JSON 角色卡</button><button class="choice" data-import="txt">导入 TXT</button><button class="choice" data-import="docx">导入 DOCX</button><button class="choice wide" data-import="manual">手动创建</button><button class="choice wide" id="closeSheet">取消</button></div><input class="hidden" id="importFile" type="file"></div><div class="toast" id="toast"></div>
 </div></section></div></div>
 <script>
@@ -2337,7 +2661,9 @@ let beauty=Object.assign({
   fontFamily:"",
   fontUploaded:false,
   monoMode:"off",
-  icons:{}
+  icons:{},
+  homeOrder:null,
+  homeWidgets:[]
 },load(K.beauty,{}));
 let chatBeauty=Object.assign({wallpaper:"",overlay:.18,userBubble:"#dce1da",charBubble:"#ffffff",radius:15,font:11,showAvatar:false,customCss:""},load(K.chatBeauty,{}));
 let chatThemes=load(K.chatThemes,{}),themeEditContactId="",replyTarget=null,chatSearchTerm="";
@@ -2512,6 +2838,293 @@ function activeMask(){return masks.find(m=>m.id===activeMaskId)||masks[0]}
 function convoKey(contactId,maskId=activeMaskId){return contactId+"::"+maskId}
 function convoPreview(l){if(!l)return"尚未开始对话";if(l.type==="sticker")return`[表情] ${l.mood||""}`.trim();if(l.type==="image")return"[图片]";if(l.type==="voice")return`[语音] ${l.transcript||""}`.trim();if(l.type==="transfer")return`[转账] ¥${Number(l.amount||0).toFixed(2)} ${l.note||""}`.trim();return l.content||"尚未开始对话"}
 
+
+/* ===== V8.8.51 桌面小组件 + 图标拖动 ===== */
+const CURRY_HOME_DEFAULT_ORDER={
+  0:["messages","contacts","moments","forum","xhs","mcp","worldbook","masks","stickers","chatBeauty","beautify"],
+  1:["anniversary","takeout","gameHall","liveRoom","charNetwork","initiative","borrowAccount","notes","settings"]
+};
+let curryHomeEditMode=false,curryDragState=null,curryWidgetClockTimer=null,currySuppressAppClickUntil=0;
+
+function curryHomeGrids(){return [$(".curryAppGridPage1"),$(".curryAppGridPage2")]}
+const CURRY_HOME_COLS=4,CURRY_HOME_ROWS=6;
+function curryHomeAllApps(){return [...document.querySelectorAll(".curryAppGridPage1 > .app[data-app-key],.curryAppGridPage2 > .app[data-app-key]")]}
+function curryHomeOrderSnapshot(){
+  let out={0:[],1:[]},pos=normalizeCurryHomePositions(false);
+  [0,1].forEach(p=>{out[p]=Object.entries(pos).filter(([,v])=>Number(v.page)===p).sort((a,b)=>(a[1].row-b[1].row)||(a[1].col-b[1].col)).map(([k])=>k)});
+  return out
+}
+function currySlotKey(page,row,col){return `${Number(page)||0}:${Number(row)||1}:${Number(col)||1}`}
+function curryFirstFreeSlot(positions,page=0){
+  let used=new Set(Object.values(positions||{}).map(v=>currySlotKey(v.page,v.row,v.col)));
+  for(let p of [page,1-page])for(let r=1;r<=CURRY_HOME_ROWS;r++)for(let c=1;c<=CURRY_HOME_COLS;c++)if(!used.has(currySlotKey(p,r,c)))return {page:p,row:r,col:c};
+  return {page:Number(page)||0,row:CURRY_HOME_ROWS,col:CURRY_HOME_COLS}
+}
+function normalizeCurryHomePositions(writeBeauty=true){
+  let apps=curryHomeAllApps(),byKey=new Map(apps.map(x=>[x.dataset.appKey,x])),saved=(beauty.homePositions&&typeof beauty.homePositions==="object")?beauty.homePositions:{},out={},occupied=new Set();
+  const claim=(k,v)=>{if(!byKey.has(k)||!v)return false;let page=Math.max(0,Math.min(1,Number(v.page)||0)),row=Math.max(1,Math.min(CURRY_HOME_ROWS,Number(v.row)||1)),col=Math.max(1,Math.min(CURRY_HOME_COLS,Number(v.col)||1)),sk=currySlotKey(page,row,col);if(occupied.has(sk))return false;out[k]={page,row,col};occupied.add(sk);return true};
+  Object.entries(saved).forEach(([k,v])=>claim(k,v));
+  /* 从旧版 homeOrder 平滑迁移：原顺序按 4 列依次放入，不丢用户已有跨页布局。 */
+  let old=beauty.homeOrder&&typeof beauty.homeOrder==="object"?beauty.homeOrder:CURRY_HOME_DEFAULT_ORDER;
+  for(let p of [0,1]){
+    let arr=Array.isArray(old?.[p])?old[p]:CURRY_HOME_DEFAULT_ORDER[p];
+    for(let k of arr||[]){if(out[k]||!byKey.has(k))continue;let slot=curryFirstFreeSlot(out,p);claim(k,slot)}
+  }
+  /* 新加入 App 放到它当前 DOM 页的第一个空格。 */
+  curryHomeGrids().forEach((g,p)=>{if(!g)return;[...g.querySelectorAll(":scope > .app[data-app-key]")].forEach(el=>{let k=el.dataset.appKey;if(!out[k])claim(k,curryFirstFreeSlot(out,p))})});
+  if(writeBeauty)beauty.homePositions=out;
+  return out
+}
+function applyCurryHomePositions(saveIt=false){
+  let pos=normalizeCurryHomePositions(true),grids=curryHomeGrids(),byKey=new Map(curryHomeAllApps().map(x=>[x.dataset.appKey,x]));
+  Object.entries(pos).forEach(([k,v])=>{let el=byKey.get(k),g=grids[Number(v.page)||0];if(!el||!g)return;if(el.parentElement!==g)g.appendChild(el);el.style.gridColumn=String(v.col);el.style.gridRow=String(v.row);el.dataset.homePage=String(v.page);el.dataset.homeRow=String(v.row);el.dataset.homeCol=String(v.col)});
+  beauty.homeOrder=curryHomeOrderSnapshot();
+  if(saveIt)save(K.beauty,beauty)
+}
+/* 兼容旧函数名：其余模块如果仍调用 applyCurryHomeOrder，会自动走自由坐标布局。 */
+function normalizeCurryHomeOrder(){normalizeCurryHomePositions(true);return curryHomeOrderSnapshot()}
+function applyCurryHomeOrder(saveIt=false){applyCurryHomePositions(saveIt)}
+function saveCurryHomeOrder(){beauty.homePositions=normalizeCurryHomePositions(true);beauty.homeOrder=curryHomeOrderSnapshot();save(K.beauty,beauty)}
+function resetCurryHomeOrder(){
+  beauty.homePositions={};beauty.homeOrder=cp(CURRY_HOME_DEFAULT_ORDER);normalizeCurryHomePositions(true);applyCurryHomePositions(true);toast("桌面图标位置已重置")
+}
+const CURRY_IMAGE_WIDGET_TYPES=["photo","duo","quad","polaroid","banner","portrait","album"];
+const CURRY_IMAGE_WIDGET_CONFIG={photo:{name:"照片卡片",count:1,title:"MY PHOTO",subtitle:""},duo:{name:"双图拼贴",count:2,title:"TOGETHER",subtitle:"two moments"},quad:{name:"四宫格照片",count:4,title:"MEMORIES",subtitle:"four little moments"},polaroid:{name:"拍立得",count:1,title:"today",subtitle:"write something here"},banner:{name:"横幅图片",count:1,title:"A quiet moment",subtitle:""},portrait:{name:"人物卡片",count:1,title:"Name",subtitle:"status / signature"},album:{name:"专辑展示",count:1,title:"Album title",subtitle:"Artist"}};
+function isCurryImageWidget(type){return CURRY_IMAGE_WIDGET_TYPES.includes(type)}
+function curryWidgetName(type){return ({clock:"时钟",note:"便签",profile:"User 卡片",recent:"最近聊天",music:"音乐播放器",...Object.fromEntries(Object.entries(CURRY_IMAGE_WIDGET_CONFIG).map(([k,v])=>[k,v.name]))})[type]||"小组件"}
+function curryWidgetDefault(type,pageNo=0){
+  let visual=CURRY_IMAGE_WIDGET_CONFIG[type];
+  if(visual)return {id:"widget_"+uuid(),type,page:Number(pageNo)||0,text:"",wide:!["polaroid","portrait","album"].includes(type),size:["photo","duo","quad","polaroid","album"].includes(type)?"large":"normal",theme:"glass",visualTheme:"glass",title:visual.title,subtitle:visual.subtitle,images:Array(visual.count).fill(""),fit:"cover",createdAt:Date.now()};
+  return {id:"widget_"+uuid(),type,page:Number(pageNo)||0,text:type==="note"?"今天也要记得开心。":"",wide:type!=="profile",size:type==="music"?"large":"normal",theme:type==="music"?"glass":"glass",title:type==="music"?"未命名歌曲":"",artist:type==="music"?"未知歌手":"",cover:"",audio:"",accent:"#2c2c2a",createdAt:Date.now()}
+}
+function addCurryWidget(type,pageNo=curryHomeScreenIndex()){
+  beauty.homeWidgets=Array.isArray(beauty.homeWidgets)?beauty.homeWidgets:[];
+  if(type==="clock"&&beauty.homeWidgets.some(w=>w.type==="clock"))return toast("时钟小组件已经有一个啦");
+  let w=curryWidgetDefault(type,pageNo);
+  if(type==="note"){let text=prompt("便签写什么？",w.text);if(text===null)return;w.text=String(text).slice(0,300)}
+  beauty.homeWidgets.push(w);save(K.beauty,beauty);renderCurryWidgets();renderCurryWidgetSettings();
+  if(type==="music")setTimeout(()=>openCurryMusicEditor(w.id),40);else if(isCurryImageWidget(type))setTimeout(()=>openCurryImageEditor(w.id),40);else toast("小组件已添加")
+}
+function removeCurryWidget(id){
+  beauty.homeWidgets=(beauty.homeWidgets||[]).filter(w=>w.id!==id);save(K.beauty,beauty);renderCurryWidgets();renderCurryWidgetSettings();toast("小组件已删除")
+}
+function moveCurryWidget(id){
+  let w=(beauty.homeWidgets||[]).find(x=>x.id===id);if(!w)return;w.page=Number(w.page)===0?1:0;save(K.beauty,beauty);renderCurryWidgets();renderCurryWidgetSettings();toast(`已移到第 ${Number(w.page)+1} 页`)
+}
+function editCurryWidget(id){
+  let w=(beauty.homeWidgets||[]).find(x=>x.id===id);if(!w)return;
+  if(w.type==="music")return openCurryMusicEditor(id);
+  if(isCurryImageWidget(w.type))return openCurryImageEditor(id);
+  if(w.type!=="note")return;
+  let text=prompt("修改便签",w.text||"");if(text===null)return;w.text=String(text).slice(0,300);save(K.beauty,beauty);renderCurryWidgets();renderCurryWidgetSettings()
+}
+function curryImageWidgetCount(type){return CURRY_IMAGE_WIDGET_CONFIG[type]?.count||1}
+function curryImageSafeTheme(v){return ["glass","paper","dark"].includes(v)?v:"glass"}
+function openCurryImageEditor(id){
+  let w=(beauty.homeWidgets||[]).find(x=>x.id===id);if(!w||!isCurryImageWidget(w.type))return;let cfg=CURRY_IMAGE_WIDGET_CONFIG[w.type],sheet=$("#curryImageWidgetSheet");
+  sheet.dataset.clearImages="0";$("#curryImageWidgetId").value=id;$("#curryImageWidgetSheetTitle").textContent=cfg.name;$("#curryImageWidgetTitle").value=w.title||"";$("#curryImageWidgetSubtitle").value=w.subtitle||"";$("#curryImageWidgetFit").value=w.fit==="contain"?"contain":"cover";$("#curryImageWidgetTheme").value=curryImageSafeTheme(w.visualTheme||w.theme);$("#curryImageWidgetWide").value=w.wide===false?"half":"wide";$("#curryImageWidgetSize").value=w.size==="large"?"large":"normal";
+  let imgs=Array.isArray(w.images)?w.images:[];$$('.curryImageSlot').forEach(slot=>{let i=Number(slot.dataset.imageSlot),show=i<cfg.count;slot.hidden=!show;let url=slot.querySelector('[data-image-url]'),file=slot.querySelector('[data-image-file]'),status=slot.querySelector('[data-image-status]');if(!show)return;let val=imgs[i]||"";url.value=(!isCurryMediaRef(val)&&val)||"";file.value="";status.textContent=isCurryMediaRef(val)?"已保存本地图片":val?"当前使用图片 URL":"未设置图片"});
+  sheet.classList.add("show")
+}
+async function saveCurryImageEditor(){
+  let id=$("#curryImageWidgetId").value,w=(beauty.homeWidgets||[]).find(x=>x.id===id);if(!w||!isCurryImageWidget(w.type))return;let cfg=CURRY_IMAGE_WIDGET_CONFIG[w.type],sheet=$("#curryImageWidgetSheet"),clear=sheet.dataset.clearImages==="1",old=Array.isArray(w.images)?w.images:[],next=[];
+  try{
+    w.title=($("#curryImageWidgetTitle").value||cfg.title||"").trim().slice(0,80);w.subtitle=($("#curryImageWidgetSubtitle").value||"").trim().slice(0,140);w.fit=$("#curryImageWidgetFit").value==="contain"?"contain":"cover";w.visualTheme=curryImageSafeTheme($("#curryImageWidgetTheme").value);w.wide=$("#curryImageWidgetWide").value!=="half";w.size=$("#curryImageWidgetSize").value==="large"?"large":"normal";
+    for(let i=0;i<cfg.count;i++){let file=$(`[data-image-file="${i}"]`)?.files?.[0],url=$(`[data-image-url="${i}"]`)?.value.trim()||"",status=$(`[data-image-status="${i}"]`);if(file){if(status)status.textContent="正在保存图片…";next[i]=await mediaPutBlob(file)}else if(url)next[i]=url;else next[i]=clear?"":(old[i]||"")}
+    w.images=next;save(K.beauty,beauty);sheet.classList.remove("show");sheet.dataset.clearImages="0";renderCurryWidgets();renderCurryWidgetSettings();toast("图片小组件已保存")
+  }catch(e){toast("保存失败："+(e?.message||e))}
+}
+function curryVisualImg(src,alt=""){return src?`<img src="${esc(src)}" alt="${esc(alt)}">`:`<div class="curryVisualPlaceholder">＋</div>`}
+function curryImageWidgetHTML(w,editBtn,wide,large){
+  let type=w.type,imgs=Array.isArray(w.images)?w.images:[],theme=curryImageSafeTheme(w.visualTheme||w.theme),fit=w.fit==="contain"?"contain":"cover",controls=`${editBtn}<button class="curryWidgetMove" type="button" data-widget-move="${w.id}">⇄</button><button class="curryWidgetRemove" type="button" data-widget-remove="${w.id}">×</button>`,style=`--visual-fit:${fit}`,title=esc(w.title||CURRY_IMAGE_WIDGET_CONFIG[type]?.title||""),sub=esc(w.subtitle||"");
+  if(type==="duo"||type==="quad"){let count=type==="duo"?2:4,cells=Array.from({length:count},(_,i)=>`<div class="curryVisualGridCell">${curryVisualImg(imgs[i]||"",`image ${i+1}`)}</div>`).join("");return `<div class="curryWidget curryImageWidget${wide}${large} visual-${theme}" style="${style}" data-widget-id="${w.id}" data-widget-type="${type}">${controls}<div class="${type==="duo"?"curryVisualGrid2":"curryVisualGrid4"}">${cells}</div><div class="curryVisualShade"></div><div class="curryVisualCopy"><div class="curryVisualEyebrow">${type==="duo"?"TWO FRAMES":"FOUR FRAMES"}</div><div class="curryVisualTitle">${title}</div>${sub?`<div class="curryVisualSubtitle">${sub}</div>`:""}</div></div>`}
+  if(type==="polaroid")return `<div class="curryWidget curryImageWidget curryPolaroidWidget${wide}${large} visual-${theme}" style="${style}" data-widget-id="${w.id}" data-widget-type="${type}">${controls}<div class="curryVisualMedia">${curryVisualImg(imgs[0]||"",title)}</div><div class="curryVisualCopy"><div class="curryVisualTitle">${title}</div>${sub?`<div class="curryVisualSubtitle">${sub}</div>`:""}</div></div>`;
+  if(type==="portrait")return `<div class="curryWidget curryImageWidget curryPortraitWidget${wide}${large} visual-${theme}" style="${style}" data-widget-id="${w.id}" data-widget-type="${type}">${controls}<div class="curryPortraitInner"><div class="curryPortraitPic">${curryVisualImg(imgs[0]||"",title)}</div><div class="curryVisualTitle">${title}</div>${sub?`<div class="curryVisualSubtitle">${sub}</div>`:""}</div></div>`;
+  if(type==="album")return `<div class="curryWidget curryImageWidget curryAlbumWidget${wide}${large} visual-${theme}" style="${style}" data-widget-id="${w.id}" data-widget-type="${type}">${controls}<div class="curryAlbumInner"><div class="curryAlbumCover">${curryVisualImg(imgs[0]||"",title)}</div><div class="curryAlbumDisc"></div><div class="curryAlbumText"><div class="curryVisualEyebrow">ALBUM</div><div class="curryVisualTitle">${title}</div>${sub?`<div class="curryVisualSubtitle">${sub}</div>`:""}</div></div></div>`;
+  let cls=type==="banner"?" curryBannerWidget":"";return `<div class="curryWidget curryImageWidget${cls}${wide}${large} visual-${theme}" style="${style}" data-widget-id="${w.id}" data-widget-type="${type}">${controls}<div class="curryVisualMedia">${curryVisualImg(imgs[0]||"",title)}</div><div class="curryVisualShade"></div><div class="curryVisualCopy"><div class="curryVisualEyebrow">${type==="banner"?"MOMENT":"PHOTO"}</div><div class="curryVisualTitle">${title}</div>${sub?`<div class="curryVisualSubtitle">${sub}</div>`:""}</div></div>`
+}
+function curryMusicSafeTheme(v){return ["glass","pearl","dark"].includes(v)?v:"glass"}
+function curryMusicSafeAccent(v){return /^#[0-9a-f]{6}$/i.test(String(v||""))?v:"#2c2c2a"}
+function curryMusicTimeText(sec){sec=Math.max(0,Number(sec)||0);let m=Math.floor(sec/60),s=Math.floor(sec%60);return `${m}:${String(s).padStart(2,"0")}`}
+function openCurryMusicEditor(id){
+  let w=(beauty.homeWidgets||[]).find(x=>x.id===id);if(!w||w.type!=="music")return;
+  $("#curryMusicWidgetId").value=id;$("#curryMusicTitle").value=w.title||"";$("#curryMusicArtist").value=w.artist||"";
+  $("#curryMusicCoverUrl").value=(!isCurryMediaRef(w.cover)&&w.cover)||"";$("#curryMusicAudioUrl").value=(!isCurryMediaRef(w.audio)&&w.audio)||"";
+  $("#curryMusicTheme").value=curryMusicSafeTheme(w.theme);$("#curryMusicSize").value=w.size==="large"?"large":"normal";$("#curryMusicAccent").value=curryMusicSafeAccent(w.accent);
+  $("#curryMusicCoverFile").value="";$("#curryMusicAudioFile").value="";
+  $("#curryMusicCoverStatus").textContent=isCurryMediaRef(w.cover)?"已保存本地封面":"";$("#curryMusicAudioStatus").textContent=isCurryMediaRef(w.audio)?"已保存本地音频":"";
+  $("#curryMusicWidgetSheet").classList.add("show")
+}
+async function saveCurryMusicEditor(){
+  let id=$("#curryMusicWidgetId").value,w=(beauty.homeWidgets||[]).find(x=>x.id===id);if(!w)return;
+  let coverFile=$("#curryMusicCoverFile").files?.[0],audioFile=$("#curryMusicAudioFile").files?.[0];
+  try{
+    w.title=($("#curryMusicTitle").value||"未命名歌曲").trim().slice(0,80);w.artist=($("#curryMusicArtist").value||"未知歌手").trim().slice(0,80);
+    w.theme=curryMusicSafeTheme($("#curryMusicTheme").value);w.size=$("#curryMusicSize").value==="large"?"large":"normal";w.wide=true;w.accent=curryMusicSafeAccent($("#curryMusicAccent").value);
+    let coverUrl=$("#curryMusicCoverUrl").value.trim(),audioUrl=$("#curryMusicAudioUrl").value.trim();
+    if(coverFile){$("#curryMusicCoverStatus").textContent="正在保存封面…";w.cover=await mediaPutBlob(coverFile)}else if(coverUrl)w.cover=coverUrl;
+    else if(!isCurryMediaRef(w.cover))w.cover="";
+    if(audioFile){$("#curryMusicAudioStatus").textContent="正在保存音频…";w.audio=await mediaPutBlob(audioFile)}else if(audioUrl)w.audio=audioUrl;
+    else if(!isCurryMediaRef(w.audio))w.audio="";
+    save(K.beauty,beauty);$("#curryMusicWidgetSheet").classList.remove("show");renderCurryWidgets();renderCurryWidgetSettings();toast("音乐小组件已保存")
+  }catch(e){toast("保存失败："+(e?.message||e))}
+}
+function curryWidgetHTML(w){
+  let mask=activeMask?.(),type=w.type,wide=w.wide!==false?" wide":"",large=w.size==="large"?" large":"";
+  const editBtn=(type==="note"||type==="music"||isCurryImageWidget(type))?`<button class="curryWidgetEdit" type="button" data-widget-edit="${w.id}">✎</button>`:"";
+  if(isCurryImageWidget(type))return curryImageWidgetHTML(w,editBtn,wide,large);
+  if(type==="clock")return `<div class="curryWidget${wide}${large}" role="button" tabindex="0" data-widget-id="${w.id}" data-widget-type="clock"><button class="curryWidgetMove" type="button" data-widget-move="${w.id}">⇄</button><button class="curryWidgetRemove" type="button" data-widget-remove="${w.id}">×</button><div class="curryWidgetTitle">LOCAL TIME</div><div class="curryWidgetClockTime" data-widget-clock-time>--:--</div><div class="curryWidgetClockDate" data-widget-clock-date>----</div></div>`;
+  if(type==="profile"){let av=mask?.avatar?`<img src="${esc(mask.avatar)}" alt="">`:esc((mask?.userName||mask?.name||"U").charAt(0)||"U");return `<div class="curryWidget${wide}${large}" role="button" tabindex="0" data-widget-id="${w.id}" data-widget-type="profile"><button class="curryWidgetMove" type="button" data-widget-move="${w.id}">⇄</button><button class="curryWidgetRemove" type="button" data-widget-remove="${w.id}">×</button><div class="curryWidgetProfile"><div class="curryWidgetAvatar">${av}</div><div><div class="curryWidgetTitle">CURRENT USER</div><div class="curryWidgetText">${esc(mask?.userName||mask?.name||"user")}</div><div class="curryWidgetMeta">${contacts.length} 位联系人</div></div></div></div>`}
+  if(type==="recent"){let rows=contacts.map(c=>{let h=convos[convoKey(c.id)]||[];return {c,last:h[h.length-1],n:h.length}}).filter(x=>x.last).sort((a,b)=>b.n-a.n),r=rows[0];return `<div class="curryWidget${wide}${large}" role="button" tabindex="0" data-widget-id="${w.id}" data-widget-type="recent" ${r?`data-widget-chat="${esc(r.c.id)}"`:""}><button class="curryWidgetMove" type="button" data-widget-move="${w.id}">⇄</button><button class="curryWidgetRemove" type="button" data-widget-remove="${w.id}">×</button><div class="curryWidgetTitle">RECENT CHAT</div><div class="curryWidgetText">${r?esc(r.c.name):"还没有聊天"}</div><div class="curryWidgetMeta">${r?esc(convoPreview(r.last)):"去找一个人说说话吧"}</div></div>`}
+  if(type==="music"){
+    let cover=w.cover?`<img src="${esc(w.cover)}" alt="">`:`<div class="curryMusicCoverFallback">♪</div>`,audio=w.audio?`<audio preload="metadata" src="${esc(w.audio)}"></audio>`:"";
+    return `<div class="curryWidget curryMusicWidget wide${large} theme-${curryMusicSafeTheme(w.theme)}" style="--music-accent:${curryMusicSafeAccent(w.accent)}" data-widget-id="${w.id}" data-widget-type="music">${editBtn}<button class="curryWidgetMove" type="button" data-widget-move="${w.id}">⇄</button><button class="curryWidgetRemove" type="button" data-widget-remove="${w.id}">×</button><div class="curryMusicTop"><div class="curryMusicCover">${cover}</div><div class="curryMusicInfo"><div class="curryMusicCaption">NOW PLAYING</div><div class="curryMusicTitle">${esc(w.title||"未命名歌曲")}</div><div class="curryMusicArtist">${esc(w.artist||"未知歌手")}</div></div></div><div class="curryMusicProgress" data-music-progress><div class="curryMusicProgressFill"></div></div><div class="curryMusicBottom"><div class="curryMusicTime"><span data-music-current>0:00</span> / <span data-music-duration>0:00</span></div><div class="curryMusicControls"><button class="curryMusicControl" type="button" data-music-restart title="重新开始">↶</button><button class="curryMusicControl play" type="button" data-music-play ${w.audio?"":"disabled"}>▶</button></div></div>${audio}</div>`
+  }
+  return `<div class="curryWidget${wide}${large}" role="button" tabindex="0" data-widget-id="${w.id}" data-widget-type="note">${editBtn}<button class="curryWidgetMove" type="button" data-widget-move="${w.id}">⇄</button><button class="curryWidgetRemove" type="button" data-widget-remove="${w.id}">×</button><div class="curryWidgetTitle">NOTE</div><div class="curryWidgetText">${esc(w.text||"空白便签")}</div><div class="curryWidgetMeta">点击可修改</div></div>`
+}
+function updateCurryWidgetClock(){
+  let d=new Date(),time=d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}),date=d.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});
+  $$('[data-widget-clock-time]').forEach(x=>x.textContent=time);$$('[data-widget-clock-date]').forEach(x=>x.textContent=date)
+}
+function bindCurryMusicWidgets(){
+  $$('.curryMusicWidget').forEach(card=>{
+    let audio=card.querySelector('audio'),play=card.querySelector('[data-music-play]'),restart=card.querySelector('[data-music-restart]'),bar=card.querySelector('[data-music-progress]'),fill=card.querySelector('.curryMusicProgressFill'),cur=card.querySelector('[data-music-current]'),dur=card.querySelector('[data-music-duration]');if(!audio||!play)return;
+    const sync=()=>{let d=Number(audio.duration)||0,c=Number(audio.currentTime)||0;fill.style.width=(d?Math.min(100,c/d*100):0)+'%';cur.textContent=curryMusicTimeText(c);dur.textContent=curryMusicTimeText(d);play.textContent=audio.paused?'▶':'Ⅱ';card.classList.toggle('is-playing',!audio.paused)};
+    play.onclick=e=>{e.preventDefault();e.stopPropagation();if(curryHomeEditMode)return;$$('.curryMusicWidget audio').forEach(a=>{if(a!==audio&&!a.paused)a.pause()});if(audio.paused)audio.play().catch(()=>toast('音频无法播放，请检查文件或 URL'));else audio.pause()};
+    restart.onclick=e=>{e.preventDefault();e.stopPropagation();if(curryHomeEditMode)return;audio.currentTime=0;sync()};
+    ;['loadedmetadata','timeupdate','play','pause','ended'].forEach(ev=>audio.addEventListener(ev,sync));
+    bar.onclick=e=>{if(curryHomeEditMode||!audio.duration)return;e.preventDefault();e.stopPropagation();let r=bar.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(audio.duration,(e.clientX-r.left)/r.width*audio.duration));sync()};sync()
+  })
+}
+function renderCurryWidgets(){
+  beauty.homeWidgets=Array.isArray(beauty.homeWidgets)?beauty.homeWidgets:[];
+  [0,1].forEach(i=>{let z=$("#curryWidgetZone"+i);if(z)z.innerHTML=beauty.homeWidgets.filter(w=>Number(w.page||0)===i).map(curryWidgetHTML).join("")});
+  updateCurryWidgetClock();
+  if(curryWidgetClockTimer)clearInterval(curryWidgetClockTimer);
+  if(beauty.homeWidgets.some(w=>w.type==="clock"))curryWidgetClockTimer=setInterval(updateCurryWidgetClock,10000);
+  $$('[data-widget-remove]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();removeCurryWidget(b.dataset.widgetRemove)});
+  $$('[data-widget-move]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();moveCurryWidget(b.dataset.widgetMove)});
+  $$('[data-widget-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();editCurryWidget(b.dataset.widgetEdit)});
+  $$('[data-widget-type="note"]').forEach(b=>b.onclick=e=>{if(curryHomeEditMode||e.target.closest('[data-widget-remove],[data-widget-move],[data-widget-edit]'))return;editCurryWidget(b.dataset.widgetId)});
+  $$('[data-widget-chat]').forEach(b=>b.onclick=e=>{if(curryHomeEditMode||e.target.closest('[data-widget-remove],[data-widget-move],[data-widget-edit]'))return;openChat(b.dataset.widgetChat)});
+  hydrateCurryMedia(document).then(bindCurryMusicWidgets).catch(()=>bindCurryMusicWidgets())
+}
+function renderCurryWidgetSettings(){
+  let box=$("#curryWidgetSettingsList");if(!box)return;let arr=beauty.homeWidgets||[];
+  box.innerHTML=arr.length?arr.map(w=>`<div class="curryWidgetSettingRow"><div><div class="curryWidgetSettingName">${esc(curryWidgetName(w.type))}</div><div class="curryWidgetSettingMeta">第 ${Number(w.page||0)+1} 页${w.type==="note"?` · ${esc((w.text||"").slice(0,30))}`:w.type==="music"?` · ${esc((w.title||"未命名歌曲").slice(0,22))}`:isCurryImageWidget(w.type)?` · ${esc((w.title||"").slice(0,22))}`:""}</div></div><div class="curryWidgetSettingActions">${(["note","music"].includes(w.type)||isCurryImageWidget(w.type))?`<button class="btn" type="button" data-widget-setting-edit="${w.id}">编辑</button>`:""}<button class="btn" type="button" data-widget-setting-move="${w.id}">换页</button><button class="btn danger" type="button" data-widget-setting-remove="${w.id}">删除</button></div></div>`).join(""):'<div class="help">还没有小组件。可以从上面的按钮添加。</div>';
+  $$('[data-widget-setting-edit]').forEach(b=>b.onclick=()=>editCurryWidget(b.dataset.widgetSettingEdit));
+  $$('[data-widget-setting-move]').forEach(b=>b.onclick=()=>moveCurryWidget(b.dataset.widgetSettingMove));
+  $$('[data-widget-setting-remove]').forEach(b=>b.onclick=()=>removeCurryWidget(b.dataset.widgetSettingRemove))
+}
+function setCurryHomeEditMode(on){
+  curryHomeEditMode=!!on;let home=$(".curryHome");if(home)home.classList.toggle("homeEditMode",curryHomeEditMode);
+  if(!curryHomeEditMode&&curryDragState)finishCurryIconDrag(null,true)
+}
+function enterCurryHomeEdit(){page("home");setTimeout(()=>{setCurryHomeEditMode(true);toast("拖到任意格子自由摆放")},30)}
+function curryAppFromPoint(x,y){
+  let el=document.elementFromPoint(x,y);return el?.closest?.(".curryAppGrid .app[data-app-key]")||null
+}
+function curryGridFromPoint(x,y){
+  let el=document.elementFromPoint(x,y);return el?.closest?.(".curryAppGridPage1,.curryAppGridPage2")||null
+}
+function curryGridPageNo(grid){return grid?.classList?.contains("curryAppGridPage2")?1:0}
+function currySlotAtPoint(grid,x,y){
+  if(!grid)return null;let r=grid.getBoundingClientRect(),cs=getComputedStyle(grid),gapX=parseFloat(cs.columnGap)||0,gapY=parseFloat(cs.rowGap)||0;
+  let cellW=(r.width-gapX*(CURRY_HOME_COLS-1))/CURRY_HOME_COLS,cellH=(r.height-gapY*(CURRY_HOME_ROWS-1))/CURRY_HOME_ROWS;
+  let col=Math.max(1,Math.min(CURRY_HOME_COLS,Math.floor((x-r.left)/(cellW+gapX))+1));
+  let row=Math.max(1,Math.min(CURRY_HOME_ROWS,Math.floor((y-r.top)/(cellH+gapY))+1));
+  return {page:curryGridPageNo(grid),row,col,cellW,cellH,gapX,gapY}
+}
+function curryAppAtSlot(page,row,col,except=null){
+  let pos=normalizeCurryHomePositions(false),hit=Object.entries(pos).find(([k,v])=>k!==except&&Number(v.page)===Number(page)&&Number(v.row)===Number(row)&&Number(v.col)===Number(col));
+  return hit?curryHomeAllApps().find(el=>el.dataset.appKey===hit[0])||null:null
+}
+function curryShowSlotHint(grid,slot){
+  document.querySelectorAll('.curryGridSlotHint').forEach(n=>n.remove());if(!grid||!slot)return;
+  let r=grid.getBoundingClientRect(),cs=getComputedStyle(grid),gx=parseFloat(cs.columnGap)||0,gy=parseFloat(cs.rowGap)||0,cw=(r.width-gx*(CURRY_HOME_COLS-1))/CURRY_HOME_COLS,ch=(r.height-gy*(CURRY_HOME_ROWS-1))/CURRY_HOME_ROWS;
+  let h=document.createElement('div');h.className='curryGridSlotHint';h.style.left=((slot.col-1)*(cw+gx))+'px';h.style.top=((slot.row-1)*(ch+gy))+'px';h.style.width=cw+'px';h.style.height=ch+'px';grid.appendChild(h)
+}
+function beginCurryIconDrag(el,e){
+  if(!curryHomeEditMode||!el||curryDragState)return;
+  let r=el.getBoundingClientRect(),ghost=el.cloneNode(true),key=el.dataset.appKey,pos=normalizeCurryHomePositions(false)[key];ghost.classList.add("curryDragGhost");ghost.style.width=r.width+"px";ghost.style.height=r.height+"px";document.body.appendChild(ghost);
+  el.classList.add("curryDragging");curryDragState={el,key,origin:pos?{...pos}:null,ghost,pointerId:e.pointerId,lastSlot:null,lastGrid:null,edgeTimer:null};
+  moveCurryIconGhost(e.clientX,e.clientY);try{el.setPointerCapture?.(e.pointerId)}catch{}
+}
+function moveCurryIconGhost(x,y){
+  let st=curryDragState;if(!st)return;st.ghost.style.left=x+"px";st.ghost.style.top=y+"px";
+  document.querySelectorAll(".curryDropHint").forEach(n=>n.classList.remove("curryDropHint"));
+  let grid=curryGridFromPoint(x,y),slot=grid?currySlotAtPoint(grid,x,y):null,target=slot?curryAppAtSlot(slot.page,slot.row,slot.col,st.key):null;
+  if(grid&&slot){st.lastGrid=grid;st.lastSlot=slot;curryShowSlotHint(grid,slot);if(target)target.classList.add("curryDropHint")}
+  /* 靠左右边缘仍然可以自动翻页。 */
+  let vw=innerWidth,dir=x<34?-1:x>vw-34?1:0;
+  if(dir){
+    if(!st.edgeTimer)st.edgeTimer=setTimeout(()=>{if(!curryDragState)return;let ni=curryHomeScreenIndex()+dir;if(ni>=0&&ni<=1){goCurryHomeScreen(ni,"smooth");setTimeout(()=>{let g=curryHomeGrids()[ni];if(g){let rr=g.getBoundingClientRect(),px=Math.max(rr.left+6,Math.min(rr.right-6,x)),py=Math.max(rr.top+6,Math.min(rr.bottom-6,y));let sl=currySlotAtPoint(g,px,py);st.lastGrid=g;st.lastSlot=sl;curryShowSlotHint(g,sl)}},260)}curryDragState.edgeTimer=null},420)
+  }else if(st.edgeTimer){clearTimeout(st.edgeTimer);st.edgeTimer=null}
+}
+function finishCurryIconDrag(e,cancel=false){
+  let st=curryDragState;if(!st)return;if(st.edgeTimer)clearTimeout(st.edgeTimer);
+  document.querySelectorAll(".curryDropHint,.curryPageDrop").forEach(n=>n.classList.remove("curryDropHint","curryPageDrop"));document.querySelectorAll('.curryGridSlotHint').forEach(n=>n.remove());
+  if(!cancel){
+    let grid=(Number.isFinite(e?.clientX)&&Number.isFinite(e?.clientY))?curryGridFromPoint(e.clientX,e.clientY):st.lastGrid,slot=grid?currySlotAtPoint(grid,e?.clientX??grid.getBoundingClientRect().left+8,e?.clientY??grid.getBoundingClientRect().top+8):st.lastSlot;
+    if(!slot)slot=st.lastSlot;
+    if(slot){let pos=normalizeCurryHomePositions(true),otherEntry=Object.entries(pos).find(([k,v])=>k!==st.key&&Number(v.page)===slot.page&&Number(v.row)===slot.row&&Number(v.col)===slot.col);if(otherEntry&&st.origin)pos[otherEntry[0]]={...st.origin};pos[st.key]={page:slot.page,row:slot.row,col:slot.col};beauty.homePositions=pos;applyCurryHomePositions(false);saveCurryHomeOrder();currySuppressAppClickUntil=Date.now()+450}
+  }
+  st.el.classList.remove("curryDragging");st.ghost.remove();curryDragState=null
+}
+function bindCurryHomeIconEditing(){
+  $$(".curryAppGrid .app[data-app-key]").forEach(el=>{
+    if(el.dataset.curryDragBound==="1")return;el.dataset.curryDragBound="1";
+    let hold=null,sx=0,sy=0;
+    el.addEventListener("pointerdown",e=>{
+      if(e.button!==undefined&&e.button!==0)return;sx=e.clientX;sy=e.clientY;
+      if(curryHomeEditMode){e.preventDefault();beginCurryIconDrag(el,e);return}
+      hold=setTimeout(()=>{hold=null;setCurryHomeEditMode(true);toast("桌面编辑：可自由留空位");beginCurryIconDrag(el,e)},520)
+    });
+    el.addEventListener("pointermove",e=>{if(hold&&Math.hypot(e.clientX-sx,e.clientY-sy)>9){clearTimeout(hold);hold=null}if(curryDragState?.el===el){e.preventDefault();moveCurryIconGhost(e.clientX,e.clientY)}});
+    el.addEventListener("pointerup",e=>{if(hold){clearTimeout(hold);hold=null}if(curryDragState?.el===el){e.preventDefault();finishCurryIconDrag(e,false)}});
+    el.addEventListener("pointercancel",()=>{if(hold){clearTimeout(hold);hold=null}if(curryDragState?.el===el)finishCurryIconDrag(null,true)});
+    el.addEventListener("click",e=>{if(curryHomeEditMode||Date.now()<currySuppressAppClickUntil){e.preventDefault();e.stopImmediatePropagation()}},true)
+  })
+}
+function initCurryDesktopCustomization(){
+  applyCurryHomeOrder(false);renderCurryWidgets();renderCurryWidgetSettings();bindCurryHomeIconEditing();
+  $("#curryDoneEditBtn")&&($("#curryDoneEditBtn").onclick=()=>{setCurryHomeEditMode(false);saveCurryHomeOrder();toast("桌面布局已保存")});
+  const openWidgetPicker=()=>{let sh=$("#curryWidgetPickerSheet");if(sh){sh.classList.add("show");sh.dataset.page=String(curryHomeScreenIndex())}};
+  const addWidgetBtn=$("#curryAddWidgetBtn");
+  if(addWidgetBtn){
+    addWidgetBtn.onclick=e=>{e.preventDefault();e.stopPropagation();openWidgetPicker()};
+    addWidgetBtn.onpointerdown=e=>{e.stopPropagation()};
+  }
+  $("#closeCurryWidgetPicker")&&($("#closeCurryWidgetPicker").onclick=e=>{e.preventDefault();e.stopPropagation();$("#curryWidgetPickerSheet")?.classList.remove("show")});
+  $$('[data-add-home-widget]').forEach(b=>{
+    b.onclick=e=>{e.preventDefault();e.stopPropagation();let sh=$("#curryWidgetPickerSheet"),pg=Number(sh?.dataset.page??curryHomeScreenIndex());sh?.classList.remove("show");addCurryWidget(b.dataset.addHomeWidget,pg)};
+    b.onpointerdown=e=>e.stopPropagation();
+  });
+  $("#curryResetLayoutBtn")&&($("#curryResetLayoutBtn").onclick=resetCurryHomeOrder);
+  $("#enterHomeEditBtn")&&($("#enterHomeEditBtn").onclick=enterCurryHomeEdit);
+  $("#resetHomeLayoutBtn")&&($("#resetHomeLayoutBtn").onclick=resetCurryHomeOrder);
+  $("#addClockWidget")&&($("#addClockWidget").onclick=()=>addCurryWidget("clock"));
+  $("#addNoteWidget")&&($("#addNoteWidget").onclick=()=>addCurryWidget("note"));
+  $("#addProfileWidget")&&($("#addProfileWidget").onclick=()=>addCurryWidget("profile"));
+  $("#addRecentWidget")&&($("#addRecentWidget").onclick=()=>addCurryWidget("recent"));
+  $("#addPhotoWidget")&&($("#addPhotoWidget").onclick=()=>addCurryWidget("photo"));
+  $("#addDuoWidget")&&($("#addDuoWidget").onclick=()=>addCurryWidget("duo"));
+  $("#addQuadWidget")&&($("#addQuadWidget").onclick=()=>addCurryWidget("quad"));
+  $("#addPolaroidWidget")&&($("#addPolaroidWidget").onclick=()=>addCurryWidget("polaroid"));
+  $("#addBannerWidget")&&($("#addBannerWidget").onclick=()=>addCurryWidget("banner"));
+  $("#addPortraitWidget")&&($("#addPortraitWidget").onclick=()=>addCurryWidget("portrait"));
+  $("#addAlbumWidget")&&($("#addAlbumWidget").onclick=()=>addCurryWidget("album"));
+  $("#addMusicWidget")&&($("#addMusicWidget").onclick=()=>addCurryWidget("music"));
+  $("#cancelCurryImageWidget")&&($("#cancelCurryImageWidget").onclick=()=>$("#curryImageWidgetSheet")?.classList.remove("show"));
+  $("#saveCurryImageWidget")&&($("#saveCurryImageWidget").onclick=saveCurryImageEditor);
+  $("#clearCurryImageWidgetImages")&&($("#clearCurryImageWidgetImages").onclick=()=>{let sh=$("#curryImageWidgetSheet");sh.dataset.clearImages="1";$$('.curryImageUrl').forEach(x=>x.value="");$$('.curryImageFile').forEach(x=>x.value="");$$('[data-image-status]').forEach(x=>x.textContent="保存后清空");toast("保存后会清空当前组件图片")});
+  $("#cancelCurryMusicWidget")&&($("#cancelCurryMusicWidget").onclick=()=>$("#curryMusicWidgetSheet")?.classList.remove("show"));
+  $("#saveCurryMusicWidget")&&($("#saveCurryMusicWidget").onclick=saveCurryMusicEditor);
+  /* 动态插入借号 App 等新图标时也自动补绑定。 */
+  new MutationObserver(()=>{normalizeCurryHomePositions(true);applyCurryHomePositions(false);bindCurryHomeIconEditing()}).observe($("#curryHomePager")||document.body,{childList:true,subtree:true})
+}
+setTimeout(initCurryDesktopCustomization,80);
+
 /* ===== V4.2 双屏桌面分页 ===== */
 function curryHomeScreenIndex(){
   let pager=$("#curryHomePager");
@@ -2554,6 +3167,7 @@ function renderHome39(){
  host.innerHTML=rows.length?rows.map(({c,last})=>`<button class="curryRecentCard" type="button" data-home-chat="${c.id}"><div class="curryRecentAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c.name||"?").charAt(0))}</div><div class="curryRecentName">${esc(c.name)}</div><div class="curryRecentText">${esc(convoPreview(last))}</div></button>`).join(""):'<div class="curryRecentEmpty">还没有最近聊天 · 去找一个人说说话吧</div>';
  $$('[data-home-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.homeChat));
  updateMessageBadge();
+ if(typeof renderCurryWidgets==="function")renderCurryWidgets();
 } 
 function renderConvos(){let e=$("#conversationList"),m=activeMask();e.innerHTML=contacts.length?contacts.map(c=>{let h=convos[convoKey(c.id)]||[],l=h[h.length-1],u=unreadFor(c.id);return `<button class="row convoRow" data-id="${c.id}">${av(c)}<div><div class="name">${esc(c.name)}</div><div class="sub">${esc(convoPreview(l))} · ${esc(m?.name||"默认 user")}</div></div>${u?`<span class="convoUnread">${u>99?"99+":u}</span>`:""}<div class="tiny">${esc(l?.time||"")}</div></button>`}).join(""):'<div class="empty">还没有联系人。<br>先去联系人 App 创建角色。</div>';$$('.convoRow').forEach(b=>b.onclick=()=>openChat(b.dataset.id));updateMessageBadge()}
 function fillChatMaskSelect(){let sel=$("#chatMaskSelect");if(!sel)return;sel.innerHTML=masks.map(m=>`<option value="${m.id}" ${m.id===activeMaskId?"selected":""}>${esc(m.name)}</option>`).join("")}
@@ -4392,6 +5006,9 @@ function applyBeauty(){
   if($("#iconRadius"))$("#iconRadius").value=beauty.iconRadius??17;
   if($("#iconOpacity"))$("#iconOpacity").value=beauty.iconOpacity??.66;
   if($("#customCss"))$("#customCss").value=beauty.customCss||"";
+  if(typeof applyCurryHomeOrder==="function")applyCurryHomeOrder(false);
+  if(typeof renderCurryWidgets==="function")renderCurryWidgets();
+  if(typeof renderCurryWidgetSettings==="function")renderCurryWidgetSettings();
 }
 
 function renderIconCustomizer(){
@@ -4459,7 +5076,7 @@ $("#applyFont").onclick=async()=>{beauty.fontFamily=$("#fontFamilyInput").value.
 $("#resetFont").onclick=async()=>{beauty.fontFamily="";beauty.fontUploaded=false;try{await deleteCurryFont()}catch{};save(K.beauty,beauty);if($("#fontFamilyInput"))$("#fontFamilyInput").value="";applySystemFont();toast("已恢复默认字体")};
 $("#applyCss").onclick=()=>{beauty.customCss=$("#customCss").value;save(K.beauty,beauty);applyBeauty();toast("自定义 CSS 已应用")};
 $("#resetBeauty").onclick=()=>{
-  beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",fontFamily:"",fontUploaded:false,monoMode:"off",icons:{}};
+  beauty={wallpaper:"",wallpaperOpacity:1,iconRadius:17,iconOpacity:.66,customCss:"",fontFamily:"",fontUploaded:false,monoMode:"off",icons:{},homeOrder:null,homeWidgets:[]};
   deleteCurryFont().catch(()=>{});save(K.beauty,beauty);applyBeauty();renderIconCustomizer();toast("已恢复默认美化");
 };
 $("#fullscreenApp").onclick=async()=>{
