@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" sizes="180x180" href="https://img2.tofaka.com/autoupload/f/7e13t/20260901/xR7I/1254X1254/A171FCCB-502C-4E4D-8023-38733B223DC7.png">
+<link rel="apple-touch-icon-precomposed" href="https://img2.tofaka.com/autoupload/f/7e13t/20260901/xR7I/1254X1254/A171FCCB-502C-4E4D-8023-38733B223DC7.png">
+<link rel="icon" type="image/png" href="https://img2.tofaka.com/autoupload/f/7e13t/20260901/xR7I/1254X1254/A171FCCB-502C-4E4D-8023-38733B223DC7.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f5f3ee">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -7404,4 +7407,84 @@ function curryNormalizeChatImport(raw){
 
 
 
+
+
+<!-- ===== iOS Chat Keyboard Avoidance Fix v1 ===== -->
+<style id="curry-ios-chat-keyboard-fix-v1">
+/* visualViewport 变小时，让聊天页严格跟随可见区域；输入栏留在 flex 流中，不被键盘盖住。 */
+body.phoneActive.keyboardOpen #root.phoneMode,
+body.phoneActive.keyboardOpen #root.immersive,
+body.phoneActive.keyboardOpen .fullscreenPhone #root{
+  height:var(--app-height)!important;
+  max-height:var(--app-height)!important;
+}
+body.phoneActive.keyboardOpen .chatPage.active{
+  height:100%!important;
+  max-height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+body.phoneActive.keyboardOpen .chatPage.active>.chatBody{
+  flex:1 1 0!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow-y:auto!important;
+  padding-bottom:22px!important;
+  scroll-padding-bottom:22px!important;
+}
+body.phoneActive.keyboardOpen .chatPage.active>.compose{
+  position:relative!important;
+  flex:0 0 auto!important;
+  bottom:auto!important;
+  margin-bottom:6px!important;
+}
+/* iOS 聚焦 textarea 时禁止页面自身滚动，滚动只发生在消息区。 */
+body.phoneActive.keyboardOpen{overflow:hidden!important;}
+</style>
+<script id="curry-ios-chat-keyboard-fix-js-v1">
+(function(){
+  const vv=window.visualViewport;
+  if(!vv)return;
+  let raf=0, lastKeyboard=false;
+  const isChatInput=el=>!!(el && (el.id==='chatInput' || el.id==='groupInput' || el.id==='borrowChatInput'));
+  const chatScroller=()=>{
+    const p=document.querySelector('.page.active');
+    if(!p)return null;
+    return p.querySelector('.chatBody');
+  };
+  const keyboardHeight=()=>Math.max(0, Math.round((window.innerHeight||document.documentElement.clientHeight||0)-vv.height-vv.offsetTop));
+  const scrollChatBottom=()=>{
+    const sc=chatScroller();
+    if(!sc)return;
+    requestAnimationFrame(()=>{ sc.scrollTop=sc.scrollHeight; });
+  };
+  function sync(){
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>{
+      const kh=keyboardHeight();
+      const focused=isChatInput(document.activeElement);
+      const open=focused && kh>80;
+      document.body.classList.toggle('keyboardOpen',open);
+      /* 可见视口高度才是键盘弹出后真正能用的高度。 */
+      if(document.body.classList.contains('phoneActive')){
+        document.documentElement.style.setProperty('--app-height',Math.max(320,Math.round(vv.height))+'px');
+      }
+      if(open || (focused && lastKeyboard!==open)) scrollChatBottom();
+      lastKeyboard=open;
+    });
+  }
+  document.addEventListener('focusin',e=>{
+    if(!isChatInput(e.target))return;
+    setTimeout(()=>{sync();scrollChatBottom();},60);
+    setTimeout(()=>{sync();scrollChatBottom();},260);
+  });
+  document.addEventListener('focusout',e=>{
+    if(!isChatInput(e.target))return;
+    setTimeout(()=>{document.body.classList.remove('keyboardOpen');sync();},120);
+  });
+  vv.addEventListener('resize',sync,{passive:true});
+  vv.addEventListener('scroll',sync,{passive:true});
+})();
+</script>
 </body></html>
