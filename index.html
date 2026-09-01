@@ -8173,4 +8173,84 @@ body.phoneActive.keyboardOpen{overflow:hidden!important;}
 })();
 </script>
 
+
+<style id="curry-ios-keyboard-follow-fix">
+/* ===== iOS 键盘 / 聊天输入框跟随 ===== */
+:root{ --curry-keyboard-offset:0px; }
+
+/* 键盘弹出时，把悬浮输入框整体抬到键盘上方 */
+body.phoneActive .chatPage .compose{
+  bottom:calc(8px + var(--curry-keyboard-offset)) !important;
+  transition:bottom .12s ease-out;
+}
+
+/* 输入框抬高后，聊天区同步多留空间，最后几条消息不会藏在输入框后面 */
+body.phoneActive .chatPage .chatBody{
+  padding-bottom:calc(112px + var(--curry-keyboard-offset)) !important;
+  scroll-padding-bottom:calc(112px + var(--curry-keyboard-offset)) !important;
+}
+
+/* 表情包 / 媒体选择器也跟着输入框走 */
+body.phoneActive .chatPage .stickerPicker,
+body.phoneActive .chatPage .mediaPicker{
+  bottom:calc(84px + var(--curry-keyboard-offset)) !important;
+}
+</style>
+
+<script id="curry-ios-keyboard-follow-js">
+(function(){
+  var root = document.documentElement;
+  var lastOffset = 0;
+  var raf = 0;
+
+  function getKeyboardOffset(){
+    if(!window.visualViewport) return 0;
+    var vv = window.visualViewport;
+    /* layout viewport 底部 - visual viewport 底部 = 被软键盘占用的高度 */
+    var overlap = window.innerHeight - (vv.height + vv.offsetTop);
+    /* 很小的变化通常只是浏览器工具栏，不当作键盘 */
+    return overlap > 80 ? Math.max(0, Math.round(overlap)) : 0;
+  }
+
+  function update(){
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function(){
+      var offset = getKeyboardOffset();
+      if(offset === lastOffset) return;
+      lastOffset = offset;
+      root.style.setProperty('--curry-keyboard-offset', offset + 'px');
+
+      /* 聚焦聊天输入框时，让最新消息保持在可见区域 */
+      var active = document.activeElement;
+      if(offset > 0 && active && active.closest && active.closest('.compose')){
+        setTimeout(function(){
+          var page = active.closest('.chatPage');
+          var body = page && page.querySelector('.chatBody');
+          if(body) body.scrollTop = body.scrollHeight;
+        }, 140);
+      }
+    });
+  }
+
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', update, {passive:true});
+    window.visualViewport.addEventListener('scroll', update, {passive:true});
+  }
+  window.addEventListener('resize', update, {passive:true});
+  document.addEventListener('focusin', function(e){
+    if(e.target && e.target.closest && e.target.closest('.compose')){
+      setTimeout(update, 50);
+      setTimeout(update, 250);
+    }
+  });
+  document.addEventListener('focusout', function(e){
+    if(e.target && e.target.closest && e.target.closest('.compose')){
+      setTimeout(update, 80);
+      setTimeout(update, 300);
+    }
+  });
+  update();
+})();
+</script>
+
 </body></html>
