@@ -2164,7 +2164,7 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 <div class="field"><label>聊天字号</label><input class="input" id="bubbleFont" type="range" min="9" max="18" step="1"></div>
 <div class="field"><label><input id="showChatAvatar" type="checkbox"> 显示 Char 小头像</label></div>
 </div></div>
-<div class="settingGroup"><h3>角色独立主题</h3><div class="settingBox"><div class="themeScopeRow"><select class="input" id="chatThemeContact"><option value="">全局默认主题</option></select><label class="tiny"><input type="checkbox" id="chatThemePerChar"> 独立主题</label></div><div class="chatThemeNote">开启后，此联系人会保存自己的壁纸、气泡颜色、圆角、字号和头像显示设置；关闭则继续跟随全局。</div></div></div><div class="settingGroup"><h3>CHAT CSS</h3><div class="settingBox"><textarea class="cssEditor" id="chatCustomCss" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder=".chatBody { ... }&#10;.msg.user .bubble { ... }"></textarea><div class="actions" style="margin-top:10px"><button class="btn" id="pasteChatCss" type="button">粘贴剪贴板</button><button class="btn primary" id="applyChatCss">应用并保存</button><button class="btn" id="resetChatBeauty">恢复默认</button></div></div></div>
+<div class="settingGroup"><h3>角色独立主题</h3><div class="settingBox"><div class="themeScopeRow"><select class="input" id="chatThemeContact"><option value="">全局默认主题</option></select><label class="tiny"><input type="checkbox" id="chatThemePerChar"> 独立主题</label></div><div class="chatThemeNote">开启后，此联系人会保存自己的壁纸、气泡颜色、圆角、字号和头像显示设置；关闭则继续跟随全局。</div></div></div><div class="settingGroup"><h3>CHAT CSS</h3><div class="settingBox"><textarea class="cssEditor" id="chatCustomCss" spellcheck="false" placeholder=".chatBody { ... }&#10;.msg.user .bubble { ... }"></textarea><div class="actions" style="margin-top:10px"><button class="btn primary" id="applyChatCss">应用并保存</button><button class="btn" id="resetChatBeauty">恢复默认</button></div></div></div>
 </div></section>
 
 <section class="page" data-page="mcp">
@@ -2397,7 +2397,7 @@ if(window.visualViewport){
 }
 
 /* ===== V3.9.3 iOS pinch / gesture lock ===== */
-const phoneGestureLocked=()=>document.body.classList.contains("phoneActive")&&!document.body.classList.contains("curryTextEditing");
+const phoneGestureLocked=()=>document.body.classList.contains("phoneActive");
 
 ["gesturestart","gesturechange","gestureend"].forEach(type=>{
   document.addEventListener(type,e=>{
@@ -4186,7 +4186,13 @@ function applyChatBeauty(b=chatBeauty){
  s.setProperty("--chat-overlay",`rgba(246,247,244,${b.overlay})`);
  s.setProperty("--user-bubble",b.userBubble);s.setProperty("--char-bubble",b.charBubble);
  s.setProperty("--bubble-radius",b.radius+"px");s.setProperty("--bubble-font",b.font+"px");
- $("#chatCustomThemeStyle").textContent=b.customCss||"";
+ {
+   const css=b.customCss||"";
+   const early=$("#chatCustomThemeStyle");
+   const late=$("#chatCustomThemeStyleLast");
+   if(early)early.textContent=css;
+   if(late)late.textContent=css;
+  }
  if($("#chatOverlay"))$("#chatOverlay").value=b.overlay;if($("#userBubbleColor"))$("#userBubbleColor").value=b.userBubble;if($("#charBubbleColor"))$("#charBubbleColor").value=b.charBubble;if($("#bubbleRadius"))$("#bubbleRadius").value=b.radius;if($("#bubbleFont"))$("#bubbleFont").value=b.font;if($("#showChatAvatar"))$("#showChatAvatar").checked=b.showAvatar;if($("#chatCustomCss"))$("#chatCustomCss").value=b.customCss||"";
 }
 $("#chatThemeContact").onchange=e=>{themeEditContactId=e.target.value;renderThemeEditor()};
@@ -7488,79 +7494,30 @@ body.phoneActive.keyboardOpen{overflow:hidden!important;}
 })();
 </script>
 
-<!-- ===== iOS Native Paste / Editor Fix v2 ===== -->
-<style id="curry-ios-native-paste-v2">
-/* iOS touch-action 是祖先链相交；编辑时必须把祖先全部从 none 放开。 */
-body.phoneActive.curryTextEditing,
-body.phoneActive.curryTextEditing #root,
-body.phoneActive.curryTextEditing .shell,
-body.phoneActive.curryTextEditing .os,
-body.phoneActive.curryTextEditing .screen,
-body.phoneActive.curryTextEditing .page.active,
-body.phoneActive.curryTextEditing .body{
-  touch-action:auto!important;
-  overscroll-behavior-y:auto!important;
-}
-body.phoneActive.curryTextEditing .body{
-  touch-action:pan-y!important;
-}
-body.phoneActive textarea,
-body.phoneActive input,
-body.phoneActive [contenteditable="true"],
-body.phoneActive .cssEditor{
-  -webkit-user-select:text!important;
-  user-select:text!important;
-  -webkit-touch-callout:default!important;
-}
-body.phoneActive textarea:focus,
-body.phoneActive input:focus,
-body.phoneActive [contenteditable="true"]:focus,
-body.phoneActive .cssEditor:focus{
-  touch-action:auto!important;
-  -webkit-user-select:text!important;
-  user-select:text!important;
-  -webkit-touch-callout:default!important;
-}
-#chatCustomCss{
-  min-height:260px!important;
-  line-height:1.55!important;
-  white-space:pre!important;
-  overflow:auto!important;
-  -webkit-overflow-scrolling:touch!important;
-}
-</style>
-<script id="curry-ios-native-paste-v2-js">
+<!-- ===== CHAT CSS Final Override Layer =====
+     用户 CHAT CSS 原本加载在 layoutLock / V8.8.x 聊天样式之前，
+     后面的 !important 会把用户样式覆盖掉。
+     这个样式表放在文档最后，专门保证 CHAT CSS 最后生效。 -->
+<style id="chatCustomThemeStyleLast"></style>
+<script id="curry-chat-css-priority-fix">
 (function(){
-  const editable = el => !!(el && el.matches?.('input,textarea,[contenteditable="true"]'));
-  const sync = () => {
-    const a=document.activeElement;
-    document.body.classList.toggle('curryTextEditing', editable(a));
-  };
-  document.addEventListener('focusin',sync,true);
-  document.addEventListener('focusout',()=>setTimeout(sync,30),true);
-
-  /* 兜底按钮：直接读取系统剪贴板。必须由用户点击触发。 */
-  const btn=document.getElementById('pasteChatCss');
-  if(btn)btn.addEventListener('click',async()=>{
-    const ta=document.getElementById('chatCustomCss');
-    if(!ta)return;
+  function sync(){
     try{
-      if(!navigator.clipboard?.readText)throw new Error('当前浏览器不支持直接读取剪贴板');
-      const clip=await navigator.clipboard.readText();
-      if(!clip){toast?.('剪贴板是空的');return}
-      const start=Number.isFinite(ta.selectionStart)?ta.selectionStart:ta.value.length;
-      const end=Number.isFinite(ta.selectionEnd)?ta.selectionEnd:start;
-      ta.value=ta.value.slice(0,start)+clip+ta.value.slice(end);
-      ta.selectionStart=ta.selectionEnd=start+clip.length;
-      ta.focus();
-      ta.dispatchEvent(new Event('input',{bubbles:true}));
-      toast?.('已粘贴剪贴板');
-    }catch(e){
-      console.warn('clipboard paste failed',e);
-      ta.focus();
-      toast?.('系统拒绝读取剪贴板，请长按输入框粘贴');
-    }
-  });
+      const src=document.getElementById('chatCustomThemeStyle');
+      const dst=document.getElementById('chatCustomThemeStyleLast');
+      if(src&&dst&&dst.textContent!==src.textContent) dst.textContent=src.textContent||'';
+    }catch(e){console.warn('CHAT CSS final layer sync failed',e)}
+  }
+  sync();
+
+  const src=document.getElementById('chatCustomThemeStyle');
+  if(src && window.MutationObserver){
+    new MutationObserver(sync).observe(src,{childList:true,characterData:true,subtree:true});
+  }
+
+  /* 页面恢复/切换主题时再同步一次，避免旧设备丢失最后一层。 */
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
+  window.addEventListener('pageshow',sync);
 })();
 </script>
 
