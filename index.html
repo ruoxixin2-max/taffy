@@ -16,7 +16,7 @@
 })();
 </script>
 
-<title>咖喱小手机 V8.8.49 · Live2D稳定合并版</title>
+<title>咖喱小手机 V8.8.50 · iOS超大纹理自动压缩版</title>
 <style>
 :root{--bg:#efefec;--paper:#fafaf8;--surface:#fff;--soft:#f1f2ef;--line:#d9dbd6;--text:#242724;--muted:#7c817b;--accent:#30342f;--danger:#9b514c;--phone:390px;--radius:34px;--app-font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--app-font)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
@@ -4813,6 +4813,106 @@ async function safariSafeBlob(blob,rel){
  if(blob?.type===type)return blob;
  return new Blob([blob],{type})
 }
+
+/* ===== V8.8.50 iOS Live2D 超大纹理保护 =====
+   pixi-live2d-display 上游已有同症状案例：移动端 8192 纹理会整模变黑，缩到 4096 后恢复。
+   这里不再碰 Pixi/Live2D 的纹理上传链，只在 iOS 加载前把 >4096 的本地纹理缩小并写回 IndexedDB。 */
+function live2dTextureRel(rel){return /\.(?:png|jpe?g|webp)$/i.test(String(rel||""))}
+
+async function live2dImageSize(blob,rel){
+ let name=String(rel||"").toLowerCase();
+ // PNG 尺寸在 IHDR 固定位置，读 24 字节即可，不解码整张大图。
+ if(name.endsWith(".png")){
+   let ab=await blob.slice(0,32).arrayBuffer(),u=new Uint8Array(ab);
+   if(u.length>=24&&u[0]===137&&u[1]===80&&u[2]===78&&u[3]===71){
+     let d=new DataView(ab);
+     return {width:d.getUint32(16,false),height:d.getUint32(20,false)}
+   }
+ }
+ // JPEG 扫 SOF 标记；最多读前 1MB，通常头部远小于此值。
+ if(/\.jpe?g$/i.test(name)){
+   let ab=await blob.slice(0,Math.min(blob.size,1024*1024)).arrayBuffer(),u=new Uint8Array(ab),i=2;
+   while(i+9<u.length){
+     if(u[i]!==0xFF){i++;continue}
+     let marker=u[i+1];i+=2;
+     if(marker===0xD8||marker===0xD9)continue;
+     if(i+2>u.length)break;
+     let len=(u[i]<<8)|u[i+1];
+     if(len<2||i+len>u.length)break;
+     if([0xC0,0xC1,0xC2,0xC3,0xC5,0xC6,0xC7,0xC9,0xCA,0xCB,0xCD,0xCE,0xCF].includes(marker)){
+       return {height:(u[i+3]<<8)|u[i+4],width:(u[i+5]<<8)|u[i+6]}
+     }
+     i+=len
+   }
+ }
+ // 其它纹理格式只在必要时用浏览器图片解码读取尺寸。
+ let url=URL.createObjectURL(blob);
+ try{
+   let img=await new Promise((resolve,reject)=>{
+     let im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error("纹理尺寸读取失败"));im.src=url
+   });
+   return {width:img.naturalWidth||img.width||0,height:img.naturalHeight||img.height||0}
+ }finally{try{URL.revokeObjectURL(url)}catch{}}
+}
+
+function live2dCanvasToBlob(canvas,type="image/png",quality=.92){
+ return new Promise((resolve,reject)=>{
+   try{canvas.toBlob(b=>b?resolve(b):reject(Error("Canvas 导出纹理失败")),type,quality)}catch(e){reject(e)}
+ })
+}
+
+async function live2dResizeTextureBlob(blob,rel,maxSide=4096){
+ let size=await live2dImageSize(blob,rel),w=size.width||0,h=size.height||0;
+ if(!w||!h)return {blob,width:w,height:h,changed:false};
+ if(w<=maxSide&&h<=maxSide)return {blob,width:w,height:h,changed:false};
+ let scale=Math.min(maxSide/w,maxSide/h),tw=Math.max(1,Math.round(w*scale)),th=Math.max(1,Math.round(h*scale));
+ let canvas=document.createElement("canvas"),ctx=null,bitmap=null,img=null,src="";
+ canvas.width=tw;canvas.height=th;
+ try{
+   ctx=canvas.getContext("2d",{alpha:true});
+   if(!ctx)throw Error("无法创建 2D Canvas");
+   ctx.imageSmoothingEnabled=true;
+   try{ctx.imageSmoothingQuality="high"}catch{}
+
+   // 优先让浏览器在解码阶段就请求目标尺寸，减少 8192 纹理的峰值内存。
+   if(typeof createImageBitmap==="function"){
+     try{
+       bitmap=await createImageBitmap(blob,{resizeWidth:tw,resizeHeight:th,resizeQuality:"high"});
+       ctx.drawImage(bitmap,0,0,tw,th)
+     }catch(e){bitmap=null;console.warn("Live2D texture createImageBitmap resize fallback",rel,e)}
+   }
+   if(!bitmap){
+     src=URL.createObjectURL(blob);
+     img=await new Promise((resolve,reject)=>{let im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error("纹理解码失败："+rel));im.src=src});
+     ctx.drawImage(img,0,0,tw,th)
+   }
+   // Live2D 原纹理绝大多数为 PNG；统一导出 PNG，避免 JPEG alpha 丢失。
+   let out=await live2dCanvasToBlob(canvas,"image/png");
+   return {blob:out,width:w,height:h,targetWidth:tw,targetHeight:th,changed:true}
+ }finally{
+   try{bitmap?.close?.()}catch{}
+   if(src)try{URL.revokeObjectURL(src)}catch{}
+   try{canvas.width=1;canvas.height=1}catch{}
+   ctx=null;bitmap=null;img=null;canvas=null
+ }
+}
+
+async function live2dPrepareIOSOversizeTextures(modelId,assets,maxSide=4096){
+ if(!isIOSWebKitLive2d()&&!isSafariLive2d())return {changed:0,items:[]};
+ let changed=[],items=[];
+ for(let a of assets||[]){
+   if(!live2dTextureRel(a.rel))continue;
+   let info=await live2dResizeTextureBlob(a.blob,a.rel,maxSide);
+   if(!info.changed)continue;
+   a.blob=info.blob;a.type="image/png";
+   changed.push({rel:a.rel,name:a.name||String(a.rel).split("/").pop(),type:"image/png",blob:info.blob});
+   items.push({rel:a.rel,from:`${info.width}×${info.height}`,to:`${info.targetWidth}×${info.targetHeight}`});
+   // 每张大纹理处理完让 WebKit 回收一轮，避免连续 8192 解码叠峰值。
+   await new Promise(r=>setTimeout(r,30))
+ }
+ if(changed.length)await idbPutLive2dAssets(modelId,changed);
+ return {changed:changed.length,items}
+}
 function live2dWebglPreflight(){
  // V8.8.43 iOS：预检本身也会占一个 WebGL context。检测完必须立即释放，
  // 否则 Safari 在真正创建 Live2D renderer 时可能因为 context/显存峰值直接杀页。
@@ -5028,6 +5128,15 @@ function getLive2DModelClass(){return window.PIXI?.live2d?.Live2DModel||window.P
 async function buildLive2dModelUrlFor(modelRec,urlSink=[]){
  let assets=await idbGetLive2dAssets(modelRec.id);
  if(!assets.length)throw Error("模型资源不存在，请重新导入 Live2D");
+
+ // iOS 黑色剪影保护：先处理超过 4096 的纹理，再交给 Pixi 原生纹理加载。
+ let iosTex=await live2dPrepareIOSOversizeTextures(modelRec.id,assets,4096);
+ if(iosTex.changed){
+   modelRec.iosTextureOptimizedAt=Date.now();
+   modelRec.iosTextureOptimized=iosTex.items;
+   try{saveLive2d()}catch{}
+   console.info("Live2D iOS 超大纹理已自动缩小",iosTex.items);
+ }
 
  let modelKey=live2dPathKey(modelRec.modelJsonRel),
      entry=assets.find(a=>live2dPathKey(a.rel)===modelKey),
@@ -5335,6 +5444,10 @@ async function mountLive2d(modelId,retryMode=false){
      app.view.addEventListener("webglcontextrestored",()=>{if(currentLive?.live2dModelId)setTimeout(()=>mountLive2d(currentLive.live2dModelId,true),180)},false)
    }
    let url=await buildLive2dModelUrl(rec),Model=getLive2DModelClass();
+   if(safari&&rec.iosTextureOptimized?.length&&hint){
+     let last=rec.iosTextureOptimized.map(x=>`${x.rel}: ${x.from}→${x.to}`).join("；");
+     hint.textContent="已自动压缩 iOS 超大纹理 · "+last.slice(0,120)
+   }
    // Safari 给 blob URL 注册/IndexedDB 解包留一个事件循环，避免纹理请求抢跑。
    if(safari)await new Promise(r=>setTimeout(r,retryMode?120:40));
    let model=await Model.from(url,{autoInteract:false});
