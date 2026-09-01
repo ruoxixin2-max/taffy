@@ -7487,4 +7487,74 @@ body.phoneActive.keyboardOpen{overflow:hidden!important;}
   vv.addEventListener('scroll',sync,{passive:true});
 })();
 </script>
+
+<!-- ===== iOS Text Selection / Paste Fix v1 ===== -->
+<style id="curry-ios-paste-fix-v1">
+/*
+  旧版为了防页面漂移，把 .os/.screen 设成 touch-action:none。
+  iOS 长按选字/粘贴会沿祖先链判断 touch-action，所以即使 textarea 自己写了
+  user-select:text，仍可能无法正常弹出“粘贴”菜单。
+  仅在输入框获得焦点期间临时放开祖先触摸手势。
+*/
+body.phoneActive.curryTextEditing,
+body.phoneActive.curryTextEditing #root,
+body.phoneActive.curryTextEditing .shell,
+body.phoneActive.curryTextEditing .os,
+body.phoneActive.curryTextEditing .screen{
+  touch-action:manipulation!important;
+}
+
+body.phoneActive.curryTextEditing .body{
+  touch-action:pan-y!important;
+}
+
+body.phoneActive input:focus,
+body.phoneActive textarea:focus,
+body.phoneActive [contenteditable="true"]:focus,
+body.phoneActive .cssEditor:focus,
+#chatCustomCss:focus,
+#customCss:focus{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+  -webkit-touch-callout:default!important;
+  touch-action:auto!important;
+  pointer-events:auto!important;
+}
+
+/* CSS 编辑器尤其要允许长按、拖动光标、选择、复制和粘贴 */
+body.phoneActive .cssEditor{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+  -webkit-touch-callout:default!important;
+  touch-action:auto!important;
+}
+</style>
+<script id="curry-ios-paste-fix-js-v1">
+(function(){
+  const editable = el => !!(el && (
+    el.matches?.('input, textarea, [contenteditable="true"]')
+  ));
+
+  document.addEventListener('focusin', e=>{
+    if(editable(e.target)) document.body.classList.add('curryTextEditing');
+  }, true);
+
+  document.addEventListener('focusout', e=>{
+    if(!editable(e.target)) return;
+    setTimeout(()=>{
+      const a=document.activeElement;
+      if(!editable(a)) document.body.classList.remove('curryTextEditing');
+    }, 40);
+  }, true);
+
+  /* iOS 有时在 textarea 长按时被外层 touchstart 拦掉。
+     对真正编辑区不阻止默认行为，也不让业务层误把长按当页面手势。 */
+  document.addEventListener('touchstart', e=>{
+    if(editable(e.target) || e.target?.closest?.('textarea,input,[contenteditable="true"]')){
+      e.stopPropagation();
+    }
+  }, {capture:true, passive:true});
+})();
+</script>
+
 </body></html>
