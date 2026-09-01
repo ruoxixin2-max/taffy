@@ -1849,19 +1849,37 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 </style>
 
 
-<style id="curry-dynamic-island-safearea-fix">
-/* ===== iPhone 灵动岛 / 刘海安全区修复 =====
-   桌面编辑工具栏原本 top:8px，会进入 iOS 顶部 unsafe area。
-   只移动编辑工具栏，不影响桌面其它内容。 */
+<style id="curry-dynamic-island-safearea-fix-v2">
+/* ===== 灵动岛彻底避让 =====
+   注意：.curryHomeEditBar 位于小手机 screen 内部，
+   某些 iOS/Via/PWA 环境 env(safe-area-inset-top) 会返回 0，
+   因此这里同时设置一个可靠的最小顶部距离。 */
+
+/* 桌面编辑顶部工具栏：至少离 screen 顶部 28px */
 .curryHomeEditBar{
-  top:calc(env(safe-area-inset-top, 0px) + 8px) !important;
+  top:max(28px, calc(env(safe-area-inset-top, 0px) + 8px)) !important;
 }
 
-/* 部分旧版 WebKit 对 env() 的 fallback 支持不一致，保留 constant() 兼容。 */
-@supports (top: constant(safe-area-inset-top)){
-  .curryHomeEditBar{
-    top:calc(constant(safe-area-inset-top) + 8px) !important;
-  }
+/* 添加小组件选择面板：
+   原版 max-height: calc(100% - 18px)，面板过高时顶部太靠上。
+   强制留出 64px 顶部空间，避免标题/第一排按钮被灵动岛覆盖。 */
+#curryWidgetPickerSheet{
+  max-height:calc(100% - 64px) !important;
+  overflow:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 后续点击图片/音乐小组件时出现的编辑面板也一起避让 */
+#curryMusicWidgetSheet,
+#curryImageWidgetSheet{
+  max-height:calc(100% - 64px) !important;
+  overflow:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 老 WebKit 兼容：不支持 max() 时直接采用硬避让 */
+@supports not (top:max(1px,2px)){
+  .curryHomeEditBar{ top:28px !important; }
 }
 </style>
 
