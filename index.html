@@ -1848,6 +1848,23 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 }
 </style>
 
+
+<style id="curry-dynamic-island-safearea-fix">
+/* ===== iPhone 灵动岛 / 刘海安全区修复 =====
+   桌面编辑工具栏原本 top:8px，会进入 iOS 顶部 unsafe area。
+   只移动编辑工具栏，不影响桌面其它内容。 */
+.curryHomeEditBar{
+  top:calc(env(safe-area-inset-top, 0px) + 8px) !important;
+}
+
+/* 部分旧版 WebKit 对 env() 的 fallback 支持不一致，保留 constant() 兼容。 */
+@supports (top: constant(safe-area-inset-top)){
+  .curryHomeEditBar{
+    top:calc(constant(safe-area-inset-top) + 8px) !important;
+  }
+}
+</style>
+
 </head><body>
 <div id="root"><div class="shell">
 <section class="web"><nav><div class="logo">PERSONAL SPACE</div><div class="navcopy">LOCAL CHARACTER TERMINAL</div></nav><div class="hero"><div class="heroIn"><div><div class="kicker">咖喱小手机 V8.7</div><h1>One page.<br>Many people.</h1><p>网页本身会收拢成一部私人小手机。联系人可以手写，也可以从 PNG Tavern Card、JSON、TXT 或 DOCX 导入；每个人拥有独立聊天记录。</p><button id="enter" class="pill">进入私人终端</button></div><div class="art"></div></div></div></section>
