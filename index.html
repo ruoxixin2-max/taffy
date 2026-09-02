@@ -7104,16 +7104,33 @@ $("#liveGiftMenu").onclick=async e=>{let b=e.target.closest("button[data-gift]")
 
 
 /* ===== 狼人杀 · Cloudflare WebSocket 云端联机 ===== */
-const WOLF_ROLE_NAME={wolf:"狼人",seer:"预言家",witch:"女巫",hunter:"猎人",guard:"守卫",villager:"平民"};
-let wolfNet={peer:null,isHost:false,code:"",userId:localStorage.getItem("wp2_wolf_uid")||("u_"+uuid()),conn:null,conns:new Map(),room:null,mySecrets:{},localReady:false,hostSecret:null,generating:false};
-try{localStorage.setItem("wp2_wolf_uid",wolfNet.userId)}catch{}
+const WOLF_ROLE_NAME={wolf:"狼人",wolfking:"狼王",hiddenwolf:"隐狼",seer:"预言家",witch:"女巫",hunter:"猎人",guard:"守卫",idiot:"白痴",knight:"骑士",cupid:"丘比特",gravedigger:"守墓人",villager:"平民"};
+const WOLF_API_BASE="https://curry-online.6jkgb4s8jj.workers.dev";
+const WOLF_UID_KEY="wp2_wolf_uid_v2";
+function wolfValidUserId(v){return /^cu_[0-9a-f-]{36}$/i.test(String(v||""))}
+let wolfNet={peer:null,isHost:false,code:"",userId:(()=>{try{let x=localStorage.getItem(WOLF_UID_KEY)||"";return wolfValidUserId(x)?x:""}catch{return""}})(),identityPromise:null,conn:null,conns:new Map(),room:null,mySecrets:{},localReady:false,hostSecret:null,generating:false};
 function wolfStatus(t){let e=$("#wolfNetStatus");if(e)e.textContent=t||""}
 function wolfLabel(){let m=activeMask();return m?.userName||m?.name||"玩家"}
+async function wolfEnsureUserId(){
+ if(wolfValidUserId(wolfNet.userId))return wolfNet.userId;
+ if(wolfNet.identityPromise)return wolfNet.identityPromise;
+ wolfNet.identityPromise=(async()=>{
+   let stored="";try{stored=localStorage.getItem(WOLF_UID_KEY)||""}catch{}
+   if(!wolfValidUserId(stored))stored="";
+   const r=await fetch(WOLF_API_BASE+"/identity",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({userId:stored,label:wolfLabel()}),cache:"no-store"});
+   const d=await r.json().catch(()=>null);
+   if(!r.ok||!d?.ok||!wolfValidUserId(d.userId))throw new Error(d?.error||("HTTP "+r.status));
+   wolfNet.userId=d.userId;
+   try{localStorage.setItem(WOLF_UID_KEY,d.userId);localStorage.setItem("wp2_wolf_uid",d.userId)}catch{}
+   return d.userId;
+ })();
+ try{return await wolfNet.identityPromise}finally{wolfNet.identityPromise=null}
+}
 function wolfProfile(c){let x=c?.character||{};return String(x.description||x.rawText||x.personality||"").slice(0,14000)}
 function wolfLocalSelection(){return $$("#wolfLocalPicker input:checked").map(x=>x.value)}
 function wolfPayload(){let ids=wolfLocalSelection();return {userId:wolfNet.userId,label:wolfLabel(),chars:ids.map(id=>{let c=contacts.find(x=>x.id===id);return c?{id:wolfNet.userId+":"+c.id,localId:c.id,ownerId:wolfNet.userId,name:c.name,avatar:c.avatar||"",profile:wolfProfile(c)}:null}).filter(Boolean)}}
 function renderWolfPicker(){let e=$("#wolfLocalPicker");if(!e)return;e.innerHTML=contacts.length?contacts.map(c=>`<label class="wolfPick"><input type="checkbox" value="${esc(c.id)}"><div class="wolfPickAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c.name||"?").charAt(0))}</div><div class="wolfPickName">${esc(c.name)}</div></label>`).join(""):'<div class="empty" style="grid-column:1/-1">还没有联系人</div>'}
-function openWolfLobby(){renderWolfPicker();wolfStatus("等待操作");page("wolfLobby")}
+async function openWolfLobby(){try{toast("正在获取狼人杀玩家 ID…");await wolfEnsureUserId();renderWolfPicker();wolfStatus("玩家 ID · "+wolfNet.userId.slice(0,11)+"…");page("wolfLobby")}catch(e){console.warn("wolf identity",e);toast("获取玩家 ID 失败："+(e?.message||"网络异常"))}}
 function wolfCode(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
 const WOLF_WS_BASE="wss://curry-online.6jkgb4s8jj.workers.dev/ws";
 function wolfClearRetry(){if(wolfNet.retryTimer){clearTimeout(wolfNet.retryTimer);wolfNet.retryTimer=null}}
@@ -7132,13 +7149,19 @@ function wolfWsUrl(code){return WOLF_WS_BASE+"?room="+encodeURIComponent(code)+"
 function wolfScheduleJoinRetry(){if(wolfNet.manualClose||!wolfNet.code)return;wolfClearRetry();let n=(wolfNet.joinAttempts||0)+1;wolfNet.joinAttempts=n;if(n>8){wolfRoomConnText("云端连接失败，请检查网络后重试");wolfStatus("连接失败");return}wolfRoomConnText(`云端断开，正在第 ${n}/8 次重连…`);wolfNet.retryTimer=setTimeout(()=>wolfOpenCloudSocket(),Math.min(1000*n,5000))}
 function wolfHandleCloudMessage(msg){if(!msg||typeof msg!=="object")return;if(msg.type==="hello"||msg.type==="room"){
   let incoming=msg.room;if(incoming){
-   if(wolfNet.isHost){let remote=(incoming.players||[]).filter(p=>p.userId!==wolfNet.userId),mine=wolfNet.room?.players?.find(p=>p.userId===wolfNet.userId)||wolfPayload();wolfNet.room={...(wolfNet.room||{}),...incoming,hostUserId:wolfNet.userId,players:[mine,...remote],game:wolfNet.room?.game??incoming.game??null};wolfRefreshVirtualConns();renderWolfRoom()}
-   else{wolfNet.room=incoming;wolfNet.code=incoming.code||wolfNet.code;wolfRefreshVirtualConns();renderWolfRoom()}
+   wolfNet.room=incoming;
+   wolfNet.code=incoming.code||wolfNet.code;
+   if(incoming.hostUserId)wolfNet.isHost=String(incoming.hostUserId)===String(wolfNet.userId);
+   wolfRefreshVirtualConns();
+   renderWolfRoom();
   }return}
  if(msg.type==="relay"){if(msg.toUserId&&msg.toUserId!==wolfNet.userId)return;wolfOnData(null,msg.payload);return}
- if(msg.type==="game"){if(!wolfNet.isHost&&msg.room){wolfNet.room=msg.room;wolfRefreshVirtualConns();renderWolfRoom()}return}
+ if(msg.type==="secret"){wolfNet.mySecrets=msg.secrets||{};renderWolfRoom();return}
+ if(msg.type==="hostSecret"){if(wolfNet.isHost)wolfNet.hostSecret=msg.hostSecret||null;return}
+ if(msg.type==="game"){if(msg.room){wolfNet.room=msg.room;if(msg.room.hostUserId)wolfNet.isHost=String(msg.room.hostUserId)===String(wolfNet.userId);wolfRefreshVirtualConns();renderWolfRoom()}return}
+ if(msg.type==="error"){toast("狼人杀："+(msg.error||"操作失败"));let sb=$("#wolfStartBtn");if(sb&&wolfNet.isHost)sb.disabled=false;return}
 }
-function wolfOpenCloudSocket(){if(!wolfNet.code)return;try{try{wolfNet.ws?.close()}catch{};let ws=new WebSocket(wolfWsUrl(wolfNet.code));wolfNet.ws=ws;wolfStatus("正在连接咖喱机云端…");wolfRoomConnText("正在连接云端房间…");let timeout=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)try{ws.close()}catch{}},12000);ws.onopen=()=>{clearTimeout(timeout);wolfClearRetry();wolfNet.joinAttempts=0;wolfStatus(wolfNet.isHost?"房间已创建":"已加入房间");wolfRoomConnText("云端联机 · 已连接");page("wolfRoom");wolfWsSend({type:"join",player:wolfPayload()});if(wolfNet.isHost){wolfNet.room=wolfNet.room||{code:wolfNet.code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());let me=wolfNet.room.players.find(x=>x.userId===wolfNet.userId);if(me)me.ready=!!wolfNet.localReady;wolfBroadcast()}renderWolfRoom()};ws.onmessage=e=>{try{wolfHandleCloudMessage(JSON.parse(e.data))}catch(err){console.warn("wolf ws message",err)}};ws.onclose=()=>{if(!wolfNet.manualClose)wolfScheduleJoinRetry()};ws.onerror=e=>{console.warn("wolf websocket",e);wolfRoomConnText("云端连接波动，正在恢复…")}}catch(e){console.warn("wolf websocket open",e);wolfScheduleJoinRetry()}}
+function wolfOpenCloudSocket(){if(!wolfNet.code)return;try{try{wolfNet.ws?.close()}catch{};let ws=new WebSocket(wolfWsUrl(wolfNet.code));wolfNet.ws=ws;wolfStatus("正在连接咖喱机云端…");wolfRoomConnText("正在连接云端房间…");let timeout=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)try{ws.close()}catch{}},12000);ws.onopen=()=>{clearTimeout(timeout);wolfClearRetry();wolfNet.joinAttempts=0;wolfStatus(wolfNet.isHost?"房间已创建":"已加入房间");wolfRoomConnText("云端联机 · 已连接");page("wolfRoom");wolfWsSend({type:"join",player:wolfPayload(),isHost:wolfNet.isHost});if(wolfNet.isHost){wolfNet.room=wolfNet.room||{code:wolfNet.code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());let me=wolfNet.room.players.find(x=>x.userId===wolfNet.userId);if(me)me.ready=!!wolfNet.localReady;wolfBroadcast()}renderWolfRoom()};ws.onmessage=e=>{try{wolfHandleCloudMessage(JSON.parse(e.data))}catch(err){console.warn("wolf ws message",err)}};ws.onclose=()=>{if(!wolfNet.manualClose)wolfScheduleJoinRetry()};ws.onerror=e=>{console.warn("wolf websocket",e);wolfRoomConnText("云端连接波动，正在恢复…")}}catch(e){console.warn("wolf websocket open",e);wolfScheduleJoinRetry()}}
 function wolfConnectHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=true;wolfNet.room={code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());wolfNet.room.players[0].ready=false;wolfOpenCloudSocket()}
 function wolfJoinHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=false;wolfNet.room=null;wolfOpenCloudSocket()}
 function renderWolfRoom(){let r=wolfNet.room;if(!r)return;$("#wolfRoomCode").textContent=r.code||"------";wolfRoomConnText(wolfNet.isHost?`房主 · ${wolfNet.conns.size} 个远端用户`:(wolfNet.conn?.open?"已连接房主":"连接中"));let host=$("#wolfRoomPlayers");if(host)host.innerHTML=(r.players||[]).map(p=>`<div class="wolfRoomUser"><div class="wolfRoomUserTop"><div class="wolfRoomUserName">${esc(p.label||"玩家")}${p.userId===r.hostUserId?'<span class="wolfOwnerTag">房主</span>':""}</div><span class="wolfReady ${p.ready?"on":""}">${p.ready?"已准备":"未准备"}</span></div><div class="wolfCharWrap">${(p.chars||[]).map(c=>`<span class="wolfCharChip">${esc(c.name)}</span>`).join("")||"<span class=\"tiny\">没有 Char</span>"}</div></div>`).join("");let me=(r.players||[]).find(p=>p.userId===wolfNet.userId);wolfNet.localReady=!!me?.ready;let rb=$("#wolfReadyBtn");if(rb){rb.textContent=wolfNet.localReady?"取消准备":"准备";rb.disabled=!!r.game?.started}let sb=$("#wolfStartBtn");if(sb){sb.style.display=wolfNet.isHost&&!r.game?.started?"":"none";let n=wolfSelectedCount(),all=(r.players||[]).length>0&&(r.players||[]).every(p=>p.ready);sb.disabled=!(n>=6&&n<=12&&all)}let hint=$("#wolfStartHint");if(hint)hint.textContent=`当前 ${wolfSelectedCount()} 个 Char · ${(r.players||[]).filter(p=>p.ready).length}/${(r.players||[]).length} 个用户已准备 · 支持 6–12 人`;let started=!!r.game?.started;$("#wolfRoomBeforeGame").style.display=started?"none":"";$("#wolfGamePanel").style.display=started?"":"none";if(started)renderWolfGame()}
@@ -7148,7 +7171,7 @@ function wolfAllChars(){return (wolfNet.room?.players||[]).flatMap(p=>p.chars||[
 function wolfChar(id){return wolfAllChars().find(c=>c.id===id)}
 function wolfAliveChars(){let alive=new Set(wolfNet.room?.game?.alive||[]);return wolfAllChars().filter(c=>alive.has(c.id))}
 function wolfSendSecrets(){if(!wolfNet.isHost||!wolfNet.hostSecret)return;for(let p of wolfNet.room.players){let secrets={};for(let c of p.chars||[]){let role=wolfNet.hostSecret.roles[c.id],extra="";if(role==="wolf")extra="狼队友："+wolfAllChars().filter(x=>x.id!==c.id&&wolfNet.hostSecret.roles[x.id]==="wolf").map(x=>x.name).join("、");if(role==="seer"){let ks=wolfNet.hostSecret.knowledge[c.id]||[];if(ks.length)extra="验人记录："+ks.map(x=>`${x.name}=${x.isWolf?"狼人":"好人"}`).join("；")}secrets[c.id]={name:c.name,role,roleName:WOLF_ROLE_NAME[role]||role,extra}}if(p.userId===wolfNet.userId)wolfNet.mySecrets=secrets;else{let c=wolfNet.conns.get(p.userId);if(c?.open)c.send({type:"secret",secrets})}}renderWolfRoom()}
-function wolfStartGame(){let chars=wolfAllChars(),n=chars.length;if(n<6||n>12)return toast("狼人杀支持 6–12 个 Char");if(!(wolfNet.room.players||[]).every(p=>p.ready))return toast("还有用户没准备");let roles=wolfShuffle(wolfRolesFor(n)),map={};wolfShuffle(chars).forEach((c,i)=>map[c.id]=roles[i]);wolfNet.hostSecret={roles:map,knowledge:{},witchSaved:false,witchPoisoned:false,lastGuard:""};wolfNet.room.game={started:true,phase:"night",day:0,alive:chars.map(c=>c.id),publicLog:["天黑请闭眼。"],speeches:[],votes:[],winner:""};wolfSendSecrets();wolfBroadcast()}
+function wolfStartGame(){let chars=wolfAllChars(),n=chars.length;if(!wolfNet.isHost)return toast("只有房主可以开始");if(n<6||n>12)return toast("狼人杀支持 6–12 个 Char");if(!(wolfNet.room.players||[]).every(p=>p.ready))return toast("还有用户没准备");if(!wolfWsSend({type:"start",userId:wolfNet.userId})){toast("开局失败：房间连接已断开");return}let sb=$("#wolfStartBtn");if(sb)sb.disabled=true;toast("系统正在自动分配身份…")}
 function wolfPhaseName(g){if(g.winner)return "游戏结束";if(g.phase==="night")return `第 ${g.day+1} 夜`;if(g.phase==="day")return `第 ${g.day} 天 · 发言`;if(g.phase==="vote")return `第 ${g.day} 天 · 投票`;return "狼人杀"}
 function renderWolfGame(){let g=wolfNet.room?.game;if(!g)return;let sec=$("#wolfSecretGrid");if(sec)sec.innerHTML=Object.entries(wolfNet.mySecrets||{}).map(([id,x])=>`<div class="wolfSecret ${g.alive.includes(id)?"":"wolfDead"}"><b>${esc(x.name||wolfChar(id)?.name||"Char")}</b><div class="wolfSecretRole">${esc(x.roleName||"未知")}</div><small>${esc(x.extra||"")}</small></div>`).join("")||'<div class="empty" style="grid-column:1/-1">身份正在由房主发放…</div>';$("#wolfPhaseTitle").textContent=wolfPhaseName(g);$("#wolfAliveCount").textContent=`存活 ${g.alive.length}/${wolfAllChars().length}`;$("#wolfPublicLog").textContent=(g.publicLog||[]).slice(-12).join("\n");let sp=$("#wolfSpeeches");if(sp)sp.innerHTML=(g.speeches||[]).slice(-30).map(x=>{let c=wolfChar(x.charId);return `<div class="wolfSpeech"><div class="wolfMiniAvatar">${c?.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c?.name||"?").charAt(0))}</div><div class="wolfSpeechBubble"><b>${esc(c?.name||"Char")}</b>${esc(x.text||"")}</div></div>`}).join("")||'<div class="empty" style="padding:18px">还没有公开发言</div>';let hc=$("#wolfHostControls");hc.style.display=wolfNet.isHost&&!g.winner?"grid":"none";if(wolfNet.isHost&&!g.winner){$("#wolfAdvanceBtn").style.display=g.phase==="night"?"":"none";$("#wolfSpeakBtn").style.display=g.phase==="day"?"":"none";$("#wolfVoteBtn").style.display=g.phase==="vote"?"":"none"}}
 function wolfPickRandom(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null}
@@ -7159,44 +7182,171 @@ async function wolfGenerateSpeeches(){let g=wolfNet.room.game;if(!g||g.phase!=="
 function wolfVote(){let g=wolfNet.room.game,alive=wolfAliveChars(),hs=wolfNet.hostSecret;if(!g||g.phase!=="vote")return;let votes=[];for(let c of alive){let opts=alive.filter(x=>x.id!==c.id);if(hs.roles[c.id]==="wolf"){let nonWolf=opts.filter(x=>hs.roles[x.id]!=="wolf");if(nonWolf.length&&Math.random()<.8)opts=nonWolf}let t=wolfPickRandom(opts);if(t)votes.push({from:c.id,to:t.id})}let cnt={};votes.forEach(v=>cnt[v.to]=(cnt[v.to]||0)+1);let max=Math.max(0,...Object.values(cnt)),tops=Object.keys(cnt).filter(k=>cnt[k]===max),out=wolfChar(wolfPickRandom(tops)||"");g.votes=votes;if(out){g.alive=g.alive.filter(id=>id!==out.id);g.publicLog.push(`第 ${g.day} 天投票：${out.name} 被放逐。`);if(hs.roles[out.id]==="hunter"){let shot=wolfPickRandom(wolfAliveChars().filter(x=>x.id!==out.id));if(shot){g.alive=g.alive.filter(id=>id!==shot.id);g.publicLog.push(`猎人 ${out.name} 开枪带走了 ${shot.name}。`)}}}wolfCheckWinner();if(!g.winner){g.phase="night";g.publicLog.push("天黑请闭眼。")};wolfBroadcast()}
 
 
-/* ===== 狼人杀联机增强：玩家决策 / 狼队夜聊 / 手动投票 ===== */
-(function wolfAdvancedPatch(){
+/* ===== 狼人杀：Char AI 自主行动 ===== */
+(function wolfCharAutoPlay(){
  const st=document.createElement('style');st.textContent=`
- .wolfActionPanel{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px;margin:10px 0}.wolfActionPanel h4{font-size:11px;margin:0 0 8px}.wolfActionCard{border-top:1px solid var(--line);padding:10px 0}.wolfActionCard:first-of-type{border-top:0}.wolfActionName{font-size:9px;font-weight:800;margin-bottom:6px}.wolfActionRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center}.wolfActionRow select,.wolfActionRow input{width:100%;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff;font-size:9px}.wolfActionRow button{border:0;border-radius:12px;background:#30322f;color:#fff;padding:9px 11px;font-size:8px}.wolfActionDone{font-size:7px;color:#68806c;margin-top:5px}.wolfTeamChat{max-height:130px;overflow:auto;background:#f5f2f2;border-radius:12px;padding:8px;margin:7px 0;font-size:8px;line-height:1.55}.wolfVoteList{font-size:8px;line-height:1.7;margin-top:7px}.wolfReveal{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.wolfReveal span{padding:5px 7px;border-radius:999px;background:#f1f2ef;font-size:8px}`;document.head.appendChild(st);
- let actionSeq=0;
- function myOwnedAlive(){let g=wolfNet.room?.game;if(!g)return[];let mine=new Set((wolfNet.room?.players||[]).find(p=>p.userId===wolfNet.userId)?.chars?.map(c=>c.id)||[]);return wolfAliveChars().filter(c=>mine.has(c.id))}
- function optHtml(chars,placeholder='选择目标'){return `<option value="">${placeholder}</option>`+chars.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}
- function sendAction(a){a={...a,userId:wolfNet.userId,seq:++actionSeq};if(wolfNet.isHost)wolfHandleAction(a);else if(wolfNet.conn?.open)wolfNet.conn.send({type:'wolfAction',action:a});else toast('与房主未连接')}
- function wolfHandleAction(a){if(!wolfNet.isHost||!wolfNet.hostSecret||!wolfNet.room?.game)return;let c=wolfChar(a.charId),g=wolfNet.room.game;if(!c||!g.alive.includes(c.id))return;let owner=(wolfNet.room.players||[]).find(p=>(p.chars||[]).some(x=>x.id===c.id));if(!owner||owner.userId!==a.userId)return;let role=wolfNet.hostSecret.roles[c.id];wolfNet.hostSecret.actions=wolfNet.hostSecret.actions||{};if(a.kind==='wolfChat'&&role==='wolf'){wolfNet.hostSecret.wolfChat=wolfNet.hostSecret.wolfChat||[];wolfNet.hostSecret.wolfChat.push({charId:c.id,text:String(a.text||'').slice(0,300),day:g.day+1});wolfSendSecrets();return}if(a.kind==='night'&&g.phase==='night'){if(a.role!==role)return;wolfNet.hostSecret.actions[c.id]={kind:'night',role,targetId:a.targetId||'',save:!!a.save,poisonId:a.poisonId||'',day:g.day};wolfSendSecrets();return}if(a.kind==='vote'&&g.phase==='vote'){wolfNet.hostSecret.actions[c.id]={kind:'vote',targetId:a.targetId||'',day:g.day};wolfSendSecrets();wolfBroadcast();return}}
- const oldOnData=wolfOnData;wolfOnData=function(conn,d){if(wolfNet.isHost&&d?.type==='wolfAction'){wolfHandleAction(d.action||{});return}oldOnData(conn,d)};
- const oldStart=wolfStartGame;wolfStartGame=function(){oldStart();if(wolfNet.hostSecret){wolfNet.hostSecret.actions={};wolfNet.hostSecret.wolfChat=[];wolfSendSecrets()}};
- const oldSend=wolfSendSecrets;wolfSendSecrets=function(){if(!wolfNet.isHost||!wolfNet.hostSecret)return oldSend();for(let p of wolfNet.room.players){let secrets={};for(let c of p.chars||[]){let role=wolfNet.hostSecret.roles[c.id],extra='';if(role==='wolf')extra='狼队友：'+wolfAllChars().filter(x=>x.id!==c.id&&wolfNet.hostSecret.roles[x.id]==='wolf').map(x=>x.name).join('、');if(role==='seer'){let ks=wolfNet.hostSecret.knowledge[c.id]||[];if(ks.length)extra='验人记录：'+ks.map(x=>`${x.name}=${x.isWolf?'狼人':'好人'}`).join('；')}let act=wolfNet.hostSecret.actions?.[c.id]||null;secrets[c.id]={name:c.name,role,roleName:WOLF_ROLE_NAME[role]||role,extra,action:act,wolfChat:role==='wolf'?(wolfNet.hostSecret.wolfChat||[]):[]}}if(p.userId===wolfNet.userId)wolfNet.mySecrets=secrets;else{let cn=wolfNet.conns.get(p.userId);if(cn?.open)cn.send({type:'secret',secrets})}}renderWolfRoom()};
- function renderActions(){let g=wolfNet.room?.game,box=document.getElementById('wolfActionPanel');if(!box||!g)return;let mine=myOwnedAlive();if(g.winner){box.innerHTML='<h4>本局身份公开</h4><div class="wolfReveal">'+wolfAllChars().map(c=>`<span>${esc(c.name)} · ${esc(WOLF_ROLE_NAME[wolfNet.room.game.revealRoles?.[c.id]]||'未知')}</span>`).join('')+'</div>';return}
- let html='<h4>我的操作</h4>';
- if(g.phase==='night')for(let c of mine){let s=wolfNet.mySecrets[c.id],r=s?.role;if(!r)continue;let done=s.action?.day===g.day;html+=`<div class="wolfActionCard"><div class="wolfActionName">${esc(c.name)} · ${esc(s.roleName)}</div>`;
- if(r==='wolf'){let targets=wolfAliveChars().filter(x=>x.id!==c.id&&wolfNet.mySecrets[x.id]?.role!=='wolf');html+=`<div class="wolfTeamChat">${(s.wolfChat||[]).slice(-12).map(m=>`<b>${esc(wolfChar(m.charId)?.name||'狼')}：</b>${esc(m.text)}<br>`).join('')||'狼队频道暂无消息'}</div><div class="wolfActionRow"><input id="wc_${CSS.escape(c.id)}" placeholder="狼队私聊"><button data-wchat="${esc(c.id)}">发送</button></div><div class="wolfActionRow" style="margin-top:6px"><select id="wa_${CSS.escape(c.id)}">${optHtml(targets,'选择袭击目标')}</select><button data-night="${esc(c.id)}" data-role="wolf">提交刀人</button></div>`}
- else if(r==='seer'){let targets=wolfAliveChars().filter(x=>x.id!==c.id);html+=`<div class="wolfActionRow"><select id="wa_${CSS.escape(c.id)}">${optHtml(targets,'选择查验目标')}</select><button data-night="${esc(c.id)}" data-role="seer">查验</button></div>`}
- else if(r==='guard'){let targets=wolfAliveChars().filter(x=>x.id!==wolfNet.mySecrets[c.id]?.lastGuard);html+=`<div class="wolfActionRow"><select id="wa_${CSS.escape(c.id)}">${optHtml(targets,'选择守护目标')}</select><button data-night="${esc(c.id)}" data-role="guard">守护</button></div>`}
- else if(r==='witch'){let targets=wolfAliveChars().filter(x=>x.id!==c.id);html+=`<div class="wolfActionRow"><select id="wp_${CSS.escape(c.id)}">${optHtml(targets,'可选毒药目标')}</select><button data-witch="${esc(c.id)}">提交用药</button></div><label style="font-size:8px;display:block;margin-top:7px"><input type="checkbox" id="ws_${CSS.escape(c.id)}"> 若今晚有人被狼人袭击，使用解药</label>`}
- else html+=`<div class="wolfStatus">今晚没有主动技能。</div>`;if(done)html+=`<div class="wolfActionDone">✓ 本阶段操作已提交，可重新提交覆盖</div>`;html+='</div>'}
- else if(g.phase==='vote')for(let c of mine){let s=wolfNet.mySecrets[c.id],targets=wolfAliveChars().filter(x=>x.id!==c.id),done=s?.action?.kind==='vote'&&s.action.day===g.day;html+=`<div class="wolfActionCard"><div class="wolfActionName">${esc(c.name)} 的票</div><div class="wolfActionRow"><select id="wv_${CSS.escape(c.id)}">${optHtml(targets,'选择放逐对象')}</select><button data-vote="${esc(c.id)}">投票</button></div>${done?'<div class="wolfActionDone">✓ 已投票，可改票</div>':''}</div>`}
- else html+='<div class="wolfStatus">当前是公开发言阶段，等待房主推进。</div>';box.innerHTML=html;
- box.querySelectorAll('[data-wchat]').forEach(b=>b.onclick=()=>{let id=b.dataset.wchat,i=document.getElementById('wc_'+CSS.escape(id)),t=i?.value.trim();if(t){sendAction({kind:'wolfChat',charId:id,text:t});i.value=''}});
- box.querySelectorAll('[data-night]').forEach(b=>b.onclick=()=>{let id=b.dataset.night,sel=document.getElementById('wa_'+CSS.escape(id)),targetId=sel?.value;if(!targetId)return toast('先选择目标');sendAction({kind:'night',charId:id,role:b.dataset.role,targetId});toast('夜间操作已提交')});
- box.querySelectorAll('[data-witch]').forEach(b=>b.onclick=()=>{let id=b.dataset.witch;sendAction({kind:'night',charId:id,role:'witch',save:!!document.getElementById('ws_'+CSS.escape(id))?.checked,poisonId:document.getElementById('wp_'+CSS.escape(id))?.value||''});toast('女巫操作已提交')});
- box.querySelectorAll('[data-vote]').forEach(b=>b.onclick=()=>{let id=b.dataset.vote,targetId=document.getElementById('wv_'+CSS.escape(id))?.value;if(!targetId)return toast('先选择投票对象');sendAction({kind:'vote',charId:id,targetId});toast('已投票')})}
- function ensurePanel(){let gp=document.getElementById('wolfGamePanel');if(!gp||document.getElementById('wolfActionPanel'))return;let d=document.createElement('div');d.id='wolfActionPanel';d.className='wolfActionPanel';let hc=document.getElementById('wolfHostControls');gp.insertBefore(d,hc)}
- const oldRender=renderWolfGame;renderWolfGame=function(){oldRender();ensurePanel();renderActions();let g=wolfNet.room?.game;if(g?.winner&&wolfNet.isHost&&wolfNet.hostSecret&&!g.revealRoles){g.revealRoles=cp(wolfNet.hostSecret.roles);wolfBroadcast()}};
- wolfResolveNight=function(){let g=wolfNet.room.game,hs=wolfNet.hostSecret;if(!g||g.phase!=='night')return;hs.actions=hs.actions||{};let alive=wolfAliveChars(),roles=hs.roles;
- let wolves=alive.filter(c=>roles[c.id]==='wolf'),wolfVotes=wolves.map(c=>hs.actions[c.id]?.day===g.day?hs.actions[c.id].targetId:'').filter(Boolean),cnt={};wolfVotes.forEach(id=>cnt[id]=(cnt[id]||0)+1);let max=Math.max(0,...Object.values(cnt)),tops=Object.keys(cnt).filter(id=>cnt[id]===max),victim=wolfChar(wolfPickRandom(tops)||'');if(!victim)victim=wolfPickRandom(alive.filter(c=>roles[c.id]!=='wolf'));
- let guard=alive.find(c=>roles[c.id]==='guard'),ga=guard&&hs.actions[guard.id]?.day===g.day?hs.actions[guard.id]:null,guarded=ga?.targetId?wolfChar(ga.targetId):null;if(!guarded&&guard){let opts=alive.filter(c=>c.id!==hs.lastGuard);guarded=wolfPickRandom(opts)}if(guarded)hs.lastGuard=guarded.id;
- let seer=alive.find(c=>roles[c.id]==='seer');if(seer){let sa=hs.actions[seer.id]?.day===g.day?hs.actions[seer.id]:null,x=sa?.targetId?wolfChar(sa.targetId):wolfPickRandom(alive.filter(c=>c.id!==seer.id));if(x){hs.knowledge[seer.id]||(hs.knowledge[seer.id]=[]);if(!hs.knowledge[seer.id].some(k=>k.id===x.id))hs.knowledge[seer.id].push({id:x.id,name:x.name,isWolf:roles[x.id]==='wolf'})}}
- let witch=alive.find(c=>roles[c.id]==='witch'),wa=witch&&hs.actions[witch.id]?.day===g.day?hs.actions[witch.id]:null,saved=false,poison=null;if(witch&&victim&&wa?.save&&!hs.witchSaved){saved=true;hs.witchSaved=true}if(witch&&wa?.poisonId&&!hs.witchPoisoned&&g.alive.includes(wa.poisonId)){poison=wolfChar(wa.poisonId);hs.witchPoisoned=true}
- let deaths=[];if(victim&&!saved&&victim.id!==guarded?.id)deaths.push(victim);if(poison&&!deaths.some(x=>x.id===poison.id))deaths.push(poison);for(let d of deaths)g.alive=g.alive.filter(id=>id!==d.id);g.day++;g.phase='day';g.speeches=[];g.votes=[];hs.actions={};g.publicLog.push(deaths.length?`第 ${g.day} 天清晨：${deaths.map(x=>x.name).join('、')} 昨夜死亡。`:`第 ${g.day} 天清晨：昨夜平安夜。`);wolfCheckWinner();if(g.winner)g.revealRoles=cp(hs.roles);wolfSendSecrets();wolfBroadcast()};
- wolfVote=function(){let g=wolfNet.room.game,alive=wolfAliveChars(),hs=wolfNet.hostSecret;if(!g||g.phase!=='vote')return;hs.actions=hs.actions||{};let votes=[];for(let c of alive){let a=hs.actions[c.id],t=a?.kind==='vote'&&a.day===g.day?wolfChar(a.targetId):null;if(!t||t.id===c.id||!g.alive.includes(t.id)){let opts=alive.filter(x=>x.id!==c.id);if(hs.roles[c.id]==='wolf'){let nw=opts.filter(x=>hs.roles[x.id]!=='wolf');if(nw.length)opts=nw}t=wolfPickRandom(opts)}if(t)votes.push({from:c.id,to:t.id})}let cnt={};votes.forEach(v=>cnt[v.to]=(cnt[v.to]||0)+1);let max=Math.max(0,...Object.values(cnt)),tops=Object.keys(cnt).filter(k=>cnt[k]===max);g.votes=votes;g.publicLog.push('投票：'+votes.map(v=>`${wolfChar(v.from)?.name}→${wolfChar(v.to)?.name}`).join('，'));if(tops.length>1){g.publicLog.push('平票：'+tops.map(id=>wolfChar(id)?.name).join('、')+'，本轮无人放逐。')}else{let out=wolfChar(tops[0]||'');if(out){g.alive=g.alive.filter(id=>id!==out.id);g.publicLog.push(`第 ${g.day} 天投票：${out.name} 被放逐。`);if(hs.roles[out.id]==='hunter'){let shot=wolfPickRandom(wolfAliveChars());if(shot){g.alive=g.alive.filter(id=>id!==shot.id);g.publicLog.push(`猎人 ${out.name} 开枪带走了 ${shot.name}。`)}}}}hs.actions={};wolfCheckWinner();if(g.winner)g.revealRoles=cp(hs.roles);else{g.phase='night';g.publicLog.push('天黑请闭眼。')}wolfSendSecrets();wolfBroadcast()};
+ .wolfAutoPanel{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px;margin:10px 0}
+ .wolfAutoPanel h4{font-size:11px;margin:0 0 7px}.wolfAutoStatus{font-size:8px;line-height:1.7;color:#666}
+ .wolfAutoLog{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:8px;line-height:1.7;max-height:150px;overflow:auto}
+ .wolfAutoTag{display:inline-block;padding:3px 6px;border-radius:999px;background:#f1f2ef;margin:2px;font-size:7px}`;document.head.appendChild(st);
+ let running=false,lastPhaseKey="",timer=null;
+ function hostReady(){return !!(wolfNet.isHost&&wolfNet.room?.game?.started&&wolfNet.hostSecret?.roles)}
+ function alive(){return wolfAliveChars()}
+ function roleOf(c){return wolfNet.hostSecret?.roles?.[c.id]||""}
+ function publicContext(){
+   let g=wolfNet.room?.game;
+   return `公开事件：\n${(g?.publicLog||[]).slice(-12).join("\n")}\n\n最近发言：\n${(g?.speeches||[]).slice(-24).map(x=>(wolfChar(x.charId)?.name||"Char")+"："+x.text).join("\n")}`;
+ }
+ function isWolfRole(r){return r==="wolf"||r==="wolfking"||r==="hiddenwolf"}
+ function isKnifeWolf(r){return r==="wolf"||r==="wolfking"}
+ function privateContext(c){
+   let hs=wolfNet.hostSecret,role=roleOf(c),x=[];
+   if(role==="wolf"||role==="wolfking")x.push("你知道的狼队友："+alive().filter(a=>a.id!==c.id&&(roleOf(a)==="wolf"||roleOf(a)==="wolfking")).map(a=>a.name).join("、"));
+   if(role==="hiddenwolf")x.push("你属于狼人阵营，但你是隐狼：预言家查验你会显示好人；你不知道其他狼人，其他狼人也不知道你；你不参与夜间袭击。");
+   if(role==="seer"){let ks=hs.knowledge?.[c.id]||[];if(ks.length)x.push("你的验人记录："+ks.map(k=>`${k.name}=${k.isWolf?"狼人":"好人"}`).join("；"))}
+   if(role==="gravedigger"&&hs.graveInfo?.length)x.push("守墓信息："+hs.graveInfo.map(k=>`${k.name}属于${k.camp}`).join("；"));
+   let lover=hs.lovers?.find(id=>id!==c.id&&hs.lovers.includes(c.id));if(lover)x.push("你的情侣是："+(wolfChar(lover)?.name||"未知")+"。情侣一方死亡，另一方会殉情。");
+   if(hs.thirdPartyLovers&&hs.lovers?.includes(c.id))x.push("你们是跨阵营情侣，胜利目标变为情侣两人存活并消灭其他所有人。");
+   if(role==="idiot"&&hs.idiotRevealed?.[c.id])x.push("你已经翻牌成为公开白痴，失去投票权。");
+   return x.join("\n");
+ }
+ async function askChar(c,instruction){
+   let role=roleOf(c),prompt=`你正在参加一局狼人杀。你必须作为角色 ${c.name} 自主行动。
+角色设定：
+${c.profile||"未提供额外设定"}
+
+你的隐藏身份：${WOLF_ROLE_NAME[role]||role}
+${privateContext(c)}
+
+${publicContext()}
+
+规则：
+1. 只使用这个角色应该知道的信息，禁止读取其他隐藏身份。
+2. 决策要符合角色性格，可以聪明、冲动、胆小、撒谎、误判，不要像统一模板机器人。
+3. 不要替用户说话，也不要询问用户怎么选。
+4. 严格按照本次要求输出，不要解释系统规则。
+
+${instruction}`;
+   return String(await apiWithMcp([{role:"system",content:prompt},{role:"user",content:"现在由你自己决定。"}])||"").trim();
+ }
+ function parseChoice(raw,choices){
+   let s=String(raw||"").trim();
+   try{let o=JSON.parse(s.match(/\{[\s\S]*\}/)?.[0]||s);let n=String(o.target||o.name||"").trim();let c=choices.find(x=>x.name===n||x.id===n);if(c)return c}catch{}
+   return choices.find(x=>s.includes(x.name))||null;
+ }
+ async function chooseTarget(c,choices,task){
+   if(!choices.length)return null;
+   try{
+     let raw=await askChar(c,`${task}\n可选目标：${choices.map(x=>x.name).join("、")}\n只输出 JSON：{"target":"目标名字","reason":"一句很短的角色内理由"}`);
+     return parseChoice(raw,choices)||wolfPickRandom(choices)
+   }catch(e){console.warn("wolf char choose",c.name,e);return wolfPickRandom(choices)}
+ }
+ async function chooseWitch(c,victim){
+   let hs=wolfNet.hostSecret,choices=alive().filter(x=>x.id!==c.id),fallback={save:false,poison:null};
+   try{
+     let raw=await askChar(c,`你是女巫。今晚狼人袭击目标：${victim?.name||"未知"}。
+解药${hs.witchSaved?"已经用掉":"还可以使用"}；毒药${hs.witchPoisoned?"已经用掉":"还可以使用"}。
+可毒目标：${choices.map(x=>x.name).join("、")}。
+根据你的性格和当前信息自己决定，可以什么药都不用。
+只输出 JSON：{"save":true或false,"poison":"名字或空字符串","reason":"一句短理由"}`);
+     let o=JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||raw),poison=choices.find(x=>x.name===String(o.poison||"").trim())||null;
+     return {save:!hs.witchSaved&&!!victim&&o.save===true,poison:hs.witchPoisoned?null:poison}
+   }catch(e){console.warn("wolf witch ai",e);return fallback}
+ }
+ function checkWinner(){
+   let g=wolfNet.room.game,hs=wolfNet.hostSecret,roles=hs.roles,a=g.alive;
+   if(hs.thirdPartyLovers&&hs.lovers?.length===2&&hs.lovers.every(id=>a.includes(id))&&a.every(id=>hs.lovers.includes(id))){g.winner="情侣第三方胜利"}
+   else{let w=a.filter(id=>isWolfRole(roles[id])).length,o=a.length-w;if(w===0)g.winner="好人阵营胜利";else if(w>=o)g.winner="狼人阵营胜利"}
+   if(g.winner){g.publicLog.push("游戏结束："+g.winner);g.revealRoles=cp(roles)}
+ }
+ function applyLoveDeaths(deaths){
+   let hs=wolfNet.hostSecret;if(!hs.lovers?.length)return deaths;let ids=new Set(deaths.map(x=>x.id));
+   for(let id of hs.lovers)if(ids.has(id)){let other=hs.lovers.find(x=>x!==id);if(other&&!ids.has(other)&&wolfNet.room.game.alive.includes(other)){let c=wolfChar(other);if(c){deaths.push(c);ids.add(other);wolfNet.room.game.publicLog.push(`${c.name} 因情侣死亡而殉情。`)}}}
+   return deaths
+ }
+ async function cupidFirstNight(){
+   let hs=wolfNet.hostSecret,g=wolfNet.room.game,c=alive().find(x=>roleOf(x)==="cupid");if(!c||hs.cupidDone)return;
+   let choices=alive().filter(x=>x.id!==c.id),first=await chooseTarget(c,choices,"你是丘比特。第一夜请选择第一名你想连接为情侣的 Char。你可以按照性格、关系感或纯粹直觉选择。");
+   let rest=choices.filter(x=>x.id!==first?.id),second=first?await chooseTarget(c,rest,`你已经选择 ${first.name}。再选择另一名 Char 与其成为情侣。`):null;
+   if(first&&second){hs.lovers=[first.id,second.id];let camps=[isWolfRole(roleOf(first))?"wolf":"good",isWolfRole(roleOf(second))?"wolf":"good"];hs.thirdPartyLovers=camps[0]!==camps[1];g.publicLog.push("丘比特已经在暗处连结了一对情侣。")}
+   hs.cupidDone=true
+ }
+ async function knightChallenge(){
+   let hs=wolfNet.hostSecret,g=wolfNet.room.game,k=alive().find(x=>roleOf(x)==="knight");if(!k||hs.knightUsed?.[k.id])return false;
+   let opts=alive().filter(x=>x.id!==k.id);if(g.day<1||opts.length<2)return false;
+   try{let raw=await askChar(k,`你是骑士。白天发言结束后，你有一次机会发动决斗，也可以放弃。若你决斗狼人，对方立刻死亡；若目标不是狼人，你自己死亡。根据当前局势自主决定。可选目标：${opts.map(x=>x.name).join("、")}。只输出 JSON：{"use":true或false,"target":"名字或空字符串"}`);let o=JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||raw);if(!o.use)return false;let target=opts.find(x=>x.name===String(o.target||"").trim());if(!target)return false;hs.knightUsed||(hs.knightUsed={});hs.knightUsed[k.id]=true;if(isWolfRole(roleOf(target))){g.alive=g.alive.filter(id=>id!==target.id);g.publicLog.push(`骑士 ${k.name} 发动决斗，${target.name} 是狼人并被处决。`);applyLoveDeaths([target]).slice(1).forEach(d=>g.alive=g.alive.filter(id=>id!==d.id))}else{g.alive=g.alive.filter(id=>id!==k.id);g.publicLog.push(`骑士 ${k.name} 决斗 ${target.name} 失败，骑士死亡。`);applyLoveDeaths([k]).slice(1).forEach(d=>g.alive=g.alive.filter(id=>id!==d.id))}checkWinner();wolfSendSecrets();wolfBroadcast();return true}catch(e){console.warn("knight",e);return false}
+ }
+ async function deathShot(dead,reason){
+   let r=roleOf(dead);if(r!=="hunter"&&r!=="wolfking")return;let opts=alive().filter(x=>x.id!==dead.id);if(!opts.length)return;
+   let shot=await chooseTarget(dead,opts,`你是${WOLF_ROLE_NAME[r]}，你因${reason}死亡，可以发动最后的带人技能。自主选择一名目标。`);
+   if(shot){wolfNet.room.game.alive=wolfNet.room.game.alive.filter(id=>id!==shot.id);wolfNet.room.game.publicLog.push(`${WOLF_ROLE_NAME[r]} ${dead.name} 临死带走了 ${shot.name}。`);let extra=applyLoveDeaths([shot]).slice(1);extra.forEach(d=>wolfNet.room.game.alive=wolfNet.room.game.alive.filter(id=>id!==d.id))}
+ }
+ async function autoNight(){
+   let g=wolfNet.room.game,hs=wolfNet.hostSecret;if(!g||g.phase!=="night")return;
+   await cupidFirstNight();
+   let a=alive(),wolves=a.filter(c=>isKnifeWolf(roleOf(c))),nonwolves=a.filter(c=>!isWolfRole(roleOf(c)));
+   let wolfChoices=[];
+   for(let w of wolves){let x=await chooseTarget(w,nonwolves,"你是狼人。今晚由你决定最想袭击谁。结合白天信息和你的性格判断。");if(x)wolfChoices.push(x.id)}
+   let cnt={};wolfChoices.forEach(id=>cnt[id]=(cnt[id]||0)+1);let mx=Math.max(0,...Object.values(cnt)),tops=Object.keys(cnt).filter(id=>cnt[id]===mx),victim=wolfChar(wolfPickRandom(tops)||"")||wolfPickRandom(nonwolves);
+   let guard=a.find(c=>roleOf(c)==="guard"),guarded=null;
+   if(guard){let opts=a.filter(x=>x.id!==hs.lastGuard);guarded=await chooseTarget(guard,opts,"你是守卫。今晚选择一名你认为最值得保护的人。不能连续两晚守同一个目标。");if(guarded)hs.lastGuard=guarded.id}
+   let seer=a.find(c=>roleOf(c)==="seer");
+   if(seer){let known=new Set((hs.knowledge?.[seer.id]||[]).map(x=>x.id)),opts=a.filter(x=>x.id!==seer.id&&!known.has(x.id));if(!opts.length)opts=a.filter(x=>x.id!==seer.id);let x=await chooseTarget(seer,opts,"你是预言家。今晚选择一名最想查验身份的人。");if(x){hs.knowledge[seer.id]||(hs.knowledge[seer.id]=[]);if(!hs.knowledge[seer.id].some(k=>k.id===x.id))hs.knowledge[seer.id].push({id:x.id,name:x.name,isWolf:(roleOf(x)==="wolf"||roleOf(x)==="wolfking")})}}
+   let witch=a.find(c=>roleOf(c)==="witch"),wa=witch?await chooseWitch(witch,victim):{save:false,poison:null};
+   let deaths=[];if(victim&&!wa.save&&victim.id!==guarded?.id)deaths.push(victim);if(wa.poison&&!deaths.some(x=>x.id===wa.poison.id))deaths.push(wa.poison);
+   applyLoveDeaths(deaths);for(let d of deaths)g.alive=g.alive.filter(id=>id!==d.id);
+   for(let d of deaths.slice())await deathShot(d,"夜间");
+   g.day++;g.phase="day";g.speeches=[];g.votes=[];
+   g.publicLog.push(deaths.length?`第 ${g.day} 天清晨：${deaths.map(x=>x.name).join("、")} 昨夜死亡。`:`第 ${g.day} 天清晨：昨夜平安夜。`);
+   checkWinner();wolfSendSecrets();wolfBroadcast();
+ }
+ async function autoSpeeches(){
+   let g=wolfNet.room.game;if(!g||g.phase!=="day")return;
+   g.speeches=[];
+   for(let c of alive()){
+     let text="";
+     try{text=await askChar(c,`现在是第 ${g.day} 天白天，轮到你公开发言。自然地盘逻辑、怀疑、辩解、试探或带节奏。狼人可以撒谎和伪装身份。只输出 1-3 句角色本人说的话，不要旁白。`)}
+     catch(e){console.warn("wolf speech ai",e);text="我先听听大家怎么说。"}
+     g.speeches.push({charId:c.id,text:text.slice(0,500)});wolfBroadcast()
+   }
+   if(await knightChallenge()){if(g.winner)return}
+   g.phase="vote";g.publicLog.push(`第 ${g.day} 天：发言结束，所有 Char 开始自主投票。`);wolfBroadcast()
+ }
+ async function autoVote(){
+   let g=wolfNet.room.game,hs=wolfNet.hostSecret;if(!g||g.phase!=="vote")return;
+   let voters=alive().filter(c=>!(roleOf(c)==="idiot"&&hs.idiotRevealed?.[c.id])),votes=[];
+   for(let c of voters){let opts=alive().filter(x=>x.id!==c.id),x=await chooseTarget(c,opts,"现在进行白天放逐投票。根据你听到的所有公开发言、公开事件和自己的隐藏信息，自主选择你最想投出去的人。");if(x)votes.push({from:c.id,to:x.id})}
+   let cnt={};votes.forEach(v=>cnt[v.to]=(cnt[v.to]||0)+1);let max=Math.max(0,...Object.values(cnt)),tops=Object.keys(cnt).filter(k=>cnt[k]===max);
+   g.votes=votes;g.publicLog.push("投票："+votes.map(v=>`${wolfChar(v.from)?.name}→${wolfChar(v.to)?.name}`).join("，"));
+   if(tops.length>1)g.publicLog.push("平票："+tops.map(id=>wolfChar(id)?.name).join("、")+"，本轮无人放逐。");
+   else{let out=wolfChar(tops[0]||"");if(out){
+     if(roleOf(out)==="idiot"&&!hs.idiotRevealed?.[out.id]){hs.idiotRevealed||(hs.idiotRevealed={});hs.idiotRevealed[out.id]=true;g.publicLog.push(`白痴 ${out.name} 被放逐时翻牌免死，但从此失去投票权。`)}
+     else{
+       g.alive=g.alive.filter(id=>id!==out.id);g.publicLog.push(`第 ${g.day} 天投票：${out.name} 被放逐。`);
+       if(roleOf(out)==="gravedigger"){/* dead gravedigger gets no future info */}
+       let extra=applyLoveDeaths([out]).slice(1);extra.forEach(d=>g.alive=g.alive.filter(id=>id!==d.id));
+       await deathShot(out,"被放逐");for(let d of extra)await deathShot(d,"殉情");
+       let grave=alive().find(c=>roleOf(c)==="gravedigger");if(grave){hs.graveInfo||(hs.graveInfo=[]);hs.graveInfo.push({name:out.name,camp:isWolfRole(roleOf(out))?"狼人阵营":"好人阵营"})}
+     }
+   }}
+   checkWinner();if(!g.winner){g.phase="night";g.publicLog.push("天黑请闭眼。")}wolfSendSecrets();wolfBroadcast()
+ }
+ async function runPhase(){
+   if(!hostReady()||running)return;
+   let g=wolfNet.room.game,key=`${g.gameId||""}:${g.day}:${g.phase}:${g.winner||""}`;if(g.winner||key===lastPhaseKey)return;
+   lastPhaseKey=key;running=true;renderAuto();
+   try{if(g.phase==="night")await autoNight();else if(g.phase==="day")await autoSpeeches();else if(g.phase==="vote")await autoVote()}
+   catch(e){console.error("wolf autoplay",e);lastPhaseKey="";toast("Char 自动行动失败："+(e?.message||"API 异常"))}
+   finally{running=false;renderAuto();schedule()}
+ }
+ function schedule(){clearTimeout(timer);if(hostReady()&&!wolfNet.room.game.winner)timer=setTimeout(runPhase,900)}
+ function ensurePanel(){let gp=document.getElementById("wolfGamePanel"),p=document.getElementById("wolfAutoPanel");if(!gp||p)return;p=document.createElement("div");p.id="wolfAutoPanel";p.className="wolfAutoPanel";let hc=document.getElementById("wolfHostControls");gp.insertBefore(p,hc)}
+ function renderAuto(){ensurePanel();let p=document.getElementById("wolfAutoPanel"),g=wolfNet.room?.game;if(!p||!g)return;p.innerHTML=`<h4>Char 自主狼人杀</h4><div class="wolfAutoStatus">${wolfNet.isHost?(running?"AI 正在让 Char 自己思考行动…":"系统自动推进中"):"由房主设备调用 AI，所有 Char 会自行行动"} · ${esc(wolfPhaseName(g))}</div><div class="wolfAutoLog">${(g.publicLog||[]).slice(-7).map(x=>esc(x)).join("<br>")}</div>`;let hc=document.getElementById("wolfHostControls");if(hc)hc.style.display="none"}
+ const oldRender=renderWolfGame;renderWolfGame=function(){oldRender();renderAuto();schedule()};
+ const oldHandle=wolfHandleCloudMessage;wolfHandleCloudMessage=function(msg){oldHandle(msg);setTimeout(schedule,30)};
+ const oldStart=wolfStartGame;wolfStartGame=function(){let r=oldStart.apply(this,arguments);setTimeout(schedule,1200);return r};
  ensurePanel();
 })();
-
 /* ===== GAME HALL TILE CLICK FIX ===== */
 (function bindGameHallTiles(){
   const grid=document.querySelector('.gameGrid');
@@ -7212,9 +7362,9 @@ function wolfVote(){let g=wolfNet.room.game,alive=wolfAliveChars(),hs=wolfNet.ho
 })();
 
 $("#wolfOnlineTile").onclick=()=>openWolfLobby();
-$("#wolfCreateRoomBtn").onclick=()=>{if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");wolfClosePeer();wolfConnectHost(wolfCode())};
-$("#wolfJoinRoomBtn").onclick=()=>{if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");let code=$("#wolfJoinCode").value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(code.length!==6)return toast("请输入 6 位邀请码");wolfClosePeer();wolfJoinHost(code)};
-$("#wolfReadyBtn").onclick=()=>{if(!wolfNet.room)return;let ready=!wolfNet.localReady;if(wolfNet.isHost){let p=wolfNet.room.players.find(x=>x.userId===wolfNet.userId);if(p){p.ready=ready;wolfBroadcast()}}else if(wolfNet.conn?.open)wolfNet.conn.send({type:"ready",userId:wolfNet.userId,ready})};
+$("#wolfCreateRoomBtn").onclick=async()=>{if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");try{await wolfEnsureUserId()}catch(e){return toast("获取玩家 ID 失败："+(e?.message||"网络异常"))}wolfClosePeer();wolfConnectHost(wolfCode())};
+$("#wolfJoinRoomBtn").onclick=async()=>{if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");let code=$("#wolfJoinCode").value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(code.length!==6)return toast("请输入 6 位邀请码");try{await wolfEnsureUserId()}catch(e){return toast("获取玩家 ID 失败："+(e?.message||"网络异常"))}wolfClosePeer();wolfJoinHost(code)};
+$("#wolfReadyBtn").onclick=()=>{if(!wolfNet.room)return;let ready=!wolfNet.localReady;wolfNet.localReady=ready;let p=wolfNet.room.players.find(x=>x.userId===wolfNet.userId);if(p)p.ready=ready;renderWolfRoom();if(!wolfWsSend({type:"ready",userId:wolfNet.userId,ready})){wolfNet.localReady=!ready;if(p)p.ready=!ready;renderWolfRoom();toast("准备失败：房间连接已断开")}};
 $("#wolfStartBtn").onclick=()=>wolfStartGame();
 $("#wolfAdvanceBtn").onclick=()=>wolfResolveNight();
 $("#wolfSpeakBtn").onclick=()=>wolfGenerateSpeeches();
@@ -8753,7 +8903,7 @@ $id('truthOnlineTile').onclick=()=>{renderPicker();$id('toStatus').textContent='
    const list=q("#wolfRankList");if(list)list.innerHTML='<div class="empty">正在读取血色战绩簿…</div>';
    if(rankBusy)return;rankBusy=true;
    try{
-     const uid=(window.wolfNet&&wolfNet.userId)||localStorage.getItem("wp2_wolf_uid")||"";
+     const uid=typeof wolfEnsureUserId==="function"?await wolfEnsureUserId():(localStorage.getItem("wp2_wolf_uid_v2")||"");
      const r=await fetch(API+"/leaderboard?sort="+encodeURIComponent(rankType)+"&userId="+encodeURIComponent(uid),{cache:"no-store"});
      const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||("HTTP "+r.status));
      const me=d.me||{games:0,wins:0,mvp:0,winRate:0};
