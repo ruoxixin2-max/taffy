@@ -2242,6 +2242,25 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
   <header class="head"><button class="back" data-back="liveRoom">返回</button><div class="headTitle">直播记录</div><div></div></header>
   <div class="body" id="liveHistoryList"></div>
 </section>
+
+<section class="page gameHallPage wolfRankPage" data-page="wolfLeaderboard">
+  <header class="head"><button class="back" id="wolfRankBack">返回</button><div class="headTitle">狼人杀 · 全服排行榜</div><button class="headAction" id="wolfRankRefresh">刷新</button></header>
+  <div class="body">
+    <div class="wolfRankHero">
+      <div><div class="wolfRankEyebrow">CURRY ONLINE</div><div class="wolfRankTitle">全服战绩</div><div class="wolfRankSub">云端结算 · 胜率榜需完成至少 5 局</div></div>
+      <div class="wolfRankMe" id="wolfRankMe">我的战绩加载中…</div>
+    </div>
+    <div class="wolfRankTabs">
+      <button class="on" data-rank="wins">胜场榜</button>
+      <button data-rank="winrate">胜率榜</button>
+      <button data-rank="games">对局榜</button>
+      <button data-rank="mvp">MVP榜</button>
+    </div>
+    <div class="wolfRankList" id="wolfRankList"><div class="empty">正在连接咖喱机联机服务…</div></div>
+    <div class="wolfRankFoot">同一局只结算一次。一个 User 同时带多个 Char 时，以该 User 名下 Char 的阵营多数判定本局胜负；数量相同记为中立局。</div>
+  </div>
+</section>
+
 <section class="page gameHallPage" data-page="gameHall">
   <header class="head"><button class="back" data-back="home">返回</button><div class="headTitle">游戏大厅</div><div></div></header>
   <div class="body gameHallBody">
@@ -2253,6 +2272,7 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
       <button class="gameTile" data-game-open="joker"><div class="gameEmoji">牌</div><b>抽鬼牌</b><span>简化版多人抽牌</span></button>
       <button class="gameTile" data-game-open="mahjong"><div class="gameEmoji">麻</div><b>麻将</b><span>四人牌局 · 摸牌出牌碰杠胡</span></button>
       <button class="gameTile wolfOnlineTile" id="wolfOnlineTile" type="button"><div class="gameEmoji">狼</div><b>狼人杀 · 联机</b><span>邀请码 · 多用户多 Char · 房主手机主持</span></button>
+      <button class="gameTile wolfRankTile" id="wolfRankTile" data-game-open="wolfLeaderboard"><div class="gameEmoji">榜</div><b>狼人杀 · 全服榜</b><span>胜场 · 胜率 · 对局 · MVP</span></button>
       <button class="gameTile" id="truthOnlineTile" type="button"><div class="gameEmoji">联</div><b>真心话大冒险 · 联机</b><span>User + 1 个 Char · 邀请码多人房</span></button>
     </div>
     <div class="gameHallSection">最近战绩</div>
@@ -2303,7 +2323,7 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 <section class="page gameHallPage wolfPage" data-page="wolfLobby">
   <header class="head"><button class="back" data-back="gameHall">返回</button><div class="headTitle">狼人杀 · 联机</div><div></div></header>
   <div class="body">
-    <div class="wolfHero"><div class="wolfEyebrow">PEER TO PEER</div><div class="wolfTitle">把你们的 Char 拉上桌</div><div class="wolfSub">房主手机保存整局状态。邀请码只用来建立点对点连接；房主退出，房间结束。无需你自己购买云服务器。</div></div>
+    <div class="wolfHero"><div class="wolfEyebrow">PEER TO PEER</div><div class="wolfTitle">把你们的 Char 拉上桌</div><div class="wolfSub">房主手机保存整局状态。无需云服务器或 TURN 账号；同一 Wi‑Fi / 手机热点下联机最稳。房主退出，房间结束。</div></div>
     <div class="settingGroup"><h3>选择我带进房间的 Char</h3><div class="wolfPicker" id="wolfLocalPicker"></div><div class="wolfWarn">每个用户可选择多个 Char。第一版支持总计 6–12 个 Char。</div></div>
     <div class="settingGroup"><h3>创建房间</h3><div class="settingBox"><button class="btn primary" type="button" id="wolfCreateRoomBtn">创建房间并生成邀请码</button></div></div>
     <div class="settingGroup"><h3>加入房间</h3><div class="settingBox"><div class="wolfJoinRow"><input class="input wolfJoinCode" id="wolfJoinCode" maxlength="6" placeholder="6 位邀请码"><button class="btn primary" type="button" id="wolfJoinRoomBtn">加入</button></div><div class="wolfStatus" id="wolfNetStatus" style="margin-top:8px">等待操作</div></div></div>
@@ -2414,6 +2434,11 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
 <div class="help">MiniMax 已区分中国版与国际版：国内默认 api.minimaxi.com，国际默认 api.minimax.io。ElevenLabs 的 Endpoint 需要包含 Voice ID，选择服务商时会自动生成。</div>
 </div></div>
 
+
+<div class="settingGroup"><h3>ONLINE / 免账号联机</h3><div class="settingBox">
+<div class="help">当前联机不要求注册 TURN、填写账号或购买服务器。优先使用设备直连；如果不同运营商网络无法打洞，最稳的免费方式是让参与设备连接同一个 Wi‑Fi，或由其中一台手机开启个人热点后再加入。</div>
+<div class="statusText">推荐：房主开热点 → 其他设备连热点 → 再创建 / 加入房间。</div>
+</div></div>
 
 <div class="settingGroup"><h3>STORAGE</h3><div class="settingBox backupBox">
   <div class="backupMeta">图片媒体改用 IndexedDB 保存，localStorage 只保留轻量文字与引用。旧 Base64 图片可一键迁移；不会删除仍被使用的图片。</div>
@@ -6685,6 +6710,11 @@ function renderGameHall(){
  host.innerHTML=h.length?h.map(x=>`<div class="gameHistory"><b>${esc(gameName(x.type))} · ${esc(x.summary||"")}</b><div>${esc(x.time||"")}</div></div>`).join(""):'<div class="empty">还没有战绩。<br>先开一局。</div>'
 }
 function openGameSetup(type){
+ if(type==="wolfLeaderboard"){
+   page("wolfLeaderboard");
+   setTimeout(()=>{try{window.wolfLoadLeaderboard?.("wins")}catch(e){console.warn("wolf leaderboard open",e)}},30);
+   return;
+ }
  currentGameType=type;gameParticipants=[];$("#gameSetupTitle").textContent=gameName(type);$("#truthModeField").style.display=type==="truth"?"block":"none";
  $("#gameContactPicker").innerHTML=contacts.map(c=>`<label class="gameContactOption"><input type="checkbox" value="${c.id}"><div class="gameContactAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc(c.name.charAt(0))}</div><div>${esc(c.name)}</div></label>`).join("")||'<div class="empty">还没有联系人</div>';
  page("gameSetup")
@@ -7073,7 +7103,7 @@ $("#liveGiftBtn").onclick=()=>$("#liveGiftMenu").classList.toggle("show");
 $("#liveGiftMenu").onclick=async e=>{let b=e.target.closest("button[data-gift]");if(!b||!currentLive)return;let gift=b.dataset.gift,u=liveMaskObj();currentLive.gifts++;liveAddLine(u,`${gift==="舰长"||gift==="提督"?"开通":"送出"} ${gift}${gift==="舰长"||gift==="提督"?"":" ×1"}`,"gift");$("#liveGiftMenu").classList.remove("show");if(currentLive.streamerType==="char"){triggerLiveExpression("happy");triggerLiveMotion();setTimeout(()=>liveCharStreamerReply(`User interacted with the livestream by ${gift==="舰长"||gift==="提督"?"opening "+gift:"sending "+gift}.`),250)}};
 
 
-/* ===== 狼人杀 · 点对点联机（房主手机主持） ===== */
+/* ===== 狼人杀 · Cloudflare WebSocket 云端联机 ===== */
 const WOLF_ROLE_NAME={wolf:"狼人",seer:"预言家",witch:"女巫",hunter:"猎人",guard:"守卫",villager:"平民"};
 let wolfNet={peer:null,isHost:false,code:"",userId:localStorage.getItem("wp2_wolf_uid")||("u_"+uuid()),conn:null,conns:new Map(),room:null,mySecrets:{},localReady:false,hostSecret:null,generating:false};
 try{localStorage.setItem("wp2_wolf_uid",wolfNet.userId)}catch{}
@@ -7085,24 +7115,32 @@ function wolfPayload(){let ids=wolfLocalSelection();return {userId:wolfNet.userI
 function renderWolfPicker(){let e=$("#wolfLocalPicker");if(!e)return;e.innerHTML=contacts.length?contacts.map(c=>`<label class="wolfPick"><input type="checkbox" value="${esc(c.id)}"><div class="wolfPickAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c.name||"?").charAt(0))}</div><div class="wolfPickName">${esc(c.name)}</div></label>`).join(""):'<div class="empty" style="grid-column:1/-1">还没有联系人</div>'}
 function openWolfLobby(){renderWolfPicker();wolfStatus("等待操作");page("wolfLobby")}
 function wolfCode(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
+const WOLF_WS_BASE="wss://curry-online.6jkgb4s8jj.workers.dev/ws";
 function wolfClearRetry(){if(wolfNet.retryTimer){clearTimeout(wolfNet.retryTimer);wolfNet.retryTimer=null}}
-function wolfClosePeer(){wolfNet.manualClose=true;wolfClearRetry();try{wolfNet.conn?.close()}catch{};for(let c of wolfNet.conns.values())try{c.close()}catch{};try{wolfNet.peer?.destroy()}catch{};wolfNet.peer=null;wolfNet.conn=null;wolfNet.conns.clear();wolfNet.room=null;wolfNet.mySecrets={};wolfNet.hostSecret=null;wolfNet.localReady=false;wolfNet.isHost=false;wolfNet.code="";wolfNet.joinAttempts=0;setTimeout(()=>{wolfNet.manualClose=false},0)}
-function wolfEnsurePeerLib(){if(typeof Peer!=="function"){toast("联机组件加载失败，请检查网络后重试");return false}return true}
-function wolfPeerOptions(){return {debug:0,config:{iceServers:[{urls:"stun:stun.cloudflare.com:3478"},{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}],iceCandidatePoolSize:4}}}
-function wolfPeerErrorText(e,host){let t=e?.type||"";if(t==="peer-unavailable")return "没找到房主，请检查邀请码";if(t==="network"||t==="socket-error"||t==="socket-closed"||t==="server-error")return "信令网络异常，正在尝试恢复";if(t==="webrtc")return "P2P 协商失败，正在重试";if(t==="unavailable-id")return "邀请码撞车了，请重新创建";return host?"创建失败，请检查网络":"加入失败："+(t||"网络异常")}
-function wolfBindPeerEvents(peer,isHost){peer.on("disconnected",()=>{if(wolfNet.manualClose)return;wolfRoomConnText("信令断开，正在重连…");try{if(!peer.destroyed)peer.reconnect()}catch(e){console.warn("wolf peer reconnect",e)}});peer.on("close",()=>{if(!wolfNet.manualClose)wolfRoomConnText(isHost?"房主连接已关闭":"连接已关闭")})}
-function wolfWatchIce(conn){let tries=0,t=setInterval(()=>{let pc=conn?.peerConnection;if(!pc){if(++tries>20)clearInterval(t);return}clearInterval(t);let last="";let update=()=>{let st=pc.iceConnectionState||pc.connectionState||"";if(st===last)return;last=st;if(st==="checking")wolfRoomConnText("正在协商直连…");else if(st==="connected"||st==="completed")wolfRoomConnText(wolfNet.isHost?`房主 · ${wolfNet.conns.size} 个远端用户`:"已连接房主");else if(st==="disconnected"){wolfRoomConnText("网络波动，尝试恢复…");setTimeout(()=>{try{if(pc.iceConnectionState==="disconnected"&&pc.restartIce)pc.restartIce()}catch(e){console.warn("wolf restartIce",e)}},1200)}else if(st==="failed"){wolfRoomConnText("直连失败，正在重新连接…");try{pc.restartIce?.()}catch{};if(!wolfNet.isHost)wolfScheduleJoinRetry("ICE failed")}};pc.addEventListener?.("iceconnectionstatechange",update);pc.addEventListener?.("connectionstatechange",update);update()},100)}
-function wolfScheduleJoinRetry(reason){if(wolfNet.isHost||wolfNet.manualClose||!wolfNet.code)return;wolfClearRetry();let n=(wolfNet.joinAttempts||0)+1;wolfNet.joinAttempts=n;if(n>5){wolfRoomConnText("连接失败：当前网络可能无法直连，可换 Wi‑Fi/热点后重试");return}wolfRoomConnText(`连接中断，正在第 ${n}/5 次重试…`);wolfNet.retryTimer=setTimeout(()=>{if(wolfNet.manualClose||wolfNet.isHost||!wolfNet.peer||wolfNet.peer.destroyed)return;wolfOpenJoinConn()},Math.min(1500*n,5000))}
-function wolfOpenJoinConn(){if(!wolfNet.peer?.open||!wolfNet.code)return;try{try{wolfNet.conn?.close()}catch{};let conn=wolfNet.peer.connect("currywolf-"+wolfNet.code.toLowerCase(),{reliable:true,serialization:"json"});wolfNet.conn=conn;wolfBindConn(conn,false);let opened=false,timeout=setTimeout(()=>{if(!opened&&!wolfNet.manualClose){try{conn.close()}catch{};wolfScheduleJoinRetry("timeout")}},12000);conn.on("open",()=>{opened=true;clearTimeout(timeout);wolfClearRetry();wolfNet.joinAttempts=0;conn.send({type:"join",player:wolfPayload()});wolfRoomConnText("已连接房主");page("wolfRoom")})}catch(e){console.warn("wolf join connect",e);wolfScheduleJoinRetry("connect exception")}}
-function wolfBindConn(conn,isHostSide){wolfWatchIce(conn);conn.on("data",d=>wolfOnData(conn,d));conn.on("close",()=>{if(wolfNet.manualClose)return;if(wolfNet.isHost){for(let [uid,c] of wolfNet.conns.entries())if(c===conn){wolfNet.conns.delete(uid);if(wolfNet.room&&!wolfNet.room.game?.started)wolfNet.room.players=wolfNet.room.players.filter(x=>x.userId!==uid);wolfBroadcast();break}wolfRoomConnText("有设备断开，等待对方重连…")}else{wolfRoomConnText("与房主断开，正在重连…");wolfScheduleJoinRetry("data close")}});conn.on("error",e=>{console.warn("wolf conn",e);if(wolfNet.isHost)wolfRoomConnText("有设备直连失败，等待对方重试…");else{wolfRoomConnText("P2P 连接异常，正在重试…");wolfScheduleJoinRetry(e?.type||"conn error")}})}
+function wolfClosePeer(){wolfNet.manualClose=true;wolfClearRetry();try{wolfNet.ws?.close(1000,"leave")}catch{};wolfNet.ws=null;wolfNet.conn=null;wolfNet.conns.clear();wolfNet.room=null;wolfNet.mySecrets={};wolfNet.hostSecret=null;wolfNet.localReady=false;wolfNet.isHost=false;wolfNet.code="";wolfNet.joinAttempts=0;setTimeout(()=>{wolfNet.manualClose=false},0)}
+function wolfEnsurePeerLib(){return true}
 function wolfRoomConnText(t){let e=$("#wolfRoomConn");if(e)e.textContent=t||""}
+function wolfWsSend(obj){let ws=wolfNet.ws;if(ws?.readyState===WebSocket.OPEN){try{ws.send(JSON.stringify(obj));return true}catch{}}return false}
+function wolfVirtualConn(toUserId){return {open:true,send(payload){return wolfWsSend({type:"relay",toUserId,payload})},close(){}}}
+function wolfRefreshVirtualConns(){wolfNet.conns.clear();for(let p of wolfNet.room?.players||[]){if(p.userId!==wolfNet.userId)wolfNet.conns.set(p.userId,wolfVirtualConn(p.userId))}if(!wolfNet.isHost&&wolfNet.room?.hostUserId)wolfNet.conn=wolfVirtualConn(wolfNet.room.hostUserId)}
 function wolfUpsertPlayer(p){if(!wolfNet.room)return;let i=wolfNet.room.players.findIndex(x=>x.userId===p.userId),old=i>=0?wolfNet.room.players[i]:null,n={userId:p.userId,label:p.label||"玩家",ready:old?.ready||false,chars:Array.isArray(p.chars)?p.chars:[]};if(i>=0)wolfNet.room.players[i]=n;else wolfNet.room.players.push(n)}
-function wolfOnData(conn,d){if(!d||typeof d!=="object")return;if(wolfNet.isHost){if(d.type==="join"){wolfUpsertPlayer(d.player);wolfNet.conns.set(d.player.userId,conn);wolfBroadcast();return}if(d.type==="ready"){let p=wolfNet.room?.players.find(x=>x.userId===d.userId);if(p){p.ready=!!d.ready;wolfBroadcast()}return}}else{if(d.type==="state"){wolfNet.room=d.room;wolfNet.code=d.room?.code||wolfNet.code;renderWolfRoom();return}if(d.type==="secret"){wolfNet.mySecrets=d.secrets||{};renderWolfRoom();return}if(d.type==="notice"){toast(d.text||"")}}}
+function wolfOnData(conn,d){if(!d||typeof d!=="object")return;if(wolfNet.isHost){if(d.type==="join"){wolfUpsertPlayer(d.player);wolfBroadcast();return}if(d.type==="ready"){let p=wolfNet.room?.players.find(x=>x.userId===d.userId);if(p){p.ready=!!d.ready;wolfBroadcast()}return}}else{if(d.type==="state"){wolfNet.room=d.room;wolfNet.code=d.room?.code||wolfNet.code;wolfRefreshVirtualConns();renderWolfRoom();return}if(d.type==="secret"){wolfNet.mySecrets=d.secrets||{};renderWolfRoom();return}if(d.type==="notice"){toast(d.text||"")}}}
 function wolfPublicRoom(){if(!wolfNet.room)return null;return cp(wolfNet.room)}
-function wolfBroadcast(){if(!wolfNet.isHost||!wolfNet.room)return;let msg={type:"state",room:wolfPublicRoom()};for(let c of wolfNet.conns.values())if(c.open)try{c.send(msg)}catch{};renderWolfRoom()}
+function wolfBroadcast(){if(!wolfNet.isHost||!wolfNet.room)return;wolfWsSend({type:"sync",room:wolfPublicRoom()});wolfRefreshVirtualConns();renderWolfRoom()}
 function wolfSelectedCount(){return (wolfNet.room?.players||[]).reduce((n,p)=>n+(p.chars?.length||0),0)}
-function wolfConnectHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=true;wolfNet.room={code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());wolfNet.room.players[0].ready=false;let id="currywolf-"+code.toLowerCase();wolfStatus("正在创建房间…");wolfNet.peer=new Peer(id,wolfPeerOptions());wolfBindPeerEvents(wolfNet.peer,true);wolfNet.peer.on("open",()=>{wolfStatus("房间已创建");wolfRoomConnText("房主在线 · 等待其他用户");page("wolfRoom");renderWolfRoom();wolfBroadcast()});wolfNet.peer.on("connection",conn=>{wolfRoomConnText("发现新设备，正在建立直连…");wolfBindConn(conn,true)});wolfNet.peer.on("error",e=>{console.warn("wolf peer",e);let msg=wolfPeerErrorText(e,true);wolfStatus(msg);if(e?.type!=="unavailable-id")wolfRoomConnText(msg)})}
-function wolfJoinHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=false;wolfNet.joinAttempts=0;wolfStatus("正在连接房主…");wolfNet.peer=new Peer(undefined,wolfPeerOptions());wolfBindPeerEvents(wolfNet.peer,false);wolfNet.peer.on("open",()=>{wolfStatus("已接入信令，正在建立 P2P…");wolfOpenJoinConn()});wolfNet.peer.on("error",e=>{console.warn("wolf peer",e);let msg=wolfPeerErrorText(e,false);wolfStatus(msg);wolfRoomConnText(msg);if(["network","socket-error","socket-closed","server-error","webrtc"].includes(e?.type))wolfScheduleJoinRetry(e?.type)})}
+function wolfWsUrl(code){return WOLF_WS_BASE+"?room="+encodeURIComponent(code)+"&userId="+encodeURIComponent(wolfNet.userId)}
+function wolfScheduleJoinRetry(){if(wolfNet.manualClose||!wolfNet.code)return;wolfClearRetry();let n=(wolfNet.joinAttempts||0)+1;wolfNet.joinAttempts=n;if(n>8){wolfRoomConnText("云端连接失败，请检查网络后重试");wolfStatus("连接失败");return}wolfRoomConnText(`云端断开，正在第 ${n}/8 次重连…`);wolfNet.retryTimer=setTimeout(()=>wolfOpenCloudSocket(),Math.min(1000*n,5000))}
+function wolfHandleCloudMessage(msg){if(!msg||typeof msg!=="object")return;if(msg.type==="hello"||msg.type==="room"){
+  let incoming=msg.room;if(incoming){
+   if(wolfNet.isHost){let remote=(incoming.players||[]).filter(p=>p.userId!==wolfNet.userId),mine=wolfNet.room?.players?.find(p=>p.userId===wolfNet.userId)||wolfPayload();wolfNet.room={...(wolfNet.room||{}),...incoming,hostUserId:wolfNet.userId,players:[mine,...remote],game:wolfNet.room?.game??incoming.game??null};wolfRefreshVirtualConns();renderWolfRoom()}
+   else{wolfNet.room=incoming;wolfNet.code=incoming.code||wolfNet.code;wolfRefreshVirtualConns();renderWolfRoom()}
+  }return}
+ if(msg.type==="relay"){if(msg.toUserId&&msg.toUserId!==wolfNet.userId)return;wolfOnData(null,msg.payload);return}
+ if(msg.type==="game"){if(!wolfNet.isHost&&msg.room){wolfNet.room=msg.room;wolfRefreshVirtualConns();renderWolfRoom()}return}
+}
+function wolfOpenCloudSocket(){if(!wolfNet.code)return;try{try{wolfNet.ws?.close()}catch{};let ws=new WebSocket(wolfWsUrl(wolfNet.code));wolfNet.ws=ws;wolfStatus("正在连接咖喱机云端…");wolfRoomConnText("正在连接云端房间…");let timeout=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)try{ws.close()}catch{}},12000);ws.onopen=()=>{clearTimeout(timeout);wolfClearRetry();wolfNet.joinAttempts=0;wolfStatus(wolfNet.isHost?"房间已创建":"已加入房间");wolfRoomConnText("云端联机 · 已连接");page("wolfRoom");wolfWsSend({type:"join",player:wolfPayload()});if(wolfNet.isHost){wolfNet.room=wolfNet.room||{code:wolfNet.code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());let me=wolfNet.room.players.find(x=>x.userId===wolfNet.userId);if(me)me.ready=!!wolfNet.localReady;wolfBroadcast()}renderWolfRoom()};ws.onmessage=e=>{try{wolfHandleCloudMessage(JSON.parse(e.data))}catch(err){console.warn("wolf ws message",err)}};ws.onclose=()=>{if(!wolfNet.manualClose)wolfScheduleJoinRetry()};ws.onerror=e=>{console.warn("wolf websocket",e);wolfRoomConnText("云端连接波动，正在恢复…")}}catch(e){console.warn("wolf websocket open",e);wolfScheduleJoinRetry()}}
+function wolfConnectHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=true;wolfNet.room={code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());wolfNet.room.players[0].ready=false;wolfOpenCloudSocket()}
+function wolfJoinHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=false;wolfNet.room=null;wolfOpenCloudSocket()}
 function renderWolfRoom(){let r=wolfNet.room;if(!r)return;$("#wolfRoomCode").textContent=r.code||"------";wolfRoomConnText(wolfNet.isHost?`房主 · ${wolfNet.conns.size} 个远端用户`:(wolfNet.conn?.open?"已连接房主":"连接中"));let host=$("#wolfRoomPlayers");if(host)host.innerHTML=(r.players||[]).map(p=>`<div class="wolfRoomUser"><div class="wolfRoomUserTop"><div class="wolfRoomUserName">${esc(p.label||"玩家")}${p.userId===r.hostUserId?'<span class="wolfOwnerTag">房主</span>':""}</div><span class="wolfReady ${p.ready?"on":""}">${p.ready?"已准备":"未准备"}</span></div><div class="wolfCharWrap">${(p.chars||[]).map(c=>`<span class="wolfCharChip">${esc(c.name)}</span>`).join("")||"<span class=\"tiny\">没有 Char</span>"}</div></div>`).join("");let me=(r.players||[]).find(p=>p.userId===wolfNet.userId);wolfNet.localReady=!!me?.ready;let rb=$("#wolfReadyBtn");if(rb){rb.textContent=wolfNet.localReady?"取消准备":"准备";rb.disabled=!!r.game?.started}let sb=$("#wolfStartBtn");if(sb){sb.style.display=wolfNet.isHost&&!r.game?.started?"":"none";let n=wolfSelectedCount(),all=(r.players||[]).length>0&&(r.players||[]).every(p=>p.ready);sb.disabled=!(n>=6&&n<=12&&all)}let hint=$("#wolfStartHint");if(hint)hint.textContent=`当前 ${wolfSelectedCount()} 个 Char · ${(r.players||[]).filter(p=>p.ready).length}/${(r.players||[]).length} 个用户已准备 · 支持 6–12 人`;let started=!!r.game?.started;$("#wolfRoomBeforeGame").style.display=started?"none":"";$("#wolfGamePanel").style.display=started?"":"none";if(started)renderWolfGame()}
 function wolfRolesFor(n){let a=[];if(n<=6)a=["wolf","wolf","seer","witch"];else if(n===7)a=["wolf","wolf","seer","witch","hunter"];else if(n===8)a=["wolf","wolf","seer","witch","hunter","guard"];else if(n===9)a=["wolf","wolf","wolf","seer","witch","hunter"];else a=["wolf","wolf","wolf","seer","witch","hunter","guard"];while(a.length<n)a.push("villager");return a}
 function wolfShuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -7174,15 +7212,15 @@ function wolfVote(){let g=wolfNet.room.game,alive=wolfAliveChars(),hs=wolfNet.ho
 })();
 
 $("#wolfOnlineTile").onclick=()=>openWolfLobby();
-$("#wolfCreateRoomBtn").onclick=()=>{if(!wolfEnsurePeerLib())return;if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");wolfClosePeer();wolfConnectHost(wolfCode())};
-$("#wolfJoinRoomBtn").onclick=()=>{if(!wolfEnsurePeerLib())return;if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");let code=$("#wolfJoinCode").value.trim().toUpperCase().replace(/[^A-Z2-9]/g,"");if(code.length!==6)return toast("请输入 6 位邀请码");wolfClosePeer();wolfJoinHost(code)};
+$("#wolfCreateRoomBtn").onclick=()=>{if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");wolfClosePeer();wolfConnectHost(wolfCode())};
+$("#wolfJoinRoomBtn").onclick=()=>{if(!wolfLocalSelection().length)return toast("至少选择 1 个 Char");let code=$("#wolfJoinCode").value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(code.length!==6)return toast("请输入 6 位邀请码");wolfClosePeer();wolfJoinHost(code)};
 $("#wolfReadyBtn").onclick=()=>{if(!wolfNet.room)return;let ready=!wolfNet.localReady;if(wolfNet.isHost){let p=wolfNet.room.players.find(x=>x.userId===wolfNet.userId);if(p){p.ready=ready;wolfBroadcast()}}else if(wolfNet.conn?.open)wolfNet.conn.send({type:"ready",userId:wolfNet.userId,ready})};
 $("#wolfStartBtn").onclick=()=>wolfStartGame();
 $("#wolfAdvanceBtn").onclick=()=>wolfResolveNight();
 $("#wolfSpeakBtn").onclick=()=>wolfGenerateSpeeches();
 $("#wolfVoteBtn").onclick=()=>wolfVote();
 $("#wolfCopyCodeBtn").onclick=async()=>{let c=wolfNet.code||wolfNet.room?.code||"";try{await navigator.clipboard.writeText(c);toast("邀请码已复制") }catch{prompt("复制邀请码",c)}};
-$("#wolfExitRoomBtn").onclick=()=>{let wasHost=wolfNet.isHost;wolfClosePeer();page("gameHall");renderGameHall();toast(wasHost?"房间已关闭":"已退出房间")};
+$("#wolfExitRoomBtn").onclick=()=>{let wasHost=wolfNet.isHost;wolfWsSend({type:"leave",userId:wolfNet.userId});wolfClosePeer();page("gameHall");renderGameHall();toast(wasHost?"已退出房间":"已退出房间")};
 $("#gameSetupBack").onclick=()=>{page("gameHall");renderGameHall()};
 $("#gameStartBtn").onclick=()=>{
  gameParticipants=$$("#gameContactPicker input:checked").map(x=>x.value);if(currentGameType==="mahjong"&&gameParticipants.length!==3)return toast("麻将需要正好选择 3 个 Char");if(!gameParticipants.length)return toast("至少选一个 Char");
@@ -8601,6 +8639,171 @@ function submitAnswer(uid,text){let cur=T.room?.game?.current;if(!T.isHost||!cur
 function render(){let r=T.room;if(!r)return;$id('toCode').textContent=r.code||T.code;$id('toConn').textContent=T.isHost?`房主 · ${T.conns.size} 个远端用户`:(T.conn?.open?'已连接房主':'连接中');$id('toPlayers').innerHTML=(r.players||[]).map(p=>`<div class="toRoomUser"><b>${esc(p.label)}${p.userId===r.hostUserId?' · 房主':''}</b><div class="toPair"><span class="toChip">User：${esc(p.user?.name||'User')}</span><span>＋</span><span class="toChip">Char：${esc(p.char?.name||'未选择')}</span><span class="toReady ${p.ready?'on':''}">${p.ready?'已准备':'未准备'}</span></div></div>`).join('');let me=r.players.find(p=>p.userId===T.uid);T.ready=!!me?.ready;$id('toReady').textContent=T.ready?'取消准备':'准备';let started=!!r.game?.started;$id('toBefore').style.display=started?'none':'';$id('toGame').style.display=started?'':'none';$id('toStart').style.display=T.isHost&&!started?'':'none';$id('toStart').disabled=!(r.players.length>=2&&r.players.every(p=>p.ready));$id('toHint').textContent=`${r.players.length} 名真人用户 · ${r.players.length*2} 名参与者 · 每人 User + 1 Char`;if(started)renderGame()}
 function renderGame(){let g=T.room.game,c=g.current;$id('toTurn').textContent=`第 ${g.round} 轮 · ${c?.kind==='truth'?'真心话':'大冒险'}`;$id('toTarget').textContent=c?`抽到：${c.targetName}`:'等待开始';$id('toQuestion').textContent=c?.question||'';let box=$id('toAnswerBox');if(c?.waiting&&c.targetType==='user'&&mine(c))box.innerHTML=`<textarea id="toUserAnswer" placeholder="由你本人回答 / 描述完成的大冒险…"></textarea><button class="btn primary" id="toSubmitAnswer" style="margin-top:7px">提交</button>`;else if(c?.waiting)box.innerHTML=`<div class="wolfStatus">${c.targetType==='char'?'Char 正在思考回应…':'等待被抽中的 User 回答…'}</div>`;else box.innerHTML=`<div class="toHistory"><b>${esc(c?.targetName||'')}</b>：${esc(c?.answer||'')}</div>`;let sub=$id('toSubmitAnswer');if(sub)sub.onclick=()=>{let t=$id('toUserAnswer').value.trim();if(!t)return toast('先写点什么');if(T.isHost)submitAnswer(T.uid,t);else if(T.conn?.open)T.conn.send({type:'answer',userId:T.uid,text:t})};$id('toHostBtns').innerHTML=T.isHost&&!c?.waiting?'<button class="btn primary" id="toNext">下一轮</button>':'';let nx=$id('toNext');if(nx)nx.onclick=next;$id('toHistory').innerHTML=(g.history||[]).slice().reverse().map(x=>`<div class="toHistory"><b>${esc(x.targetName)} · ${x.kind==='truth'?'真心话':'大冒险'}</b><br>${esc(x.question)}<br><span>${esc(x.answer)}</span></div>`).join('')||'<div class="empty">还没有记录</div>'}
 $id('truthOnlineTile').onclick=()=>{renderPicker();$id('toStatus').textContent='等待操作';page('truthOnlineLobby')};$id('toLobbyBack').onclick=()=>{page('gameHall');renderGameHall()};$id('toCreate').onclick=create;$id('toJoin').onclick=join;$id('toReady').onclick=()=>{let v=!T.ready;if(T.isHost){let p=T.room.players.find(x=>x.userId===T.uid);p.ready=v;broadcast()}else T.conn?.send({type:'ready',userId:T.uid,ready:v})};$id('toStart').onclick=start;$id('toCopy').onclick=async()=>{try{await navigator.clipboard.writeText(T.room?.code||T.code);toast('邀请码已复制')}catch{prompt('复制邀请码',T.room?.code||T.code)}};$id('toExit').onclick=()=>{let h=T.isHost;close();page('gameHall');renderGameHall();toast(h?'房间已关闭':'已退出房间')};
+})();
+</script>
+
+
+
+
+<style id="wolf-rank-v8861-style">
+[data-page="wolfLeaderboard"]{
+  --blood:#8f1118;--blood2:#5f090e;--blood3:#b5232d;--ink:#090909;--bone:#e8e0d5;--ash:#171514;
+  background:
+    radial-gradient(circle at 16% 9%,rgba(143,17,24,.32),transparent 24%),
+    radial-gradient(circle at 91% 28%,rgba(95,9,14,.28),transparent 21%),
+    linear-gradient(180deg,#11100f 0%,#080808 62%,#120808 100%)!important;
+  color:var(--bone);
+}
+[data-page="wolfLeaderboard"]::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.34;
+  background:
+    linear-gradient(103deg,transparent 0 23%,rgba(143,17,24,.35) 23.5% 24%,transparent 24.5%),
+    linear-gradient(78deg,transparent 0 74%,rgba(143,17,24,.22) 74.4% 75%,transparent 75.5%),
+    radial-gradient(ellipse at 12% 0%,rgba(181,35,45,.38) 0 2%,transparent 2.6%),
+    radial-gradient(ellipse at 17% 2%,rgba(181,35,45,.24) 0 1.1%,transparent 1.6%),
+    radial-gradient(ellipse at 84% 4%,rgba(181,35,45,.22) 0 1.5%,transparent 2%);
+}
+[data-page="wolfLeaderboard"] .head{
+  position:relative;z-index:2;background:rgba(8,8,8,.92)!important;border-bottom:1px solid rgba(181,35,45,.48)!important;
+  box-shadow:0 7px 26px rgba(0,0,0,.38);
+}
+[data-page="wolfLeaderboard"] .headTitle{color:#efe7dc;letter-spacing:.05em}
+[data-page="wolfLeaderboard"] .back,[data-page="wolfLeaderboard"] .headAction{color:#b7aaa0}
+[data-page="wolfLeaderboard"] .body{position:relative;z-index:1;padding:13px 12px 90px!important}
+.wolfRankHero{
+  position:relative;overflow:hidden;border:1px solid rgba(181,35,45,.5);border-radius:18px;
+  background:
+    linear-gradient(145deg,rgba(27,18,17,.98),rgba(8,8,8,.98)),
+    repeating-linear-gradient(110deg,transparent 0 13px,rgba(255,255,255,.015) 13px 14px);
+  padding:17px 15px 15px;margin-bottom:12px;box-shadow:0 14px 34px rgba(0,0,0,.42),inset 0 0 36px rgba(143,17,24,.08)
+}
+.wolfRankHero::after{
+  content:"";position:absolute;right:-19px;top:-34px;width:112px;height:112px;border-radius:48% 52% 58% 42%;
+  background:radial-gradient(circle at 42% 44%,rgba(181,35,45,.36),rgba(95,9,14,.17) 48%,transparent 70%);
+  transform:rotate(-17deg);pointer-events:none
+}
+.wolfRankEyebrow{font-size:7px;letter-spacing:.28em;color:#9e6b69;font-weight:850}
+.wolfRankTitle{font:700 26px/1.1 Georgia,"Songti SC",serif;margin-top:6px;color:#f1e7dc;text-shadow:0 1px 14px rgba(143,17,24,.32)}
+.wolfRankSub{font-size:8px;color:#857d75;margin-top:7px}
+.wolfRankMe{margin-top:14px;border-top:1px solid rgba(181,35,45,.32);padding-top:11px;font-size:9px;line-height:1.75;color:#c7bbb0}
+.wolfRankMe b{color:#f1e6d9}
+.wolfRankTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:11px 0}
+.wolfRankTabs button{border:1px solid #332929;border-radius:999px;background:#171414;color:#8f8580;padding:8px 3px;font-size:8px}
+.wolfRankTabs button.on{background:linear-gradient(180deg,#9f1821,#63090f);color:#fff2e8;border-color:#b82a33;box-shadow:0 5px 18px rgba(143,17,24,.24)}
+.wolfRankList{display:grid;gap:8px}
+.wolfRankRow{
+  position:relative;overflow:hidden;display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:9px;
+  border:1px solid #2d2423;border-radius:13px;background:linear-gradient(100deg,#151313,#0c0c0c);padding:11px;
+  box-shadow:0 7px 18px rgba(0,0,0,.2)
+}
+.wolfRankRow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#5f090e}
+.wolfRankRow:nth-child(1)::before{background:#b5232d;box-shadow:0 0 14px rgba(181,35,45,.5)}
+.wolfRankRow:nth-child(2)::before{background:#8f1118}.wolfRankRow:nth-child(3)::before{background:#6f0e13}
+.wolfRankNo{font:700 17px/1 Georgia,serif;text-align:center;color:#655c57}
+.wolfRankNo.top{font-size:22px;color:#a72a31;text-shadow:0 0 16px rgba(143,17,24,.35)}
+.wolfRankName{font-size:10px;font-weight:850;color:#e6ddd3}
+.wolfRankMeta{font-size:7px;color:#746b65;margin-top:4px}
+.wolfRankValue{text-align:right;font-size:13px;font-weight:850;color:#d8cfc5}
+.wolfRankValue small{display:block;font-size:7px;font-weight:500;color:#74585a;margin-top:3px}
+.wolfRankFoot{font-size:7px;line-height:1.7;color:#665e59;padding:13px 5px 30px}
+.wolfRankTile{position:relative;overflow:hidden;background:linear-gradient(145deg,#241010,#0e0d0d)!important;border-color:#5d2023!important;color:#eadfd4!important}
+.wolfRankTile::after{content:"";position:absolute;width:70px;height:70px;right:-20px;top:-22px;border-radius:50%;background:radial-gradient(circle,rgba(143,17,24,.34),transparent 68%);pointer-events:none}
+.wolfRankTile .gameEmoji{font-family:Georgia,"Songti SC",serif;color:#b5232d!important;text-shadow:0 0 15px rgba(143,17,24,.34)}
+.wolfRankTile b{color:#e8ded4!important}.wolfRankTile span{color:#8c7774!important}
+[data-page="wolfLeaderboard"] .empty{color:#756b66!important}
+</style>
+<script id="wolf-rank-v8861">
+(function(){
+ const API="https://curry-online.6jkgb4s8jj.workers.dev";
+ let rankType="wins",rankBusy=false,lastSettled="";
+ const q=s=>document.querySelector(s);
+ function escRank(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+ function myLabel(){
+   try{
+     if(typeof wolfLabel==="function")return wolfLabel();
+     if(typeof activeMask==="function"){const m=activeMask();return m?.userName||m?.name||"我"}
+   }catch{}
+   return "我";
+ }
+ function ensureTile(){
+   let b=document.getElementById("wolfRankTile");
+   if(!b){
+     const wolf=document.getElementById("wolfOnlineTile");if(!wolf)return;
+     b=document.createElement("button");b.className="gameTile wolfRankTile";b.id="wolfRankTile";b.type="button";b.dataset.gameOpen="wolfLeaderboard";
+     b.innerHTML='<div class="gameEmoji">榜</div><b>狼人杀 · 全服榜</b><span>胜场 · 胜率 · 对局 · MVP</span>';
+     wolf.insertAdjacentElement("afterend",b);
+   }
+ }
+ function openRank(e){
+   try{e?.preventDefault?.();e?.stopPropagation?.()}catch{}
+   if(typeof page!=="function"){console.error("wolf rank: page() missing");return}
+   page("wolfLeaderboard");
+   setTimeout(()=>loadRank(rankType),20);
+ }
+ function fmtPct(x){return (Number(x||0)*100).toFixed(1)+"%"}
+ function valueOf(x,type){
+   if(type==="winrate")return [fmtPct(x.winRate),"胜率"];
+   if(type==="games")return [String(x.games||0),"局"];
+   if(type==="mvp")return [String(x.mvp||0),"MVP"];
+   return [String(x.wins||0),"胜场"];
+ }
+ async function loadRank(type){
+   rankType=type||rankType;
+   document.querySelectorAll(".wolfRankTabs button").forEach(b=>b.classList.toggle("on",b.dataset.rank===rankType));
+   const list=q("#wolfRankList");if(list)list.innerHTML='<div class="empty">正在读取血色战绩簿…</div>';
+   if(rankBusy)return;rankBusy=true;
+   try{
+     const uid=(window.wolfNet&&wolfNet.userId)||localStorage.getItem("wp2_wolf_uid")||"";
+     const r=await fetch(API+"/leaderboard?sort="+encodeURIComponent(rankType)+"&userId="+encodeURIComponent(uid),{cache:"no-store"});
+     const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||("HTTP "+r.status));
+     const me=d.me||{games:0,wins:0,mvp:0,winRate:0};
+     const meBox=q("#wolfRankMe");
+     if(meBox)meBox.innerHTML=`<b>${escRank(me.label||myLabel())}</b>　${me.games||0} 局 · ${me.wins||0} 胜 · 胜率 ${fmtPct(me.winRate)} · MVP ${me.mvp||0}`;
+     if(list)list.innerHTML=(d.items||[]).map((x,i)=>{
+       const [v,u]=valueOf(x,rankType);
+       return `<div class="wolfRankRow"><div class="wolfRankNo ${i<3?"top":""}">${i+1}</div><div><div class="wolfRankName">${escRank(x.label||"玩家")}</div><div class="wolfRankMeta">${x.games||0} 局 · ${x.wins||0} 胜 · 胜率 ${fmtPct(x.winRate)} · MVP ${x.mvp||0}</div></div><div class="wolfRankValue">${v}<small>${u}</small></div></div>`;
+     }).join("")||'<div class="empty">战绩簿还是空的。<br>先让第一局留下名字。</div>';
+   }catch(e){
+     console.warn("wolf leaderboard",e);
+     if(list)list.innerHTML='<div class="empty">全服榜读取失败<br>'+escRank(e?.message||"网络异常")+'<br><br>确认后端已部署 v1.2 后再点右上角刷新</div>';
+   }finally{rankBusy=false}
+ }
+ async function settle(){
+   try{
+     if(!window.wolfNet||!wolfNet.isHost||!wolfNet.room?.game?.winner||!wolfNet.hostSecret?.roles)return;
+     const g=wolfNet.room.game;
+     if(!g.gameId)g.gameId=(wolfNet.code||"ROOM")+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+     if(lastSettled===g.gameId||g.rankSettled)return;
+     lastSettled=g.gameId;
+     const body={roomCode:wolfNet.room.code||wolfNet.code,gameId:g.gameId,hostUserId:wolfNet.userId,winner:g.winner,roles:wolfNet.hostSecret.roles};
+     const r=await fetch(API+"/result",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+     const d=await r.json().catch(()=>({}));
+     if(r.ok&&d.ok){g.rankSettled=true;g.mvpUserId=d.mvpUserId||"";if(typeof wolfBroadcast==="function")wolfBroadcast();if(typeof toast==="function")toast(d.duplicate?"本局战绩已结算":"战绩已写入全服榜");}
+     else{lastSettled="";console.warn("rank settle failed",d)}
+   }catch(e){lastSettled="";console.warn("rank settle",e)}
+ }
+ // Use capture delegation so the tile still works even if another game-hall listener changes later.
+ document.addEventListener("click",function(e){
+   const tab=e.target.closest?.(".wolfRankTabs button");
+   if(tab){e.preventDefault();loadRank(tab.dataset.rank)}
+ },true);
+ const oldRenderHall=window.renderGameHall;
+ if(typeof oldRenderHall==="function")window.renderGameHall=function(){const out=oldRenderHall.apply(this,arguments);setTimeout(ensureTile,0);return out};
+ const oldStart=window.wolfStartGame;
+ if(typeof oldStart==="function")window.wolfStartGame=function(){const out=oldStart.apply(this,arguments);try{if(wolfNet.room?.game&&!wolfNet.room.game.gameId)wolfNet.room.game.gameId=(wolfNet.code||"ROOM")+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);if(typeof wolfBroadcast==="function")wolfBroadcast()}catch{}return out};
+ const oldBroadcast=window.wolfBroadcast;
+ if(typeof oldBroadcast==="function")window.wolfBroadcast=function(){const out=oldBroadcast.apply(this,arguments);setTimeout(settle,0);return out};
+ const oldRender=window.renderWolfGame;
+ if(typeof oldRender==="function")window.renderWolfGame=function(){const out=oldRender.apply(this,arguments);setTimeout(settle,0);return out};
+ function bind(){
+   ensureTile();
+   const back=q("#wolfRankBack"),refresh=q("#wolfRankRefresh");
+   if(back)back.onclick=()=>{if(typeof page==="function"){page("gameHall");if(typeof renderGameHall==="function")renderGameHall()}};
+   if(refresh)refresh.onclick=()=>loadRank(rankType);
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
+ window.wolfLoadLeaderboard=loadRank;
+ window.openWolfLeaderboard=openRank;
 })();
 </script>
 
