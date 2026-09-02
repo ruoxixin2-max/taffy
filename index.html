@@ -8798,8 +8798,7 @@ $id('truthOnlineTile').onclick=()=>{renderPicker();$id('toStatus').textContent='
  function bind(){
    ensureTile();
    const back=q("#wolfRankBack"),refresh=q("#wolfRankRefresh");
-   if(back){back.dataset.back="gameHall";}
-   if(refresh)refresh.onclick=()=>loadRank(rankType);
+if(refresh)refresh.onclick=()=>loadRank(rankType);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
  window.wolfLoadLeaderboard=loadRank;
@@ -8807,72 +8806,5 @@ $id('truthOnlineTile').onclick=()=>{renderPicker();$id('toStatus').textContent='
 })();
 </script>
 
-
-<style id="wolf-rank-back-hotfix-v2">
-/* 排行榜返回键：强制复制普通页面/聊天页的可点击层级 */
-[data-page="wolfLeaderboard"] > .head{
-  position:relative!important;
-  z-index:99990!important;
-  pointer-events:auto!important;
-  isolation:isolate!important;
-}
-[data-page="wolfLeaderboard"] #wolfRankBack{
-  position:relative!important;
-  z-index:99999!important;
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
-  -webkit-user-select:none!important;
-  user-select:none!important;
-  min-width:55px!important;
-  min-height:44px!important;
-}
-[data-page="wolfLeaderboard"]::before,
-[data-page="wolfLeaderboard"] .body::before{
-  pointer-events:none!important;
-}
-</style>
-<script id="wolf-rank-back-hotfix-js-v2">
-(function(){
-  let last=0;
-  function goBack(){
-    const now=Date.now();
-    if(now-last<250)return;
-    last=now;
-    try{
-      if(typeof page==='function') page('gameHall');
-      if(typeof renderGameHall==='function') renderGameHall();
-    }catch(err){ console.error('wolf rank back hotfix',err); }
-  }
-  function bind(){
-    const b=document.getElementById('wolfRankBack');
-    if(!b)return;
-    /* 与聊天页一致：data-back 仍保留，同时用自己的监听兜底，不再依赖 onclick 属性 */
-    b.dataset.back='gameHall';
-    b.onclick=null;
-    b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();goBack();},true);
-    b.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation();goBack();},true);
-    b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();goBack();},{capture:true,passive:false});
-  }
-  function hitBack(e){
-    const pageEl=document.querySelector('[data-page="wolfLeaderboard"].active');
-    const b=document.getElementById('wolfRankBack');
-    if(!pageEl||!b)return;
-    const p=(e.changedTouches&&e.changedTouches[0])||(e.touches&&e.touches[0])||e;
-    if(typeof p.clientX!=='number'||typeof p.clientY!=='number')return;
-    const r=b.getBoundingClientRect();
-    const pad=10;
-    if(p.clientX>=r.left-pad&&p.clientX<=r.right+pad&&p.clientY>=r.top-pad&&p.clientY<=r.bottom+pad){
-      try{e.preventDefault?.();e.stopPropagation?.();}catch(_){ }
-      goBack();
-    }
-  }
-  /* 即使透明层抢到事件，document 捕获阶段仍按坐标识别返回区 */
-  document.addEventListener('click',hitBack,true);
-  document.addEventListener('pointerup',hitBack,true);
-  document.addEventListener('touchend',hitBack,{capture:true,passive:false});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  setTimeout(bind,0);
-})();
-</script>
 
 </body></html>
