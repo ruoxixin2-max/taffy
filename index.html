@@ -7111,26 +7111,43 @@ function wolfValidUserId(v){return /^cu_[0-9a-f-]{36}$/i.test(String(v||""))}
 let wolfNet={peer:null,isHost:false,code:"",userId:(()=>{try{let x=localStorage.getItem(WOLF_UID_KEY)||"";return wolfValidUserId(x)?x:""}catch{return""}})(),identityPromise:null,conn:null,conns:new Map(),room:null,mySecrets:{},localReady:false,hostSecret:null,generating:false};
 function wolfStatus(t){let e=$("#wolfNetStatus");if(e)e.textContent=t||""}
 function wolfLabel(){let m=activeMask();return m?.userName||m?.name||"玩家"}
+function wolfMakeLocalUserId(){
+ try{
+   if(globalThis.crypto?.randomUUID)return "cu_"+globalThis.crypto.randomUUID();
+   if(globalThis.crypto?.getRandomValues){
+     const b=new Uint8Array(16);globalThis.crypto.getRandomValues(b);
+     b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+     const h=[...b].map(x=>x.toString(16).padStart(2,"0")).join("");
+     return "cu_"+h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20);
+   }
+ }catch{}
+ const h="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+   const r=Math.floor(Math.random()*16),v=c==="x"?r:(r&3)|8;return v.toString(16)
+ });
+ return "cu_"+h
+}
 async function wolfEnsureUserId(){
  if(wolfValidUserId(wolfNet.userId))return wolfNet.userId;
- if(wolfNet.identityPromise)return wolfNet.identityPromise;
- wolfNet.identityPromise=(async()=>{
-   let stored="";try{stored=localStorage.getItem(WOLF_UID_KEY)||""}catch{}
-   if(!wolfValidUserId(stored))stored="";
-   const r=await fetch(WOLF_API_BASE+"/identity",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({userId:stored,label:wolfLabel()}),cache:"no-store"});
-   const d=await r.json().catch(()=>null);
-   if(!r.ok||!d?.ok||!wolfValidUserId(d.userId))throw new Error(d?.error||("HTTP "+r.status));
-   wolfNet.userId=d.userId;
-   try{localStorage.setItem(WOLF_UID_KEY,d.userId);localStorage.setItem("wp2_wolf_uid",d.userId)}catch{}
-   return d.userId;
- })();
- try{return await wolfNet.identityPromise}finally{wolfNet.identityPromise=null}
+ let stored="";
+ try{
+   stored=localStorage.getItem(WOLF_UID_KEY)||localStorage.getItem("wp2_wolf_uid")||"";
+ }catch{}
+ if(!wolfValidUserId(stored))stored=wolfMakeLocalUserId();
+ if(!wolfValidUserId(stored))throw new Error("本机玩家 ID 生成失败");
+ wolfNet.userId=stored;
+ try{
+   localStorage.setItem(WOLF_UID_KEY,stored);
+   localStorage.setItem("wp2_wolf_uid",stored);
+ }catch(e){
+   console.warn("wolf uid storage",e)
+ }
+ return stored
 }
 function wolfProfile(c){let x=c?.character||{};return String(x.description||x.rawText||x.personality||"").slice(0,14000)}
 function wolfLocalSelection(){return $$("#wolfLocalPicker input:checked").map(x=>x.value)}
 function wolfPayload(){let ids=wolfLocalSelection();return {userId:wolfNet.userId,label:wolfLabel(),chars:ids.map(id=>{let c=contacts.find(x=>x.id===id);return c?{id:wolfNet.userId+":"+c.id,localId:c.id,ownerId:wolfNet.userId,name:c.name,avatar:c.avatar||"",profile:wolfProfile(c)}:null}).filter(Boolean)}}
 function renderWolfPicker(){let e=$("#wolfLocalPicker");if(!e)return;e.innerHTML=contacts.length?contacts.map(c=>`<label class="wolfPick"><input type="checkbox" value="${esc(c.id)}"><div class="wolfPickAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c.name||"?").charAt(0))}</div><div class="wolfPickName">${esc(c.name)}</div></label>`).join(""):'<div class="empty" style="grid-column:1/-1">还没有联系人</div>'}
-async function openWolfLobby(){try{toast("正在获取狼人杀玩家 ID…");await wolfEnsureUserId();renderWolfPicker();wolfStatus("玩家 ID · "+wolfNet.userId.slice(0,11)+"…");page("wolfLobby")}catch(e){console.warn("wolf identity",e);toast("获取玩家 ID 失败："+(e?.message||"网络异常"))}}
+async function openWolfLobby(){try{toast("正在初始化狼人杀玩家 ID…");await wolfEnsureUserId();renderWolfPicker();wolfStatus("玩家 ID · "+wolfNet.userId.slice(0,11)+"…");page("wolfLobby")}catch(e){console.warn("wolf identity",e);toast("玩家 ID 初始化失败："+(e?.message||"未知错误"))}}
 function wolfCode(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
 const WOLF_WS_BASE="wss://curry-online.6jkgb4s8jj.workers.dev/ws";
 function wolfClearRetry(){if(wolfNet.retryTimer){clearTimeout(wolfNet.retryTimer);wolfNet.retryTimer=null}}
