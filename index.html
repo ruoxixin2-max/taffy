@@ -2253,6 +2253,7 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
       <button class="gameTile" data-game-open="joker"><div class="gameEmoji">牌</div><b>抽鬼牌</b><span>简化版多人抽牌</span></button>
       <button class="gameTile" data-game-open="mahjong"><div class="gameEmoji">麻</div><b>麻将</b><span>四人牌局 · 摸牌出牌碰杠胡</span></button>
       <button class="gameTile wolfOnlineTile" id="wolfOnlineTile" type="button"><div class="gameEmoji">狼</div><b>狼人杀 · 联机</b><span>邀请码 · 多用户多 Char · 房主手机主持</span></button>
+      <button class="gameTile" id="truthOnlineTile" type="button"><div class="gameEmoji">联</div><b>真心话大冒险 · 联机</b><span>User + 1 个 Char · 邀请码多人房</span></button>
     </div>
     <div class="gameHallSection">最近战绩</div>
     <div id="gameRecent"></div>
@@ -2277,6 +2278,23 @@ html.curryIOSStandalone body.phoneActive #root .curryHomeScreen{
     <div class="gameChat" id="gameChat"></div>
   </div>
 </section>
+
+
+<style id="truth-online-style">
+.truthOnlinePage .body{padding:13px 12px 100px!important}.toHero{border-radius:22px;padding:18px;background:linear-gradient(145deg,#f2e9ec,#e9eef4);margin-bottom:12px}.toHero b{display:block;font-size:22px;margin:7px 0}.toHero span{font-size:9px;color:#777;line-height:1.6}.toPick{display:grid;grid-template-columns:1fr 1fr;gap:7px}.toChar{border:1px solid var(--line);border-radius:13px;padding:9px;background:#fff;display:flex;gap:8px;align-items:center;font-size:9px}.toRoomUser{border:1px solid var(--line);border-radius:15px;background:#fff;padding:11px;margin:8px 0}.toPair{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:7px}.toChip{padding:5px 8px;border-radius:999px;background:#f2f3f0;font-size:8px}.toStage{border:1px solid var(--line);border-radius:20px;background:#fff;padding:18px;margin:10px 0;text-align:center}.toTurn{font-size:9px;color:#888}.toTarget{font-size:18px;font-weight:850;margin:8px 0}.toQuestion{font-size:12px;line-height:1.7;white-space:pre-wrap}.toHistory{border:1px solid var(--line);border-radius:14px;background:#fff;padding:10px;margin:7px 0;font-size:9px;line-height:1.55}.toAnswerBox textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:13px;padding:10px;font:inherit;min-height:76px}.toBtns{display:flex;gap:7px;margin-top:8px}.toBtns button{flex:1}.toCode{font:800 24px/1.1 ui-monospace,monospace;letter-spacing:.16em}.toReady{font-size:7px;color:#777}.toReady.on{color:#49634e;font-weight:800}
+</style>
+<section class="page gameHallPage truthOnlinePage" data-page="truthOnlineLobby">
+<header class="head"><button class="back" id="toLobbyBack">返回</button><div class="headTitle">真心话大冒险 · 联机</div><div></div></header>
+<div class="body"><div class="toHero"><small>PLAY TOGETHER</small><b>我和我的 Char，去见你和你的 Char</b><span>每名真人用户固定携带 User 本人 + 1 个 Char。房主手机临时主持，使用 6 位邀请码点对点加入。</span></div>
+<div class="settingGroup"><h3>选择本局 Char（只能 1 个）</h3><div class="toPick" id="toCharPicker"></div></div>
+<div class="settingGroup"><h3>模式</h3><select class="input" id="toMode"><option value="mixed">真心话 / 大冒险随机</option><option value="truth">只玩真心话</option><option value="dare">只玩大冒险</option></select></div>
+<div class="settingGroup"><h3>创建房间</h3><button class="btn primary" id="toCreate">创建房间并生成邀请码</button></div>
+<div class="settingGroup"><h3>加入房间</h3><div class="wolfJoinRow"><input class="input wolfJoinCode" id="toJoinCode" maxlength="6" placeholder="6 位邀请码"><button class="btn" id="toJoin">加入</button></div></div><div class="wolfStatus" id="toStatus">等待操作</div></div></section>
+<section class="page gameHallPage truthOnlinePage" data-page="truthOnlineRoom">
+<header class="head"><button class="back" id="toExit">退出</button><div class="headTitle">联机房间</div><button class="headAction" id="toCopy">复制邀请码</button></header>
+<div class="body"><div class="wolfCodeCard"><div><div class="wolfStatus">邀请码</div><div class="toCode" id="toCode">------</div></div><div class="wolfStatus" id="toConn"></div></div>
+<div id="toPlayers"></div><div id="toBefore"><button class="btn primary" id="toReady">准备</button><button class="btn" id="toStart" style="display:none;margin-top:8px">房主开始</button><div class="wolfStatus" id="toHint"></div></div>
+<div id="toGame" style="display:none"><div class="toStage"><div class="toTurn" id="toTurn"></div><div class="toTarget" id="toTarget"></div><div class="toQuestion" id="toQuestion"></div></div><div class="toAnswerBox" id="toAnswerBox"></div><div class="toBtns" id="toHostBtns"></div><div class="gameHallSection">本局记录</div><div id="toHistory"></div></div></div></section>
 
 <style id="wolf-p2p-style">
 .wolfPage .body{padding:13px 12px 100px!important}.wolfHero{border-radius:22px;padding:18px;background:linear-gradient(145deg,#e7e9e6,#f2ede9);margin-bottom:12px}.wolfEyebrow{font-size:8px;letter-spacing:.18em;color:#858a84}.wolfTitle{font-size:23px;font-weight:850;margin-top:7px}.wolfSub{font-size:9px;color:#777d77;line-height:1.65;margin-top:7px}.wolfCodeCard{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:17px;background:#fff;padding:13px;margin:10px 0}.wolfCode{font:800 25px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em}.wolfStatus{font-size:8px;color:var(--muted);line-height:1.6}.wolfPicker{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wolfPick{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:13px;background:#fff;min-width:0}.wolfPick input{width:17px;height:17px;flex:0 0 auto}.wolfPickAvatar,.wolfMiniAvatar{width:30px;height:30px;border-radius:10px;overflow:hidden;background:#e6e7e3;display:grid;place-items:center;font-size:9px;flex:0 0 auto}.wolfPickAvatar img,.wolfMiniAvatar img{width:100%;height:100%;object-fit:cover}.wolfPickName{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wolfJoinRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}.wolfJoinCode{text-transform:uppercase;letter-spacing:.18em;font-weight:800}.wolfRoomUser{border:1px solid var(--line);border-radius:15px;background:#fff;padding:11px;margin-bottom:8px}.wolfRoomUserTop{display:flex;align-items:center;justify-content:space-between;gap:8px}.wolfRoomUserName{font-size:10px;font-weight:800}.wolfReady{font-size:7px;border-radius:999px;padding:4px 7px;background:#eee;color:#777}.wolfReady.on{background:#e2ebe0;color:#47604b}.wolfCharWrap{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.wolfCharChip{display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border-radius:999px;background:#f3f4f1;font-size:8px}.wolfSecretGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:10px 0}.wolfSecret{border:1px solid var(--line);border-radius:14px;background:#fff;padding:11px}.wolfSecret b{font-size:10px}.wolfSecretRole{font-size:17px;font-weight:850;margin-top:7px}.wolfSecret small{display:block;font-size:7px;color:#888;line-height:1.55;margin-top:6px}.wolfPhase{border:1px solid var(--line);border-radius:18px;background:#fff;padding:14px;margin:10px 0}.wolfPhaseTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.wolfPhaseTop b{font-size:12px}.wolfPhaseTop span{font-size:8px;color:#888}.wolfLog{font-size:9px;line-height:1.65;margin-top:9px;white-space:pre-wrap}.wolfSpeech{display:flex;gap:8px;margin:9px 0;align-items:flex-start}.wolfSpeechBubble{border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 10px;font-size:9px;line-height:1.55;flex:1}.wolfSpeechBubble b{display:block;font-size:8px;color:#8a8e88;margin-bottom:3px}.wolfHostControls{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.wolfHostControls .wide{grid-column:1/-1}.wolfDead{opacity:.45;filter:grayscale(1)}.wolfWarn{font-size:8px;color:#8a625c;line-height:1.55;margin-top:8px}.wolfOwnerTag{font-size:7px;color:#999;margin-left:4px}
@@ -2742,6 +2760,26 @@ let chatSummaries=load(K.chatSummaries,{});
 let summarySettings=Object.assign({auto:true,threshold:40,keepRecent:20,maxChars:3500},load(K.summarySettings,{}));
 let summaryBusy=false;
 
+/* ===== V8.8.56 联系人独立聊天上下文楼数 =====
+   chatReadLimit 存在于联系人对象上：1 楼 = 1 条消息/气泡。
+   未设置时继续跟随全局 summarySettings.keepRecent。 */
+function contactHasCustomReadLimit(contactId=currentContact){
+  let c=contacts.find(x=>x.id===contactId),n=Number(c?.chatReadLimit);
+  return Number.isFinite(n)&&n>=2;
+}
+function contactReadLimit(contactId=currentContact){
+  let c=contacts.find(x=>x.id===contactId),n=Number(c?.chatReadLimit);
+  if(Number.isFinite(n)&&n>=2)return Math.max(2,Math.min(500,Math.floor(n)));
+  return Math.max(6,Math.min(500,Math.floor(Number(summarySettings.keepRecent||20))));
+}
+function setContactReadLimit(contactId,value){
+  let c=contacts.find(x=>x.id===contactId);if(!c)return false;
+  let raw=String(value??'').trim();
+  if(!raw){delete c.chatReadLimit;save(K.contacts,contacts);return true}
+  let n=Math.floor(Number(raw));if(!Number.isFinite(n)||n<2||n>500)return false;
+  c.chatReadLimit=n;save(K.contacts,contacts);return true
+}
+
 function effectiveChatBeauty(contactId=currentContact){let t=contactId&&chatThemes[contactId];return t?.enabled?Object.assign({},chatBeauty,t):chatBeauty}
 let mcpServers=load(K.mcp,[]),editingMcpId=null;
 let moments=load(K.moments,[]),autonomy=load(K.autonomy,{}),momentSeen=Number(localStorage.getItem(K.momentSeen)||0);
@@ -2844,7 +2882,74 @@ setTimeout(()=>{
 $("#enter").onclick=()=>{syncPhoneViewport();document.body.classList.add("phoneActive");$("#root").classList.add("phoneMode");page("home")};$("#exit").onclick=()=>{document.body.classList.remove("phoneActive");$("#root").classList.remove("phoneMode")};$$("[data-open]").forEach(b=>b.onclick=()=>{page(b.dataset.open);if(b.dataset.open==="contacts")renderContacts();if(b.dataset.open==="messages")renderConvos();if(b.dataset.open==="beautify"){applyBeauty();renderIconCustomizer()}if(b.dataset.open==="chatBeauty")renderThemeEditor();if(b.dataset.open==="mcp")renderMcp();if(b.dataset.open==="moments"){renderMoments();markMomentsSeen()}if(b.dataset.open==="forum")renderForum();if(b.dataset.open==="stickers")renderStickerLibraries();if(b.dataset.open==="masks")renderMasks();if(b.dataset.open==="worldbook")renderWorldbooks();if(b.dataset.open==="anniversary")renderAnniversary();if(b.dataset.open==="takeout")renderTakeout();if(b.dataset.open==="gameHall")renderGameHall();if(b.dataset.open==="liveRoom")renderLiveHome();if(b.dataset.open==="charNetwork")renderCharNetwork();if(b.dataset.open==="initiative")renderInitiative()});$$("[data-back]").forEach(b=>b.onclick=()=>{page(b.dataset.back);if(b.dataset.back==="contacts")renderContacts();if(b.dataset.back==="messages")renderConvos();if(b.dataset.back==="forum")renderForum();if(b.dataset.back==="contactDetail"&&currentContact)openContact(currentContact);if(b.dataset.back==="chat"&&currentContact){renderChat();renderPresence()}if(b.dataset.back==="anniversary")renderAnniversary();if(b.dataset.back==="takeout")renderTakeout();if(b.dataset.back==="liveRoom")renderLiveHome()});
 function av(c,cls="avatar"){return `<div class="${cls}">${c.avatar?`<img src="${c.avatar}" alt="">`:esc((c.name||"?")[0])}</div>`}
 function renderContacts(){let e=$("#contactsList");e.innerHTML=contacts.length?contacts.map(c=>`<button class="row contactRow" data-id="${c.id}">${av(c)}<div><div class="name">${esc(c.name)}</div><div class="sub">${esc(c.sourceLabel||"手动创建")}</div></div><div class="tiny">查看</div></button>`).join(""):'<div class="empty">还没有联系人。<br>可以导入角色卡、文档，或手动创建。</div>';$$(".contactRow").forEach(b=>b.onclick=()=>openContact(b.dataset.id))}
-function openContact(id){currentContact=id;let c=contacts.find(x=>x.id===id);if(!c)return;let boundCount=worldbooks.filter(w=>w.scope==="bound"&&(w.boundContactIds||[]).includes(id)).length;$("#contactDetailBody").innerHTML=`<div class="contactHero">${av(c,"bigAvatar")}<h2>${esc(c.name)}</h2><div class="actions"><button class="btn primary" id="msgC">发消息</button><button class="btn" id="wbBindC">世界书绑定</button><button class="btn" id="relationC">关系痕迹</button><button class="btn danger" id="delC">删除</button></div></div><div class="card"><div class="cardTitle">来源</div><div class="cardText">${esc(c.sourceLabel)}</div></div><div class="card"><div class="cardTitle">独立世界书</div><div class="cardText">已绑定 ${boundCount} 本；全局世界书仍会正常生效。</div></div><div class="card"><div class="cardTitle">角色设定</div><div class="cardText">${esc(c.character.description||c.character.rawText||"未填写")}</div></div>`;$("#msgC").onclick=()=>openChat(id);$("#wbBindC").onclick=()=>openContactWorldbooks(id);$("#relationC").onclick=()=>openRelationTrace(id);$("#delC").onclick=()=>{if(confirm("删除这个联系人及聊天记录？")){contacts=contacts.filter(x=>x.id!==id);Object.keys(convos).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete convos[k]});moments=moments.filter(x=>x.contactId!==id);delete autonomy[id];Object.keys(relationNotes).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete relationNotes[k]});Object.keys(chatSummaries).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete chatSummaries[k]});delete chatThemes[id];delete presence[id];delete unread[id];worldbooks.forEach(w=>w.boundContactIds=(w.boundContactIds||[]).filter(x=>x!==id));if(stickers.chars)delete stickers.chars[id];if(stickers.charUseUser)delete stickers.charUseUser[id];save(K.contacts,contacts);save(K.convos,convos);save(K.moments,moments);save(K.autonomy,autonomy);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.chatThemes,chatThemes);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.worldbooks,worldbooks);save(K.stickers,stickers);updateMessageBadge();updateMomentBadge();renderContacts();page("contacts")}};page("contactDetail")}
+/* ===== V8.8.56 联系人 Token 自查 ===== */
+function curryEstimateTokens(text){
+  text=String(text||"");if(!text)return 0;
+  let cjk=(text.match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/g)||[]).length;
+  let rest=text.replace(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/g," ");
+  let ascii=(rest.match(/[A-Za-z0-9_]+/g)||[]).reduce((n,s)=>n+Math.ceil(s.length/4),0);
+  let punct=(rest.replace(/[A-Za-z0-9_\s]/g,"").length);
+  return Math.max(0,Math.round(cjk+ascii+punct*.5));
+}
+function curryTokenTextFromMessages(msgs){
+  return (msgs||[]).map(m=>{
+    let c=m?.content;
+    if(typeof c==="string")return c;
+    if(Array.isArray(c))return c.map(x=>x?.text||"").join("\n");
+    return "";
+  }).join("\n\n")
+}
+function curryContactTokenReport(c){
+  let x=c?.character||{},parts=[];
+  let card=[x.systemPrompt,`You are ${c?.name||"Char"}.`,x.description,x.personality,x.scenario,x.mesExample,x.rawText].filter(Boolean).join("\n\n");
+  let first=String(x.firstMes||"");
+  let mask=activeMask?.();
+  let maskText=mask?[mask.userName||"",mask.prompt||""].filter(Boolean).join("\n"):"";
+  let applicable=(worldbooks||[]).filter(w=>w&&w.enabled!==false&&worldbookAppliesToContact(w,c.id));
+  let wbAll=[],wbAlways=[];
+  for(let w of applicable){for(let e of (w.entries||[])){if(!e||e.enabled===false||!e.content)continue;wbAll.push(e.content);if(e.constant||!(e.keys||[]).filter(Boolean).length)wbAlways.push(e.content)}}
+  let summary=contextSummaryText?.(c.id)||"";
+  let ctx=[];try{ctx=contextMessagesForChat?.(c.id)||[]}catch(e){}
+  let historyText=curryTokenTextFromMessages(ctx);
+  let basePrompt="";try{basePrompt=prompt?.(c,"")||""}catch(e){basePrompt=card}
+  let rows=[
+    ["角色卡本体",curryEstimateTokens(card)],
+    ["首条消息",curryEstimateTokens(first)],
+    ["当前 User 面具",curryEstimateTokens(maskText)],
+    ["常驻世界书",curryEstimateTokens(wbAlways.join("\n\n"))],
+    ["可用世界书上限",curryEstimateTokens(wbAll.join("\n\n"))],
+    ["长期总结",curryEstimateTokens(summary)],
+    ["联系人读取窗口",contactReadLimit(c.id)],
+    ["当前聊天上下文",curryEstimateTokens(historyText)],
+    ["当前基础系统提示",curryEstimateTokens(basePrompt)]
+  ];
+  let requestEstimate=curryEstimateTokens(basePrompt+"\n\n"+historyText);
+  return {rows,requestEstimate,chars:(basePrompt+historyText).length,worldbooks:applicable.length};
+}
+function curryRenderContactTokenCheck(c){
+  let host=document.getElementById("contactTokenCheck");if(!host)return;
+  let r=curryContactTokenReport(c);
+  host.innerHTML=`<div style="display:grid;grid-template-columns:1fr auto;gap:7px 12px;align-items:center">${r.rows.map(([n,v])=>`<div style="font-size:9px;color:var(--muted)">${esc(n)}</div><div style="font-size:11px;font-weight:800;text-align:right">${n==="联系人读取窗口"?`${Number(v).toLocaleString()} 楼`:`≈ ${Number(v).toLocaleString()} tk`}</div>`).join("")}</div><div style="margin-top:12px;padding:11px 12px;border-radius:12px;background:#f1f3ef;border:1px solid var(--line)"><div style="font-size:8px;color:var(--muted)">预计当前一次聊天请求输入</div><div style="font-size:22px;font-weight:850;margin-top:3px">≈ ${Number(r.requestEstimate).toLocaleString()} tk</div><div style="font-size:8px;color:var(--muted);margin-top:5px;line-height:1.55">仅本地估算，不调用 API。不同模型分词器会有差异；关键词世界书会随你发送的内容变化，因此这里只显示常驻值和理论上限。</div></div>`;
+}
+function openContact(id){
+  currentContact=id;let c=contacts.find(x=>x.id===id);if(!c)return;
+  let boundCount=worldbooks.filter(w=>w.scope==="bound"&&(w.boundContactIds||[]).includes(id)).length;
+  let readLimit=contactReadLimit(id),customRead=contactHasCustomReadLimit(id);
+  $("#contactDetailBody").innerHTML=`
+  <div class="contactHero">${av(c,"bigAvatar")}<h2>${esc(c.name)}</h2><div class="actions"><button class="btn primary" id="msgC">发消息</button><button class="btn" id="tokenCheckC">Token 自查</button><button class="btn" id="wbBindC">世界书绑定</button><button class="btn" id="relationC">关系痕迹</button><button class="btn danger" id="delC">删除</button></div></div>
+  <div class="card"><div class="cardTitle">CHAT CONTEXT · 上下文楼数</div><div class="cardText">每次回复只直接读取最近多少楼聊天；更早的聊天交给长期总结承接。1 楼 = 1 条消息 / 气泡。</div><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:10px"><input class="input" id="contactReadLimitInput" type="number" min="2" max="500" step="1" value="${customRead?readLimit:''}" placeholder="跟随全局：${Math.max(6,Number(summarySettings.keepRecent||20))} 楼"><button class="btn primary" id="saveContactReadLimit" type="button" style="flex:none;padding-left:15px;padding-right:15px">保存</button></div><div class="actions" style="margin-top:8px"><button class="btn" id="resetContactReadLimit" type="button">跟随全局</button></div><div class="help" id="contactReadLimitStatus">当前：${customRead?`此角色固定读取最近 ${readLimit} 楼`:`跟随全局，读取最近 ${readLimit} 楼`}。若有超出窗口且尚未总结的旧聊天，会在下次角色回复前先更新长期总结。</div></div>
+  <div class="card"><div class="cardTitle">来源</div><div class="cardText">${esc(c.sourceLabel)}</div></div>
+  <div class="card"><div class="cardTitle">独立世界书</div><div class="cardText">已绑定 ${boundCount} 本；全局世界书仍会正常生效。</div></div>
+  <div class="card"><div class="cardTitle">角色设定</div><div class="cardText">${esc(c.character.description||c.character.rawText||"未填写")}</div></div>
+  <div class="card hidden" id="contactTokenCard"><div class="cardTitle">TOKEN SELF CHECK</div><div id="contactTokenCheck"></div></div>`;
+  $("#msgC").onclick=()=>openChat(id);
+  $("#tokenCheckC").onclick=()=>{let box=$("#contactTokenCard");box.classList.toggle("hidden");if(!box.classList.contains("hidden"))curryRenderContactTokenCheck(c)};
+  $("#saveContactReadLimit").onclick=()=>{let v=$("#contactReadLimitInput").value;if(!setContactReadLimit(id,v))return toast("请输入 2～500 楼");openContact(id);toast(v.trim()?`已设为最近 ${contactReadLimit(id)} 楼`:`已跟随全局`)};
+  $("#resetContactReadLimit").onclick=()=>{setContactReadLimit(id,"");openContact(id);toast("已改为跟随全局上下文楼数")};
+  $("#wbBindC").onclick=()=>openContactWorldbooks(id);$("#relationC").onclick=()=>openRelationTrace(id);
+  $("#delC").onclick=()=>{if(confirm("删除这个联系人及聊天记录？")){contacts=contacts.filter(x=>x.id!==id);Object.keys(convos).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete convos[k]});moments=moments.filter(x=>x.contactId!==id);delete autonomy[id];Object.keys(relationNotes).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete relationNotes[k]});Object.keys(chatSummaries).forEach(k=>{if(k===id||k.startsWith(id+"::"))delete chatSummaries[k]});delete chatThemes[id];delete presence[id];delete unread[id];worldbooks.forEach(w=>w.boundContactIds=(w.boundContactIds||[]).filter(x=>x!==id));if(stickers.chars)delete stickers.chars[id];if(stickers.charUseUser)delete stickers.charUseUser[id];save(K.contacts,contacts);save(K.convos,convos);save(K.moments,moments);save(K.autonomy,autonomy);save(K.relationNotes,relationNotes);save(K.chatSummaries,chatSummaries);save(K.chatThemes,chatThemes);save(PRESENCE_KEY,presence);save(UNREAD_KEY,unread);save(K.worldbooks,worldbooks);save(K.stickers,stickers);updateMessageBadge();updateMomentBadge();renderContacts();page("contacts")}};
+  page("contactDetail")
+}
 
 function openContactWorldbooks(id=currentContact){
   currentContact=id;
@@ -3611,7 +3716,7 @@ async function updateChatSummary(contactId=currentContact,{force=false}={}){
   if(summaryBusy)throw Error("总结正在进行");
   let c=contacts.find(x=>x.id===contactId);if(!c)throw Error("找不到角色");
   let k=convoKey(contactId),h=convos[k]||[],r=summaryRecord(contactId);
-  let keep=Math.max(6,Number(summarySettings.keepRecent||20)),cutoff=Math.max(0,h.length-keep);
+  let keep=contactReadLimit(contactId),cutoff=Math.max(0,h.length-keep);
   if(force&&h.length>0)cutoff=Math.max(0,h.length-keep);
   if(cutoff<=r.summarizedCount){
     if(!r.text&&force&&h.length){cutoff=Math.max(0,h.length-keep)}
@@ -3635,21 +3740,30 @@ async function updateChatSummary(contactId=currentContact,{force=false}={}){
   }finally{summaryBusy=false}
 }
 async function ensureAutoSummary(contactId=currentContact){
-  if(!summarySettings.auto)return false;
-  let h=convos[convoKey(contactId)]||[],r=summaryRecord(contactId);
-  let threshold=Math.max(12,Number(summarySettings.threshold||40)),keep=Math.max(6,Number(summarySettings.keepRecent||20));
+  let h=convos[convoKey(contactId)]||[],r=summaryRecord(contactId),keep=contactReadLimit(contactId);
   let cutoff=Math.max(0,h.length-keep),newOld=cutoff-r.summarizedCount;
+  /* 联系人设置了独立楼数时，它是硬上下文窗口：只要有消息要掉出窗口，就先并入总结。 */
+  if(contactHasCustomReadLimit(contactId)){
+    if(newOld<=0)return false;
+    await updateChatSummary(contactId);
+    return true
+  }
+  if(!summarySettings.auto)return false;
+  let threshold=Math.max(12,Number(summarySettings.threshold||40));
   if(h.length<threshold||newOld<6)return false;
   await updateChatSummary(contactId);
   return true
 }
 function contextMessagesForChat(contactId=currentContact){
   let h=convos[convoKey(contactId)]||[],r=summaryRecord(contactId),summary=String(r.text||"").trim();
-  if(!summary)return h.filter(m=>!m.recalled).map(m=>({role:m.role,content:historyContent(m)}));
-  let start=Math.min(h.length,Math.max(0,Number(r.summarizedCount||0)));
+  let custom=contactHasCustomReadLimit(contactId),limit=contactReadLimit(contactId);
+  if(!summary&&!custom)return h.filter(m=>!m.recalled).map(m=>({role:m.role,content:historyContent(m)}));
+  let windowStart=custom?Math.max(0,h.length-limit):0;
+  /* 有总结时避免把已经压缩进总结的楼再次完整发送；自定义楼数同时保证绝不超过最近 N 楼。 */
+  let start=summary?Math.min(h.length,Math.max(windowStart,Math.max(0,Number(r.summarizedCount||0)))):windowStart;
   let recent=h.slice(start);
   return [
-    {role:"system",content:`LONG-TERM CHAT MEMORY (compressed older conversation; treat as established history, not a new user message):\n${summary}`},
+    ...(summary?[{role:"system",content:`LONG-TERM CHAT MEMORY (compressed older conversation; treat as established history, not a new user message):\n${summary}`}]:[]),
     ...recent.filter(m=>!m.recalled).map(m=>({role:m.role,content:historyContent(m)}))
   ]
 }
@@ -3737,7 +3851,9 @@ function curryMediaFallbackText(m){
 }
 async function contextMessagesForChatVision(contactId=currentContact){
   let h=convos[convoKey(contactId)]||[],r=summaryRecord(contactId),summary=String(r.text||"").trim();
-  let start=summary?Math.min(h.length,Math.max(0,Number(r.summarizedCount||0))):0;
+  let custom=contactHasCustomReadLimit(contactId),limit=contactReadLimit(contactId),windowStart=custom?Math.max(0,h.length-limit):0;
+  let start=summary?Math.min(h.length,Math.max(windowStart,Math.max(0,Number(r.summarizedCount||0)))):windowStart;
+  if(!summary&&!custom)start=0;
   let recent=h.slice(start).filter(m=>!m.recalled);
   let rich=[];
   for(let i=recent.length-1;i>=0&&rich.length<2;i--){
@@ -3761,13 +3877,13 @@ async function contextMessagesForChatVision(contactId=currentContact){
   return out
 }
 function renderSummaryPage(){
-  let c=contacts.find(x=>x.id===currentContact),h=convos[convoKey(currentContact)]||[],r=summaryRecord(currentContact),keep=Math.max(6,Number(summarySettings.keepRecent||20));
+  let c=contacts.find(x=>x.id===currentContact),h=convos[convoKey(currentContact)]||[],r=summaryRecord(currentContact),keep=contactReadLimit(currentContact);
   $("#summaryContactTitle").textContent=`${c?.name||"角色"} · ${activeMask()?.name||"默认 User"}`;
   $("#chatSummaryText").value=r.text||"";
   $("#summaryCompressedCount").textContent=String(Math.min(h.length,r.summarizedCount||0));
   $("#summaryRecentCount").textContent=String(Math.max(0,h.length-(r.summarizedCount||0)));
   $("#summaryTotalCount").textContent=String(h.length);
-  $("#chatSummaryStatus").textContent=r.updatedAt?`上次更新：${new Date(r.updatedAt).toLocaleString("zh-CN")} · 当前回复只需携带总结 + 后续 ${Math.max(0,h.length-r.summarizedCount)} 条消息`:`尚未生成长期总结 · 自动压缩将在 ${summarySettings.threshold} 条消息后触发`;
+  $("#chatSummaryStatus").textContent=r.updatedAt?`上次更新：${new Date(r.updatedAt).toLocaleString("zh-CN")} · 当前窗口 ${keep} 楼 · 回复携带总结 + 最多最近 ${keep} 楼聊天`:(contactHasCustomReadLimit(currentContact)?`尚未生成长期总结 · 此角色已固定最近 ${keep} 楼，超出部分会在下次回复前自动总结`:`尚未生成长期总结 · 自动压缩将在 ${summarySettings.threshold} 条消息后触发`);
 }
 function openSummaryPage(){if(!currentContact)return;renderSummaryPage();page("chatSummary")}
 
@@ -6969,17 +7085,24 @@ function wolfPayload(){let ids=wolfLocalSelection();return {userId:wolfNet.userI
 function renderWolfPicker(){let e=$("#wolfLocalPicker");if(!e)return;e.innerHTML=contacts.length?contacts.map(c=>`<label class="wolfPick"><input type="checkbox" value="${esc(c.id)}"><div class="wolfPickAvatar">${c.avatar?`<img src="${esc(c.avatar)}" alt="">`:esc((c.name||"?").charAt(0))}</div><div class="wolfPickName">${esc(c.name)}</div></label>`).join(""):'<div class="empty" style="grid-column:1/-1">还没有联系人</div>'}
 function openWolfLobby(){renderWolfPicker();wolfStatus("等待操作");page("wolfLobby")}
 function wolfCode(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
-function wolfClosePeer(){try{wolfNet.conn?.close()}catch{};for(let c of wolfNet.conns.values())try{c.close()}catch{};try{wolfNet.peer?.destroy()}catch{};wolfNet.peer=null;wolfNet.conn=null;wolfNet.conns.clear();wolfNet.room=null;wolfNet.mySecrets={};wolfNet.hostSecret=null;wolfNet.localReady=false;wolfNet.isHost=false;wolfNet.code=""}
+function wolfClearRetry(){if(wolfNet.retryTimer){clearTimeout(wolfNet.retryTimer);wolfNet.retryTimer=null}}
+function wolfClosePeer(){wolfNet.manualClose=true;wolfClearRetry();try{wolfNet.conn?.close()}catch{};for(let c of wolfNet.conns.values())try{c.close()}catch{};try{wolfNet.peer?.destroy()}catch{};wolfNet.peer=null;wolfNet.conn=null;wolfNet.conns.clear();wolfNet.room=null;wolfNet.mySecrets={};wolfNet.hostSecret=null;wolfNet.localReady=false;wolfNet.isHost=false;wolfNet.code="";wolfNet.joinAttempts=0;setTimeout(()=>{wolfNet.manualClose=false},0)}
 function wolfEnsurePeerLib(){if(typeof Peer!=="function"){toast("联机组件加载失败，请检查网络后重试");return false}return true}
-function wolfBindConn(conn,isHostSide){conn.on("data",d=>wolfOnData(conn,d));conn.on("close",()=>{if(wolfNet.isHost){for(let [uid,c] of wolfNet.conns.entries())if(c===conn){wolfNet.conns.delete(uid);if(wolfNet.room&&!wolfNet.room.game?.started)wolfNet.room.players=wolfNet.room.players.filter(x=>x.userId!==uid);wolfBroadcast();break}}else{wolfRoomConnText("与房主断开")}});conn.on("error",e=>{console.warn("wolf conn",e);wolfRoomConnText("连接异常")})}
+function wolfPeerOptions(){return {debug:0,config:{iceServers:[{urls:"stun:stun.cloudflare.com:3478"},{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}],iceCandidatePoolSize:4}}}
+function wolfPeerErrorText(e,host){let t=e?.type||"";if(t==="peer-unavailable")return "没找到房主，请检查邀请码";if(t==="network"||t==="socket-error"||t==="socket-closed"||t==="server-error")return "信令网络异常，正在尝试恢复";if(t==="webrtc")return "P2P 协商失败，正在重试";if(t==="unavailable-id")return "邀请码撞车了，请重新创建";return host?"创建失败，请检查网络":"加入失败："+(t||"网络异常")}
+function wolfBindPeerEvents(peer,isHost){peer.on("disconnected",()=>{if(wolfNet.manualClose)return;wolfRoomConnText("信令断开，正在重连…");try{if(!peer.destroyed)peer.reconnect()}catch(e){console.warn("wolf peer reconnect",e)}});peer.on("close",()=>{if(!wolfNet.manualClose)wolfRoomConnText(isHost?"房主连接已关闭":"连接已关闭")})}
+function wolfWatchIce(conn){let tries=0,t=setInterval(()=>{let pc=conn?.peerConnection;if(!pc){if(++tries>20)clearInterval(t);return}clearInterval(t);let last="";let update=()=>{let st=pc.iceConnectionState||pc.connectionState||"";if(st===last)return;last=st;if(st==="checking")wolfRoomConnText("正在协商直连…");else if(st==="connected"||st==="completed")wolfRoomConnText(wolfNet.isHost?`房主 · ${wolfNet.conns.size} 个远端用户`:"已连接房主");else if(st==="disconnected"){wolfRoomConnText("网络波动，尝试恢复…");setTimeout(()=>{try{if(pc.iceConnectionState==="disconnected"&&pc.restartIce)pc.restartIce()}catch(e){console.warn("wolf restartIce",e)}},1200)}else if(st==="failed"){wolfRoomConnText("直连失败，正在重新连接…");try{pc.restartIce?.()}catch{};if(!wolfNet.isHost)wolfScheduleJoinRetry("ICE failed")}};pc.addEventListener?.("iceconnectionstatechange",update);pc.addEventListener?.("connectionstatechange",update);update()},100)}
+function wolfScheduleJoinRetry(reason){if(wolfNet.isHost||wolfNet.manualClose||!wolfNet.code)return;wolfClearRetry();let n=(wolfNet.joinAttempts||0)+1;wolfNet.joinAttempts=n;if(n>5){wolfRoomConnText("连接失败：当前网络可能无法直连，可换 Wi‑Fi/热点后重试");return}wolfRoomConnText(`连接中断，正在第 ${n}/5 次重试…`);wolfNet.retryTimer=setTimeout(()=>{if(wolfNet.manualClose||wolfNet.isHost||!wolfNet.peer||wolfNet.peer.destroyed)return;wolfOpenJoinConn()},Math.min(1500*n,5000))}
+function wolfOpenJoinConn(){if(!wolfNet.peer?.open||!wolfNet.code)return;try{try{wolfNet.conn?.close()}catch{};let conn=wolfNet.peer.connect("currywolf-"+wolfNet.code.toLowerCase(),{reliable:true,serialization:"json"});wolfNet.conn=conn;wolfBindConn(conn,false);let opened=false,timeout=setTimeout(()=>{if(!opened&&!wolfNet.manualClose){try{conn.close()}catch{};wolfScheduleJoinRetry("timeout")}},12000);conn.on("open",()=>{opened=true;clearTimeout(timeout);wolfClearRetry();wolfNet.joinAttempts=0;conn.send({type:"join",player:wolfPayload()});wolfRoomConnText("已连接房主");page("wolfRoom")})}catch(e){console.warn("wolf join connect",e);wolfScheduleJoinRetry("connect exception")}}
+function wolfBindConn(conn,isHostSide){wolfWatchIce(conn);conn.on("data",d=>wolfOnData(conn,d));conn.on("close",()=>{if(wolfNet.manualClose)return;if(wolfNet.isHost){for(let [uid,c] of wolfNet.conns.entries())if(c===conn){wolfNet.conns.delete(uid);if(wolfNet.room&&!wolfNet.room.game?.started)wolfNet.room.players=wolfNet.room.players.filter(x=>x.userId!==uid);wolfBroadcast();break}wolfRoomConnText("有设备断开，等待对方重连…")}else{wolfRoomConnText("与房主断开，正在重连…");wolfScheduleJoinRetry("data close")}});conn.on("error",e=>{console.warn("wolf conn",e);if(wolfNet.isHost)wolfRoomConnText("有设备直连失败，等待对方重试…");else{wolfRoomConnText("P2P 连接异常，正在重试…");wolfScheduleJoinRetry(e?.type||"conn error")}})}
 function wolfRoomConnText(t){let e=$("#wolfRoomConn");if(e)e.textContent=t||""}
 function wolfUpsertPlayer(p){if(!wolfNet.room)return;let i=wolfNet.room.players.findIndex(x=>x.userId===p.userId),old=i>=0?wolfNet.room.players[i]:null,n={userId:p.userId,label:p.label||"玩家",ready:old?.ready||false,chars:Array.isArray(p.chars)?p.chars:[]};if(i>=0)wolfNet.room.players[i]=n;else wolfNet.room.players.push(n)}
 function wolfOnData(conn,d){if(!d||typeof d!=="object")return;if(wolfNet.isHost){if(d.type==="join"){wolfUpsertPlayer(d.player);wolfNet.conns.set(d.player.userId,conn);wolfBroadcast();return}if(d.type==="ready"){let p=wolfNet.room?.players.find(x=>x.userId===d.userId);if(p){p.ready=!!d.ready;wolfBroadcast()}return}}else{if(d.type==="state"){wolfNet.room=d.room;wolfNet.code=d.room?.code||wolfNet.code;renderWolfRoom();return}if(d.type==="secret"){wolfNet.mySecrets=d.secrets||{};renderWolfRoom();return}if(d.type==="notice"){toast(d.text||"")}}}
 function wolfPublicRoom(){if(!wolfNet.room)return null;return cp(wolfNet.room)}
 function wolfBroadcast(){if(!wolfNet.isHost||!wolfNet.room)return;let msg={type:"state",room:wolfPublicRoom()};for(let c of wolfNet.conns.values())if(c.open)try{c.send(msg)}catch{};renderWolfRoom()}
 function wolfSelectedCount(){return (wolfNet.room?.players||[]).reduce((n,p)=>n+(p.chars?.length||0),0)}
-function wolfConnectHost(code){wolfNet.code=code;wolfNet.isHost=true;wolfNet.room={code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());wolfNet.room.players[0].ready=false;let id="currywolf-"+code.toLowerCase();wolfStatus("正在创建房间…");wolfNet.peer=new Peer(id,{debug:0});wolfNet.peer.on("open",()=>{wolfRoomConnText("房主在线");page("wolfRoom");renderWolfRoom();wolfBroadcast()});wolfNet.peer.on("connection",conn=>wolfBindConn(conn,true));wolfNet.peer.on("error",e=>{console.warn(e);wolfStatus(e?.type==="unavailable-id"?"邀请码撞车了，请再创建一次":"创建失败，请检查网络")})}
-function wolfJoinHost(code){wolfNet.code=code;wolfNet.isHost=false;wolfStatus("正在连接房主…");wolfNet.peer=new Peer(undefined,{debug:0});wolfNet.peer.on("open",()=>{let conn=wolfNet.peer.connect("currywolf-"+code.toLowerCase(),{reliable:true,serialization:"json"});wolfNet.conn=conn;wolfBindConn(conn,false);conn.on("open",()=>{conn.send({type:"join",player:wolfPayload()});wolfRoomConnText("已连接房主");page("wolfRoom")})});wolfNet.peer.on("error",e=>{console.warn(e);wolfStatus("加入失败："+(e?.type||"网络异常"))})}
+function wolfConnectHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=true;wolfNet.room={code,hostUserId:wolfNet.userId,players:[],game:null};wolfUpsertPlayer(wolfPayload());wolfNet.room.players[0].ready=false;let id="currywolf-"+code.toLowerCase();wolfStatus("正在创建房间…");wolfNet.peer=new Peer(id,wolfPeerOptions());wolfBindPeerEvents(wolfNet.peer,true);wolfNet.peer.on("open",()=>{wolfStatus("房间已创建");wolfRoomConnText("房主在线 · 等待其他用户");page("wolfRoom");renderWolfRoom();wolfBroadcast()});wolfNet.peer.on("connection",conn=>{wolfRoomConnText("发现新设备，正在建立直连…");wolfBindConn(conn,true)});wolfNet.peer.on("error",e=>{console.warn("wolf peer",e);let msg=wolfPeerErrorText(e,true);wolfStatus(msg);if(e?.type!=="unavailable-id")wolfRoomConnText(msg)})}
+function wolfJoinHost(code){wolfNet.manualClose=false;wolfNet.code=code;wolfNet.isHost=false;wolfNet.joinAttempts=0;wolfStatus("正在连接房主…");wolfNet.peer=new Peer(undefined,wolfPeerOptions());wolfBindPeerEvents(wolfNet.peer,false);wolfNet.peer.on("open",()=>{wolfStatus("已接入信令，正在建立 P2P…");wolfOpenJoinConn()});wolfNet.peer.on("error",e=>{console.warn("wolf peer",e);let msg=wolfPeerErrorText(e,false);wolfStatus(msg);wolfRoomConnText(msg);if(["network","socket-error","socket-closed","server-error","webrtc"].includes(e?.type))wolfScheduleJoinRetry(e?.type)})}
 function renderWolfRoom(){let r=wolfNet.room;if(!r)return;$("#wolfRoomCode").textContent=r.code||"------";wolfRoomConnText(wolfNet.isHost?`房主 · ${wolfNet.conns.size} 个远端用户`:(wolfNet.conn?.open?"已连接房主":"连接中"));let host=$("#wolfRoomPlayers");if(host)host.innerHTML=(r.players||[]).map(p=>`<div class="wolfRoomUser"><div class="wolfRoomUserTop"><div class="wolfRoomUserName">${esc(p.label||"玩家")}${p.userId===r.hostUserId?'<span class="wolfOwnerTag">房主</span>':""}</div><span class="wolfReady ${p.ready?"on":""}">${p.ready?"已准备":"未准备"}</span></div><div class="wolfCharWrap">${(p.chars||[]).map(c=>`<span class="wolfCharChip">${esc(c.name)}</span>`).join("")||"<span class=\"tiny\">没有 Char</span>"}</div></div>`).join("");let me=(r.players||[]).find(p=>p.userId===wolfNet.userId);wolfNet.localReady=!!me?.ready;let rb=$("#wolfReadyBtn");if(rb){rb.textContent=wolfNet.localReady?"取消准备":"准备";rb.disabled=!!r.game?.started}let sb=$("#wolfStartBtn");if(sb){sb.style.display=wolfNet.isHost&&!r.game?.started?"":"none";let n=wolfSelectedCount(),all=(r.players||[]).length>0&&(r.players||[]).every(p=>p.ready);sb.disabled=!(n>=6&&n<=12&&all)}let hint=$("#wolfStartHint");if(hint)hint.textContent=`当前 ${wolfSelectedCount()} 个 Char · ${(r.players||[]).filter(p=>p.ready).length}/${(r.players||[]).length} 个用户已准备 · 支持 6–12 人`;let started=!!r.game?.started;$("#wolfRoomBeforeGame").style.display=started?"none":"";$("#wolfGamePanel").style.display=started?"":"none";if(started)renderWolfGame()}
 function wolfRolesFor(n){let a=[];if(n<=6)a=["wolf","wolf","seer","witch"];else if(n===7)a=["wolf","wolf","seer","witch","hunter"];else if(n===8)a=["wolf","wolf","seer","witch","hunter","guard"];else if(n===9)a=["wolf","wolf","wolf","seer","witch","hunter"];else a=["wolf","wolf","wolf","seer","witch","hunter","guard"];while(a.length<n)a.push("villager");return a}
 function wolfShuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -8454,4 +8577,31 @@ body.phoneActive .chatPage .mediaPicker{
  ensure();
 })();
 </script>
+
+<script id="truth-online-p2p">
+(function(){
+let T={peer:null,conn:null,conns:new Map(),isHost:false,code:'',room:null,uid:localStorage.getItem('wp2_truth_uid')||('tu_'+uuid()),ready:false,busy:false};try{localStorage.setItem('wp2_truth_uid',T.uid)}catch{}
+const $id=x=>document.getElementById(x);function userName(){let m=activeMask();return m?.userName||m?.name||'User'}function profile(c){let x=c?.character||{};return String(x.description||x.rawText||x.personality||'').slice(0,12000)}
+function code(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s}function selected(){return document.querySelector('#toCharPicker input:checked')?.value||''}
+function renderPicker(){let e=$id('toCharPicker');e.innerHTML=contacts.length?contacts.map(c=>`<label class="toChar"><input type="radio" name="tochar" value="${esc(c.id)}"><span>${esc(c.name)}</span></label>`).join(''):'<div class="empty">还没有联系人</div>'}
+function payload(){let id=selected(),c=contacts.find(x=>x.id===id);return {userId:T.uid,label:userName(),ready:false,user:{id:T.uid+':user',ownerId:T.uid,type:'user',name:userName()},char:c?{id:T.uid+':char',ownerId:T.uid,type:'char',name:c.name,avatar:c.avatar||'',profile:profile(c)}:null}}
+function close(){try{T.conn?.close()}catch{};for(let c of T.conns.values())try{c.close()}catch{};try{T.peer?.destroy()}catch{};T.peer=null;T.conn=null;T.conns.clear();T.room=null;T.isHost=false;T.code='';T.ready=false}
+function upsert(p){let i=T.room.players.findIndex(x=>x.userId===p.userId),old=i>=0?T.room.players[i]:null;p.ready=old?.ready||false;if(i>=0)T.room.players[i]=p;else T.room.players.push(p)}
+function bind(c){c.on('data',d=>onData(c,d));c.on('close',()=>{if(T.isHost){for(let [u,x] of T.conns)if(x===c){T.conns.delete(u);if(!T.room?.game?.started)T.room.players=T.room.players.filter(p=>p.userId!==u);broadcast();break}}else{$id('toConn').textContent='与房主断开'}})}
+function onData(c,d){if(!d)return;if(T.isHost){if(d.type==='join'){upsert(d.player);T.conns.set(d.player.userId,c);broadcast()}else if(d.type==='ready'){let p=T.room.players.find(x=>x.userId===d.userId);if(p){p.ready=d.ready;broadcast()}}else if(d.type==='answer'){submitAnswer(d.userId,d.text)}}else if(d.type==='state'){T.room=d.room;render()}}
+function broadcast(){if(!T.isHost)return;for(let c of T.conns.values())if(c.open)c.send({type:'state',room:T.room});render()}
+function create(){if(typeof Peer!=='function')return toast('联机组件加载失败，请检查网络');if(!selected())return toast('先选择 1 个 Char');close();T.isHost=true;T.code=code();T.room={code:T.code,hostUserId:T.uid,mode:$id('toMode').value,players:[],game:null};upsert(payload());T.peer=new Peer('currytruth-'+T.code.toLowerCase(),{debug:0});$id('toStatus').textContent='正在创建房间…';T.peer.on('open',()=>{page('truthOnlineRoom');render();broadcast()});T.peer.on('connection',c=>bind(c));T.peer.on('error',()=>toast('创建失败，请重试'))}
+function join(){if(typeof Peer!=='function')return toast('联机组件加载失败，请检查网络');if(!selected())return toast('先选择 1 个 Char');let c=$id('toJoinCode').value.trim().toUpperCase().replace(/[^A-Z2-9]/g,'');if(c.length!==6)return toast('请输入 6 位邀请码');close();T.code=c;T.peer=new Peer(undefined,{debug:0});$id('toStatus').textContent='正在连接房主…';T.peer.on('open',()=>{T.conn=T.peer.connect('currytruth-'+c.toLowerCase(),{reliable:true,serialization:'json'});bind(T.conn);T.conn.on('open',()=>{T.conn.send({type:'join',player:payload()});page('truthOnlineRoom')})});T.peer.on('error',()=>toast('加入失败，请检查邀请码和网络'))}
+function participants(){return (T.room?.players||[]).flatMap(p=>[p.user,p.char].filter(Boolean))}function mine(x){return x?.ownerId===T.uid}function start(){if(!T.isHost)return;let ps=T.room.players||[];if(ps.length<2)return toast('至少需要 2 名真人用户');if(!ps.every(p=>p.ready))return toast('还有人没准备');T.room.game={started:true,round:0,current:null,history:[]};next()}
+function qFor(mode){let m=mode==='mixed'?(Math.random()<.5?'truth':'dare'):mode;let arr=m==='truth'?TRUTH_Q:DARE_Q;return {kind:m,text:arr[Math.floor(Math.random()*arr.length)]}}
+function next(){if(!T.isHost||T.busy)return;let g=T.room.game,ps=participants();if(!g||!ps.length)return;let last=g.current?.targetId,opts=ps.filter(x=>x.id!==last);let target=opts[Math.floor(Math.random()*opts.length)]||ps[0],q=qFor(T.room.mode);g.round++;g.current={targetId:target.id,targetName:target.name,targetType:target.type,ownerId:target.ownerId,kind:q.kind,question:q.text,answer:'',waiting:true};broadcast();if(target.type==='char')autoChar(target,q)}
+async function autoChar(ch,q){T.busy=true;try{let others=participants().filter(x=>x.id!==ch.id).map(x=>x.name).join('、');let hist=(T.room.game.history||[]).slice(-8).map(x=>`${x.targetName}｜${x.kind==='truth'?'真心话':'大冒险'}：${x.question}\n回答：${x.answer}`).join('\n');let prompt=`你正在参加多人真心话大冒险。你必须完全以角色本人身份回应，不要解释规则，不要提AI。\n角色：${ch.name}\n角色设定：${ch.profile||'按自然人格表现'}\n现场其他人：${others}\n本轮类型：${q.kind==='truth'?'真心话':'大冒险'}\n题目：${q.text}\n最近记录：\n${hist||'无'}\n请给出自然、符合人设的直接回应。真心话直接回答；大冒险则描述/说出角色实际执行的内容。控制在120字以内。`;let ans=await api([{role:'user',content:prompt}],null,'truth-online-char');finish(ans||'……')}catch(e){console.warn(e);finish('……（这一轮没有成功生成回应）')}finally{T.busy=false}}
+function finish(text){let g=T.room?.game;if(!T.isHost||!g?.current?.waiting)return;let cur=g.current;cur.answer=String(text||'').trim()||'（跳过）';cur.waiting=false;g.history.push({...cur});broadcast()}
+function submitAnswer(uid,text){let cur=T.room?.game?.current;if(!T.isHost||!cur?.waiting||cur.targetType!=='user'||cur.ownerId!==uid)return;finish(text)}
+function render(){let r=T.room;if(!r)return;$id('toCode').textContent=r.code||T.code;$id('toConn').textContent=T.isHost?`房主 · ${T.conns.size} 个远端用户`:(T.conn?.open?'已连接房主':'连接中');$id('toPlayers').innerHTML=(r.players||[]).map(p=>`<div class="toRoomUser"><b>${esc(p.label)}${p.userId===r.hostUserId?' · 房主':''}</b><div class="toPair"><span class="toChip">User：${esc(p.user?.name||'User')}</span><span>＋</span><span class="toChip">Char：${esc(p.char?.name||'未选择')}</span><span class="toReady ${p.ready?'on':''}">${p.ready?'已准备':'未准备'}</span></div></div>`).join('');let me=r.players.find(p=>p.userId===T.uid);T.ready=!!me?.ready;$id('toReady').textContent=T.ready?'取消准备':'准备';let started=!!r.game?.started;$id('toBefore').style.display=started?'none':'';$id('toGame').style.display=started?'':'none';$id('toStart').style.display=T.isHost&&!started?'':'none';$id('toStart').disabled=!(r.players.length>=2&&r.players.every(p=>p.ready));$id('toHint').textContent=`${r.players.length} 名真人用户 · ${r.players.length*2} 名参与者 · 每人 User + 1 Char`;if(started)renderGame()}
+function renderGame(){let g=T.room.game,c=g.current;$id('toTurn').textContent=`第 ${g.round} 轮 · ${c?.kind==='truth'?'真心话':'大冒险'}`;$id('toTarget').textContent=c?`抽到：${c.targetName}`:'等待开始';$id('toQuestion').textContent=c?.question||'';let box=$id('toAnswerBox');if(c?.waiting&&c.targetType==='user'&&mine(c))box.innerHTML=`<textarea id="toUserAnswer" placeholder="由你本人回答 / 描述完成的大冒险…"></textarea><button class="btn primary" id="toSubmitAnswer" style="margin-top:7px">提交</button>`;else if(c?.waiting)box.innerHTML=`<div class="wolfStatus">${c.targetType==='char'?'Char 正在思考回应…':'等待被抽中的 User 回答…'}</div>`;else box.innerHTML=`<div class="toHistory"><b>${esc(c?.targetName||'')}</b>：${esc(c?.answer||'')}</div>`;let sub=$id('toSubmitAnswer');if(sub)sub.onclick=()=>{let t=$id('toUserAnswer').value.trim();if(!t)return toast('先写点什么');if(T.isHost)submitAnswer(T.uid,t);else if(T.conn?.open)T.conn.send({type:'answer',userId:T.uid,text:t})};$id('toHostBtns').innerHTML=T.isHost&&!c?.waiting?'<button class="btn primary" id="toNext">下一轮</button>':'';let nx=$id('toNext');if(nx)nx.onclick=next;$id('toHistory').innerHTML=(g.history||[]).slice().reverse().map(x=>`<div class="toHistory"><b>${esc(x.targetName)} · ${x.kind==='truth'?'真心话':'大冒险'}</b><br>${esc(x.question)}<br><span>${esc(x.answer)}</span></div>`).join('')||'<div class="empty">还没有记录</div>'}
+$id('truthOnlineTile').onclick=()=>{renderPicker();$id('toStatus').textContent='等待操作';page('truthOnlineLobby')};$id('toLobbyBack').onclick=()=>{page('gameHall');renderGameHall()};$id('toCreate').onclick=create;$id('toJoin').onclick=join;$id('toReady').onclick=()=>{let v=!T.ready;if(T.isHost){let p=T.room.players.find(x=>x.userId===T.uid);p.ready=v;broadcast()}else T.conn?.send({type:'ready',userId:T.uid,ready:v})};$id('toStart').onclick=start;$id('toCopy').onclick=async()=>{try{await navigator.clipboard.writeText(T.room?.code||T.code);toast('邀请码已复制')}catch{prompt('复制邀请码',T.room?.code||T.code)}};$id('toExit').onclick=()=>{let h=T.isHost;close();page('gameHall');renderGameHall();toast(h?'房间已关闭':'已退出房间')};
+})();
+</script>
+
 </body></html>
